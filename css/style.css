@@ -1,0 +1,653 @@
+/* Styling Sheet for the Front Page - Updated Blue & Yellow Theme */
+
+body {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    background-color: #f4f6f9;
+}
+
+/* ================================================== */
+/* NAVBAR DESIGN                                      */
+/* ================================================== */
+.navbar {
+    background-color: #1565C0; /* Primary Deep Blue */
+    padding: 12px 0;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.navbar a {
+    color: #fff !important;
+    text-decoration: none;
+    margin: 0 15px;
+    transition: color 0.3s ease;
+    font-size: 15px;
+}
+
+/* Navbar Brand (Logo Text) */
+.navbar-brand {
+    font-size: 22px;
+    font-weight: 700;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    position: relative;
+    right: 40px; /* Desktop Adjustment */
+}
+
+.navbar-brand span {
+    color: #FFD54F; /* Yellow Accent */
+}
+
+/* Active & Hover Links */
+.navbar-nav .nav-link.active,
+.navbar-nav .nav-link:hover {
+    color: #FFD54F !important;
+    transform: translateY(-2px);
+}
+
+/* Sticky Navbar Effect */
+.navbar.sticky-top {
+    z-index: 1030; 
+    background-color: #0D47A1 !important; /* Darker Blue when sticky */
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+/* Login Button in Navbar */
+.navbar .btn-outline-light {
+    border: 2px solid #FFD54F !important;
+    color: #FFD54F !important;
+    font-weight: 600;
+    border-radius: 50px;
+    padding: 6px 20px;
+}
+
+.navbar .btn-outline-light:hover {
+    background-color: #FFD54F !important;
+    color: #1565C0 !important;
+    transform: translateY(-2px);
+}
+
+/* ================================================== */
+/* HERO SECTION (HOME)                                */
+/* ================================================== */
+.hero {
+    background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('../assets/img/barangay langkaan post.jpg');
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+    height: 95vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: white;
+    text-align: center;
+    padding: 0 20px;
+}
+
+.hero h1 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.hero p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+}
+
+/* Hero Buttons */
+.hero .btn-success {
+    background-color: #FFD54F !important;
+    border: 2px solid #FFD54F !important;
+    color: #0D47A1 !important;
+    font-weight: bold;
+    padding: 12px 40px;
+    font-size: 18px;
+    border-radius: 50px;
+    box-shadow: 0 4px 15px rgba(255, 213, 79, 0.4);
+    transition: all 0.3s ease;
+}
+
+.hero .btn-success:hover {
+    background-color: #FFCA28 !important;
+    transform: scale(1.05);
+}
+
+.hero .btn-light {
+    background-color: transparent !important;
+    border: 2px solid #ffffff !important;
+    color: #ffffff !important;
+    font-weight: 600;
+    padding: 12px 40px;
+    font-size: 18px;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+}
+
+.hero .btn-light:hover {
+    background-color: #ffffff !important;
+    color: #1565C0 !important;
+    transform: translateY(-3px);
+}
+
+.text-success{
+    color: #FFD54F !important;
+}
+/* ================================================== */
+/* CARDS (SERVICES & ISSUANCE)                        */
+/* ================================================== */
+.card-custom {            
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: #fff;
+    padding: 25px;
+    text-align: center;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-custom:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 30px rgba(21, 101, 192, 0.15);
+}
+
+.card-custom img {
+    margin-bottom: 15px;
+    max-height: 120px;
+    object-fit: contain;
+}
+
+.card-custom h5 {
+    color: #1565C0;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+/* Button inside Cards (Issuance) */
+.card-custom .btn {
+    margin-top: auto;
+    border-radius: 50px;
+    padding: 8px 25px;
+    font-weight: 600;
+}
+
+/* ================================================== */
+/* HEADER BANNER (ISSUANCE/OFFICIALS)                 */
+/* ================================================== */
+.header-banner {
+    padding: 80px 10%;
+    background: linear-gradient(rgba(13, 71, 161, 0.9), rgba(13, 71, 161, 0.8)), url("../assets/img/barangay-gusa.jpg") center/cover no-repeat;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 250px;
+}
+
+.header-banner img {
+    width: 110px;
+    height: 110px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+}
+
+.header-text {
+    text-align: center;
+    display: flex; 
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.header-banner h1 {
+    font-weight: 800;
+    font-size: 3rem;
+    margin: 0;
+    line-height: 1;
+}
+
+.header-banner h3 {
+    color: #FFD54F;
+    font-weight: 700;
+    font-size: 2.5rem;
+    margin: 0;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+/* ================================================== */
+/* CALENDAR SECTION (RESTORED)                        */
+/* ================================================== */
+.calendar-container {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 30px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    overflow-x: hidden;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.calendar-header h2 {
+    margin: 0;
+    font-size: 22px;
+    color: #1565C0;
+}
+
+.calendar-header button {
+    background: #1565C0;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.calendar-header button:hover {
+    background: #0D47A1;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    text-align: center;
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+/* Header Cells (Mon, Tue, etc) */
+.calendar-grid div { 
+    font-weight: bold; 
+    padding: 10px 0;
+}
+
+.calendar-day {
+    padding: 20px;
+    background: #f7f7f7;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 500;
+}
+
+.calendar-day:hover {
+    transform: scale(1.05);
+    background: #e3f2fd;
+}
+
+.calendar-day.today {
+    background: #FFD54F;
+    color: #333;
+    font-weight: bold;
+}
+
+.calendar-day.active {
+    background: #bbdefb;
+    border: 1px solid #1565C0;
+    font-weight: bold;
+}
+
+.calendar-day.event {
+    background-color: #1565C0;
+    color: white;
+    font-weight: bold;
+}
+
+/* Timeline & Events */
+.events {
+    margin-top: 20px;
+    background: #ffffff;
+    padding: 16px;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    width: 100%;
+}
+
+.timeline {
+    background: #f8f9f8;
+    padding: 16px 20px;
+    font-size: 12px;
+    height: 400px;  
+    overflow-y: auto;
+    box-shadow: inset 0 2px 8px rgb(0 0 0 / 0.1);
+    line-height: 1.35;
+}
+
+.timeline-list {
+    list-style: none;
+    margin: 0;
+    padding-left: 30px;
+    position: relative;
+}
+
+.timeline-list li {
+    margin-bottom: 25px;
+    position: relative;
+}
+
+/* Timeline Line */
+.timeline-list li::before {
+    content: "";
+    position: absolute;
+    left: -18px;     
+    top: 0;
+    width: 4px;
+    height: 100%;     
+    background: #FFD54F;
+    border-radius: 2px;
+}
+
+.timeline-list li strong {
+    display: block;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1565C0;
+}
+
+.timeline-list li small {
+    display: block;
+    margin-top: 2px;
+    font-size: 13px;
+    color: #555;
+}
+
+/* ================================================== */
+/* OFFICIALS PAGE SPECIFIC                            */
+/* ================================================== */
+.official-card {
+    width: 240px;            
+    border-radius: 12px;
+    background: #ffffff;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.3s;
+}
+
+.official-card:hover {
+    transform: translateY(-5px);
+}
+
+.official-img-box {
+    width: 200px;          
+    height: 260px;         
+    border-radius: 15px;   
+    overflow: hidden;
+    background: #e3f2fd;
+    border: 4px solid #FFD54F;
+    margin-bottom: 15px;
+}
+
+.official-img-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;      
+}
+
+.official-page-title {
+    font-size: 1.2rem;
+    color: #1565C0;
+    font-weight: bold;
+}
+
+/* ================================================== */
+/* GENERAL COMPONENTS (FORMS, ANNOUNCEMENTS)          */
+/* ================================================== */
+
+/* Announcements on Home */
+.home-announce-card {
+    border-radius: 12px;
+    overflow: hidden;
+    height: 100%;
+    background: #fff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+}
+.home-announce-img {
+    height: 200px;
+    width: 100%;
+    object-fit: cover;
+}
+.home-announce-title {
+    color: #1565C0;
+    font-weight: bold;
+    margin-top: 15px;
+}
+.home-date {
+    background-color: #FFD54F !important;
+    color: #333 !important;
+    font-weight: bold;
+}
+
+/* Forms (Login/Register) */
+.registration-form {
+    max-width: 800px;
+    margin: 60px auto;
+    padding: 40px;
+    background: #fff;
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    border-top: 6px solid #1565C0;
+}
+
+.registration-form h2 {
+    color: #1565C0;
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.registration-form input, select, textarea {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    margin-bottom: 15px;
+}
+
+.registration-form button {
+    width: 100%;
+    background-color: #1565C0;
+    color: white;
+    padding: 12px;
+    font-weight: bold;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+}
+.registration-form button:hover {
+    background-color: #0D47A1;
+}
+
+/* ================================================== */
+/* FOOTER (RESTORED LAYOUT)                           */
+/* ================================================== */
+footer {
+    background: #0D47A1;
+    color: #fff;
+    padding: 40px 40px 20px;
+    margin-top: 80px;
+}
+
+.footer-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.footer-links h4 {
+    margin-bottom: 10px;
+    font-size: 16px;
+    border-bottom: 2px solid #FFD54F;
+    display: inline-block;
+    padding-bottom: 5px;
+}
+
+.footer-links ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-links ul li {
+    margin: 6px 0;
+}
+
+.footer-links ul li a {
+    color: #e3f2fd;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.footer-links ul li a:hover {
+    color: #FFD54F;
+}
+
+.footer-bottom {
+    text-align: center;
+    margin-top: 40px;
+    font-size: 13px;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    padding-top: 15px;
+}
+
+/* ================================================== */
+/* MOBILE RESPONSIVE FIXES                            */
+/* ================================================== */
+
+/* TABLET & MOBILE (Below 991px) */
+@media (max-width: 991px) {
+    /* Center the Logo & Remove Offset */
+    .navbar-brand {
+        right: 0 !important;
+        margin: 0 !important;
+        text-align: left;
+    }
+    
+    /* Center Menu Items */
+    .navbar-nav {
+        text-align: center;
+        margin-top: 20px;
+    }
+    
+    .navbar a {
+        margin: 5px 0;
+    }
+    
+    /* Login Button inside Navbar */
+    .navbar .btn-outline-light {
+        width: 100%;
+        margin-top: 10px;
+        display: block;
+    }
+}
+
+
+/* Mobile Phones (Below 768px) */
+@media (max-width: 768px) {
+    /* 1. Navbar Brand Font Size */
+    .navbar-brand {
+        font-size: 20px !important;
+    }
+    .navbar-brand img {
+        width: 45px;
+        height: 45px;
+    }
+
+    /* 2. Hero Section */
+    .hero {
+        padding-top: 100px;
+        padding-bottom: 50px;
+        height: auto !important;
+        min-height: 90vh;
+    }
+    .hero h1 { font-size: 2.2rem; }
+    
+    /* Stack Buttons */
+    .hero div.mt-3 {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        width: 100%;
+        max-width: 300px;
+        margin: 0 auto;
+    }
+    .hero .btn { width: 100%; margin: 0; }
+
+    /* 3. Header Banner (Issuance/Officials) */
+    .header-banner {
+        flex-direction: column; 
+        padding: 40px 20px;
+        text-align: center;
+    }
+    
+    .header-banner img {
+        width: 80px;
+        height: 80px;
+        margin: 10px 0;
+    }
+
+    .header-text {
+        order: 2; 
+        margin: 15px 0;
+    }
+    
+    .header-banner h1 { font-size: 2rem; }
+    .header-banner h3 { font-size: 1.5rem; }
+
+    /* Reset offsets */
+    .header-banner .right-logo, 
+    .header-banner .left-logo {
+        position: static !important;
+    }
+
+    /* 4. Issuance Cards Stack */
+    .container {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+    
+    .card-custom {
+        width: 100% !important; /* Force full width on mobile */
+        max-width: 350px; 
+        margin-bottom: 20px;
+    }
+    
+    /* 5. Footer Stack */
+    .footer-container {
+        flex-direction: column;
+        text-align: center;
+        gap: 40px;
+    }
+    
+    .footer-links h4 {
+        border-bottom: 2px solid #FFD54F;
+        display: inline-block;
+        margin-bottom: 15px;
+    }
+}

@@ -1,0 +1,73 @@
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 14px 22px 14px 50px; /* extra space for icon */
+  border-radius: 10px;
+
+  font-size: 15px;
+  font-weight: 500;
+
+  color: white;
+  background: #d9534f; /* default */
+
+  opacity: 0;
+  transform: translateY(-12px);
+  pointer-events: none;
+
+  transition: opacity .3s ease, transform .3s ease;
+  z-index: 9999;
+
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+
+  position: fixed;
+}
+
+/* Show animation */
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ICON (default hidden unless type is applied) */
+.toast::before {
+  content: "";
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+}
+
+/* SUCCESS */
+.toast.success {
+  background: #4CAF50 !important;
+}
+.toast.success::before {
+  content: "✔";
+}
+
+/* ERROR */
+.toast.error {
+  background: #E53935 !important;
+}
+.toast.error::before {
+  content: "✖";
+}
+
+/* INFO */
+.toast.info {
+  background: #1E88E5 !important;
+}
+.toast.info::before {
+  content: "ℹ";
+}
+
+/* WARNING */
+.toast.warn {
+  background: #FFB300 !important;
+  color: #000 !important;
+}
+.toast.warn::before {
+  content: "⚠";
+}
