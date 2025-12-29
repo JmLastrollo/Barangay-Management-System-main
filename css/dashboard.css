@@ -1,7 +1,18 @@
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
 body, html { overflow-x: hidden;}
 body { background: #f3f6f5; min-height: 100vh; display: flex; }
+/* I-add ito sa iyong CSS file o sa <style> sa head */
 
+body.modal-open {
+    padding-right: 0 !important;
+    overflow-y: auto !important; /* Pinapanatili ang scrollbar para di gumalaw */
+}
+
+/* Optional: Kung gusto mo hidden ang scrollbar pero walang white gap */
+body.modal-open .sidebar, 
+body.modal-open .header {
+    padding-right: 0 !important;
+}
 .sidebar {
   width: 260px;
   background: #ffffff;

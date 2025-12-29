@@ -5,7 +5,7 @@ require_once "db_connect.php";
 if (isset($_POST["id"])) {
     $id = $_POST["id"];
     try {
-        // Set status to 'archived' (lowercase based on DB)
+        // Set status to 'archived' (lowercase)
         $sql = "UPDATE announcements SET status = 'archived' WHERE announcement_id = :id";
         $stmt = $conn->prepare($sql);
         $stmt->execute([':id' => $id]);

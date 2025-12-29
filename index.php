@@ -47,7 +47,7 @@ try {
                  <a href="pages/resident/resident_dashboard.php" class="btn btn-success">My Account</a>
             <?php endif; ?>
         <?php else: ?>
-            <a href="resident_login.php" class="btn btn-success">Login Now</a>
+            <a href="login.php" class="btn btn-success">Login Now</a>
         <?php endif; ?>
     </div>
 </section>

@@ -22,6 +22,36 @@ try {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="icon" type="image/png" href="assets/img/BMS.png">
     <link rel="stylesheet" href="css/style.css?v=7" />
+
+    <style>
+        /* Pinapalitan nito ang default na bilog na style */
+        .official-img-wrapper {
+            width: 100% !important;         /* Sakupin ang buong width ng card padding */
+            max-width: 100% !important;     /* Tanggalin ang limit sa lapad */
+            height: 350px !important;       /* Taasan ang height para maging Portrait/Half-body */
+            border-radius: 8px !important;  /* Gawing rounded rectangle imbis na bilog */
+            overflow: hidden;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Optional: konting shadow para umangat */
+        }
+
+        .official-img {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;       /* Siguraduhing napupuno ang box nang hindi nai-stretch */
+            object-position: top center !important; /* FOCUS SA TAAS: Para laging kita ang mukha/ulo */
+        }
+
+        /* Optional: Ayusin ang card height */
+        .official-card {
+            border: none;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+        }
+        .official-card:hover {
+            transform: translateY(-5px);
+        }
+    </style>
 </head>
 <body>
 
@@ -40,20 +70,27 @@ try {
     <div class="container">
         <h3 class="fw-bold mb-4 text-center">Elected <span class="text-success">Officials</span></h3>
         
-        <div class="row g-4 justify-content-center">
+        <div class="row g-2 justify-content-center">
             <?php if (count($officials) > 0): ?>
                 <?php foreach ($officials as $off): ?>
                     <div class="col-md-6 col-lg-3 d-flex">
                         <div class="card official-card h-100 w-100">
-                            <div class="card-body d-flex flex-column align-items-center text-center p-4">
-                                <div class="official-img-wrapper mb-3">
+                            <div class="card-body d-flex flex-column align-items-center text-center p-3">
+                                
+                                <div class="official-img-wrapper">
                                     <?php 
                                         $imgSrc = !empty($off->image) ? "uploads/officials/" . $off->image : "assets/img/profile_placeholder.png";
                                     ?>
                                     <img src="<?= htmlspecialchars($imgSrc) ?>" class="official-img" alt="Official">
                                 </div>
-                                <h5 class="official-name mb-1"><?= htmlspecialchars($off->full_name) ?></h5>
-                                <p class="official-position mb-0 small"><?= htmlspecialchars($off->position) ?></p>
+
+                                <h5 class="official-name fw-bold mb-1"><?= htmlspecialchars($off->full_name) ?></h5>
+                                <p class="official-position text-success mb-0 small text-uppercase fw-bold"><?= htmlspecialchars($off->position) ?></p>
+                                
+                                <?php if(!empty($off->committee)): ?>
+                                    <small class="text-muted mt-2 fst-italic"><?= htmlspecialchars($off->committee) ?></small>
+                                <?php endif; ?>
+
                             </div>
                         </div>
                     </div>

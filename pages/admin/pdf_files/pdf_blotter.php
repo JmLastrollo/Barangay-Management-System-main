@@ -25,8 +25,8 @@ function formatDateText($date) {
 
 class PDF extends FPDF {
     function Header() {
-        $this->Image('../../../assets/img/cdologo.png', 10, 10, 25);
-        $this->Image('../../../assets/img/barangaygusalogo.png', 175, 10, 25);
+        $this->Image('../../../assets/img/dasma logo-modified.png', 10, 10, 25);
+        $this->Image('../../../assets/img/Langkaan 2 Logo-modified.png', 175, 10, 25);
 
         $this->SetY(12);
         $this->SetFont('Times','',10); // Times New Roman

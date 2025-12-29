@@ -1,10 +1,10 @@
 <?php
-require_once "db_connect.php"; 
+require_once "db_connect.php";
 
 header("Content-Type: application/json");
 
 try {
-    // Select all non-archived announcements, newest first
+    // Select ALL active announcements for the Admin Table (Latest first)
     $sql = "SELECT * FROM announcements 
             WHERE status != 'archived' 
             ORDER BY date DESC, time DESC";

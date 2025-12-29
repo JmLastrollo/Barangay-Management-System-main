@@ -40,7 +40,7 @@
                     </li>
                 <?php else: ?>
                     <li class="nav-item ms-2">
-                        <a class="btn btn-outline-light rounded-pill px-4" href="resident_login.php">Login</a>
+                        <a class="btn btn-outline-light rounded-pill px-4" href="login.php">Login</a>
                     </li>
                 <?php endif; ?>
             </ul>

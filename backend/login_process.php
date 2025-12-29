@@ -1,15 +1,16 @@
 <?php
 session_start();
-// TANDAAN: Dahil nasa loob tayo ng 'backend' folder, kailangan nating lumabas 
-// ng isang beses (../) para puntahan ang includes folder.
-require_once '../backend/db_connect.php'; 
+
+// 1. DB CONNECTION
+// Dahil nasa loob na tayo ng 'backend' folder at ang db_connect.php ay nandito rin:
+require_once 'db_connect.php'; 
 
 // --- CONFIGURATION: PATHS ---
-// Ito ang mga pupuntahan kapag tapos na mag-process
-$adminDashboard = '../pages/admin/admin_dashboard.php';
-$loginPage      = '../admin_login.php'; 
+$loginPage          = '../login.php'; // Updated: Iisa na lang ang login page
+$adminDashboard     = '../pages/admin/admin_dashboard.php';
+$residentDashboard  = '../pages/resident/resident_dashboard.php'; // Added: Path para sa residents
 
-// Function para sa Error Message at Redirect pabalik sa Login
+// Function para sa Error Message
 function redirectWithError($message, $location) {
     $_SESSION['toast'] = $message;
     $_SESSION['toast_type'] = 'error';
@@ -17,12 +18,12 @@ function redirectWithError($message, $location) {
     exit();
 }
 
-// 1. RECEIVE INPUTS
+// 2. RECEIVE INPUTS
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = trim($_POST['email']);
     $password = $_POST['password'];
 
-    // 2. VALIDATION
+    // VALIDATION
     if (empty($email) || empty($password)) {
         redirectWithError("Please fill in all fields.", $loginPage);
     }
@@ -30,32 +31,41 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try {
         // 3. DATABASE CHECK
         $stmt = $conn->prepare("SELECT * FROM users WHERE email = :email LIMIT 1");
-        $stmt->bindParam(':email', $email);
-        $stmt->execute();
+        $stmt->execute([':email' => $email]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         // 4. VERIFY USER & PASSWORD
         if ($user && password_verify($password, $user['password'])) {
             
-            // 5. CHECK ROLE (Dapat Admin o Staff lang ang makapasok dito)
-            // Tinanggal ko ang dependence sa $_POST['role'] para iwas hack.
-            // Sa database tayo titingin ng role.
-            $allowed_roles = ['Admin', 'Staff', 'Barangay Staff'];
+            // --- SET SESSION VARIABLES (Common sa lahat) ---
+            $_SESSION['user_id'] = $user['user_id'];
+            $_SESSION['role']    = $user['user_type']; // Assumed column name: 'user_type'
+            
+            // Check kung anong column name ang gamit mo para sa pangalan (username or full_name)
+            $_SESSION['username'] = $user['username'] ?? $user['full_name']; 
 
-            if (in_array($user['user_type'], $allowed_roles)) {
-                
-                // SUCCESS: Set Session
-                $_SESSION['user_id'] = $user['user_id'];
-                $_SESSION['role']    = $user['user_type'];
-                $_SESSION['username'] = $user['username'];
-                // $_SESSION['fullname'] = $user['fullname']; // Kung meron man
+            // 5. ROLE TRAFFIC ENFORCER (Dito nagkakahiwalay ang landas)
+            $role = $user['user_type'];
+            
+            // Listahan ng Admin Roles
+            $admin_roles = ['Admin', 'Staff', 'Barangay Staff'];
 
-                // Redirect to Dashboard
+            if (in_array($role, $admin_roles)) {
+                // KUNG ADMIN/STAFF -> Punta sa Admin Dashboard
                 header("Location: $adminDashboard");
                 exit();
 
+            } elseif ($role === 'Resident') {
+                // KUNG RESIDENT -> Punta sa Resident Dashboard
+                header("Location: $residentDashboard");
+                exit();
+
             } else {
-                redirectWithError("Access Denied: You are not an Admin.", $loginPage);
+                // KUNG WALANG ROLE -> Error
+                // Logout muna para malinis ang session
+                session_unset();
+                session_destroy();
+                redirectWithError("Access Denied: Invalid User Role.", $loginPage);
             }
 
         } else {
@@ -66,7 +76,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         redirectWithError("System Error: " . $e->getMessage(), $loginPage);
     }
 } else {
-    // Kapag in-access ang file na ito ng hindi nag-submit ng form
+    // Kapag in-access ang file na ito nang hindi nag-submit ng form
     header("Location: $loginPage");
     exit();
 }
