@@ -1,4 +1,18 @@
-<?php session_start(); ?>
+<?php 
+session_start(); 
+
+// --- IDAGDAG ITO ---
+if (isset($_SESSION['user_id'])) {
+    if (isset($_SESSION['role']) && ($_SESSION['role'] === 'Admin' || $_SESSION['role'] === 'Staff' || $_SESSION['role'] === 'Barangay Staff')) {
+        header("Location: pages/admin/admin_dashboard.php");
+        exit();
+    } else {
+        header("Location: pages/resident/resident_dashboard.php");
+        exit();
+    }
+}
+// -------------------
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -8,12 +22,12 @@
   <title>Resident Login</title>
   <link rel="stylesheet" href="css/login.css">
   <link rel="stylesheet" href="css/toast.css">
-  <link rel="icon" type="image/png" href="assets/img/BMS.png">
+  <link rel="icon" type="image/png" href="assets/img/Langkaan 2 Logo-modified.png">
 </head>
 <body>
 <div class="login-container">
   <div class="left">
-    <img src="assets/img/BMS.png" alt="Barangay Logo">
+    <img src="assets/img/Langkaan 2 Logo.png" alt="Barangay Logo">
   </div>
   <div class="right">
     <h2><b>Residency</b> Access</h2>

@@ -19,7 +19,7 @@ body {
 /* Left panel (green background with logo) */
 .left {
   flex: 1;
-  background: linear-gradient(135deg, #0c8c3a, #1a632c);
+  background: linear-gradient(135deg, #220c81, #b1a723);
   display: flex;
   justify-content: center;
   align-items: center;

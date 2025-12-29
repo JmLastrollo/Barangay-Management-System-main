@@ -19,12 +19,12 @@ require_once 'backend/config.php';
 <?php include 'includes/nav.php'; ?>
 
 <section class="header-banner">
-    <img src="assets/img/cdologo.png" class="left-logo" alt="left logo">
+    <img src="assets/img/dasma logo-modified.png" class="left-logo" alt="left logo">
     <div class="header-text">
         <h1>Barangay</h1> 
         <h3>Calendar</h3>
     </div>
-    <img src="assets/img/barangaygusalogo.png" class="right-logo" alt="right logo">
+    <img src="assets/img/Langkaan 2 Logo-modified.png" class="right-logo" alt="right logo">
 </section>
 
 <section class="calendar-container container py-5">

@@ -257,140 +257,158 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-function toggleSidebar() {
-    document.querySelector('.sidebar').classList.toggle('active');
-}
-
-function truncateText(text, maxLength = 40) {
-    if (!text) return "";
-    return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
-}
-
-function openViewModal(data) {
-    document.getElementById('v_title').textContent = data.title;
-    document.getElementById('v_details').textContent = data.details;
-    document.getElementById('v_location').textContent = data.location;
-    document.getElementById('v_date').textContent = data.date;
-    document.getElementById('v_time').textContent = data.time;
-    document.getElementById('v_image').src = data.image ? `../../uploads/announcements/${data.image}` : '';
-    new bootstrap.Modal(document.getElementById('viewModal')).show();
-}
-
-function openEditModal(button) {
-    document.getElementById('edit-id').value = button.dataset.id;
-    document.getElementById('edit-title').value = button.dataset.title;
-    document.getElementById('edit-details').value = button.dataset.details;
-    document.getElementById('edit-location').value = button.dataset.location;
-    document.getElementById('edit-date').value = button.dataset.date;
-    document.getElementById('edit-time').value = button.dataset.time;
-    
-
-    const editPreview = document.getElementById('edit-preview');
-    if(button.dataset.image){
-        editPreview.src = `../../uploads/announcements/${button.dataset.image}`;
-        editPreview.style.display = "block";
-    } else {
-        editPreview.style.display = "none";
+    // Sidebar Toggle
+    function toggleSidebar() {
+        document.querySelector('.sidebar').classList.toggle('active');
     }
-}
 
-function openArchiveModal(id) {
-    document.getElementById('a_id').value = id.$oid ?? id;
-    new bootstrap.Modal(document.getElementById('archiveModal')).show();
-}
-
-// Add Modal Image Preview
-document.getElementById("add-photo").addEventListener("change", function(event){
-    const file = event.target.files[0];
-    const preview = document.getElementById("add-preview");
-    if(file){
-        preview.src = URL.createObjectURL(file);
-        preview.style.display = "block";
-    } else {
-        preview.style.display = "none";
+    function truncateText(text, maxLength = 40) {
+        if (!text) return "";
+        return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
     }
-});
 
-// Edit Modal Image Preview
-document.getElementById("edit-photo").addEventListener("change", function(event){
-    const file = event.target.files[0];
-    const preview = document.getElementById("edit-preview");
-    if(file){
-        preview.src = URL.createObjectURL(file);
-        preview.style.display = "block";
+    // Modal Functions
+    function openViewModal(data) {
+        // Use || "" to safely handle empty values
+        document.getElementById('v_title').textContent = data.title || "No Title";
+        document.getElementById('v_details').textContent = data.details || "No Details";
+        document.getElementById('v_location').textContent = data.location || "N/A";
+        document.getElementById('v_date').textContent = data.date || "";
+        document.getElementById('v_time').textContent = data.time || "";
+        
+        const img = document.getElementById('v_image');
+        if (data.image) {
+            img.src = `../../uploads/announcements/${data.image}`;
+            img.style.display = 'block';
+        } else {
+            img.style.display = 'none';
+        }
+        
+        new bootstrap.Modal(document.getElementById('viewModal')).show();
     }
-});
 
-fetch("../../backend/announcement_get.php")
-.then(res => res.json())
-.then(data => {
-    let table = "";
-    data.forEach(item => {
-        table += `
-        <tr>
-            <td><img src="../../uploads/announcements/${item.image}"style="width:300px;height:120px;object-fit:cover;border-radius:5px"></td>
-            <td>${item.title}</td>
-            <td>${truncateText(item.details, 25)}</td>
-            <td>${item.location}</td>
-            <td>${item.date}</td>
-            <td>${item.time}</td>
-            <td>
-                <div class="d-flex gap-1">
-                    <button class="btn btn-info btn-sm text-white"
-                        onclick='openViewModal(${JSON.stringify(item)})'>
-                        <i class="bi bi-eye"></i>
-                    </button>
+    function openEditModal(button) {
+        // Populate inputs
+        document.getElementById('edit-id').value = button.dataset.id;
+        document.getElementById('edit-title').value = button.dataset.title;
+        document.getElementById('edit-details').value = button.dataset.details;
+        document.getElementById('edit-location').value = button.dataset.location;
+        document.getElementById('edit-date').value = button.dataset.date;
+        document.getElementById('edit-time').value = button.dataset.time;
 
-                    <button class="btn btn-primary btn-sm"
-                        data-bs-toggle="modal"
-                        data-bs-target="#editModal"
-                        data-id="${item._id}"
-                        data-title="${item.title.replace(/"/g,'&quot;')}"
-                        data-details="${item.details.replace(/"/g,'&quot;')}"
-                        data-location="${item.location.replace(/"/g,'&quot;')}"
-                        data-date="${item.date}"
-                        data-time="${item.time}"
-                        data-image="${item.image}">
-                        <i class="bi bi-pencil-square"></i>
-                    </button>
+        // Handle Image Preview
+        const editPreview = document.getElementById('edit-preview');
+        const imgName = button.dataset.image;
+        
+        if (imgName && imgName !== "null" && imgName !== "") {
+            editPreview.src = `../../uploads/announcements/${imgName}`;
+            editPreview.style.display = "block";
+        } else {
+            editPreview.style.display = "none";
+        }
+    }
 
-                    <button class="btn btn-sm btn-secondary archive-btn"
-                        onclick='openArchiveModal("${item._id}")'>
-                        <i class="bi bi-archive"></i>
-                    </button>
-                </div>
-                </td>
+    function openArchiveModal(id) {
+        document.getElementById('a_id').value = id;
+        new bootstrap.Modal(document.getElementById('archiveModal')).show();
+    }
 
-        </tr>`;
-    });
-    document.getElementById("announcementTable").innerHTML = table;
-
-    // Attach Edit modal population dynamically
-    document.querySelectorAll('button[data-bs-target="#editModal"]').forEach(btn => {
-        btn.addEventListener('click', function(){
-            openEditModal(this);
+    // Image Previews for File Inputs
+    ['add-photo', 'edit-photo'].forEach(inputId => {
+        document.getElementById(inputId).addEventListener("change", function(event){
+            const file = event.target.files[0];
+            // Find the sibling preview image (works for both modals)
+            const preview = this.closest('.modal-body').querySelector('.preview-img');
+            if(file){
+                preview.src = URL.createObjectURL(file);
+                preview.style.display = "block";
+            } else {
+                preview.style.display = "none";
+            }
         });
     });
 
-    // Disable typing for date/time inputs
-    ['add-date','add-time','edit-date','edit-time'].forEach(id => {
-        const el = document.getElementById(id);
-        if(el) el.addEventListener('keydown', e => e.preventDefault());
-    });
-
-    // Dropdown toggle logic
-    document.querySelectorAll('.dropdown-container').forEach(container => {
-        if(container.querySelector('.dropdown-content a.active')){
-            container.classList.add('active');
+    // --- MAIN FETCH FUNCTION ---
+    fetch("../../backend/announcement_get.php")
+    .then(res => res.json())
+    .then(data => {
+        if(data.error) {
+            console.error("Backend Error:", data.error);
+            return;
         }
+
+        let table = "";
+        data.forEach(item => {
+            // FIX: Handle NULL values safely using (val || "") before replacing
+            const safeTitle = (item.title || "").replace(/"/g, '&quot;');
+            const safeDetails = (item.details || "").replace(/"/g, '&quot;');
+            const safeLocation = (item.location || "").replace(/"/g, '&quot;');
+            const safeImage = item.image || "";
+            // FIX: Use 'announcement_id' (MySQL) instead of '_id' (MongoDB)
+            const safeId = item.announcement_id; 
+
+            table += `
+            <tr>
+                <td>
+                    ${safeImage ? 
+                        `<img src="../../uploads/announcements/${safeImage}" style="width:300px;height:120px;object-fit:cover;border-radius:5px">` 
+                        : '<span class="text-muted fst-italic">No Image</span>'}
+                </td>
+                <td>${item.title || "No Title"}</td>
+                <td>${truncateText(item.details, 25)}</td>
+                <td>${item.location || "N/A"}</td>
+                <td>${item.date || ""}</td>
+                <td>${item.time || ""}</td>
+                <td>
+                    <div class="d-flex gap-1">
+                        <button class="btn btn-info btn-sm text-white"
+                            onclick='openViewModal(${JSON.stringify(item)})'>
+                            <i class="bi bi-eye"></i>
+                        </button>
+
+                        <button class="btn btn-primary btn-sm"
+                            data-bs-toggle="modal"
+                            data-bs-target="#editModal"
+                            data-id="${safeId}"
+                            data-title="${safeTitle}"
+                            data-details="${safeDetails}"
+                            data-location="${safeLocation}"
+                            data-date="${item.date || ''}"
+                            data-time="${item.time || ''}"
+                            data-image="${safeImage}">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+
+                        <button class="btn btn-sm btn-secondary archive-btn"
+                            onclick='openArchiveModal("${safeId}")'>
+                            <i class="bi bi-archive"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>`;
+        });
+        document.getElementById("announcementTable").innerHTML = table;
+
+        // Re-attach listeners for Edit buttons
+        document.querySelectorAll('button[data-bs-target="#editModal"]').forEach(btn => {
+            btn.addEventListener('click', function(){
+                openEditModal(this);
+            });
+        });
+    })
+    .catch(err => console.error("Fetch Error:", err));
+
+    // Disable typing in date/time inputs
+    document.querySelectorAll('input[type="date"], input[type="time"]').forEach(el => {
+        el.addEventListener('keydown', e => e.preventDefault());
     });
 
+    // Dropdown Logic
     document.querySelectorAll('.dropdown-btn').forEach(btn => {
         btn.addEventListener('click', function(){
             this.parentElement.classList.toggle('active');
         });
     });
-});
 </script>
 </body>
 </html>

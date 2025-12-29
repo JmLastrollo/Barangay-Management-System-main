@@ -1,105 +1,73 @@
-<?php 
-session_start(); 
-require_once 'config.php'; 
+<?php
+session_start();
+// TANDAAN: Dahil nasa loob tayo ng 'backend' folder, kailangan nating lumabas 
+// ng isang beses (../) para puntahan ang includes folder.
+require_once '../backend/db_connect.php'; 
 
-$email = trim($_POST['email'] ?? '');
-$password = $_POST['password'] ?? '';
-$postedRole = trim($_POST['role'] ?? '');
+// --- CONFIGURATION: PATHS ---
+// Ito ang mga pupuntahan kapag tapos na mag-process
+$adminDashboard = '../pages/admin/admin_dashboard.php';
+$loginPage      = '../admin_login.php'; 
 
-$isResidentForm = ($postedRole === '');
-$loginPage = $isResidentForm ? '../resident_login.php' : '../admin_login.php';
-
-// 1. Validation
-if (empty($email) || empty($password)) {
-    $_SESSION['toast'] = "Email and password are required";
-    $_SESSION['toast_type'] = "warn";
-    header("Location: $loginPage"); 
+// Function para sa Error Message at Redirect pabalik sa Login
+function redirectWithError($message, $location) {
+    $_SESSION['toast'] = $message;
+    $_SESSION['toast_type'] = 'error';
+    header("Location: $location");
     exit();
 }
 
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    $_SESSION['toast'] = "Invalid email format";
-    $_SESSION['toast_type'] = "error";
-    header("Location: $loginPage"); 
-    exit();
-}
+// 1. RECEIVE INPUTS
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $email = trim($_POST['email']);
+    $password = $_POST['password'];
 
-// 2. Database Query
-try {
-    $stmt = $conn->prepare("SELECT * FROM users WHERE email = :email LIMIT 1");
-    $stmt->bindParam(':email', $email);
-    $stmt->execute();
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    // 2. VALIDATION
+    if (empty($email) || empty($password)) {
+        redirectWithError("Please fill in all fields.", $loginPage);
+    }
 
-} catch (PDOException $e) {
-    $_SESSION['toast'] = "System error: " . $e->getMessage();
-    $_SESSION['toast_type'] = "error";
+    try {
+        // 3. DATABASE CHECK
+        $stmt = $conn->prepare("SELECT * FROM users WHERE email = :email LIMIT 1");
+        $stmt->bindParam(':email', $email);
+        $stmt->execute();
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // 4. VERIFY USER & PASSWORD
+        if ($user && password_verify($password, $user['password'])) {
+            
+            // 5. CHECK ROLE (Dapat Admin o Staff lang ang makapasok dito)
+            // Tinanggal ko ang dependence sa $_POST['role'] para iwas hack.
+            // Sa database tayo titingin ng role.
+            $allowed_roles = ['Admin', 'Staff', 'Barangay Staff'];
+
+            if (in_array($user['user_type'], $allowed_roles)) {
+                
+                // SUCCESS: Set Session
+                $_SESSION['user_id'] = $user['user_id'];
+                $_SESSION['role']    = $user['user_type'];
+                $_SESSION['username'] = $user['username'];
+                // $_SESSION['fullname'] = $user['fullname']; // Kung meron man
+
+                // Redirect to Dashboard
+                header("Location: $adminDashboard");
+                exit();
+
+            } else {
+                redirectWithError("Access Denied: You are not an Admin.", $loginPage);
+            }
+
+        } else {
+            redirectWithError("Invalid Email or Password.", $loginPage);
+        }
+
+    } catch (PDOException $e) {
+        redirectWithError("System Error: " . $e->getMessage(), $loginPage);
+    }
+} else {
+    // Kapag in-access ang file na ito ng hindi nag-submit ng form
     header("Location: $loginPage");
     exit();
 }
-
-// 3. User Not Found Check
-if (!$user) {
-    $_SESSION['toast'] = "User does not exist";
-    $_SESSION['toast_type'] = "error";
-    header("Location: $loginPage"); 
-    exit();
-}
-
-// 4. Verify Password (THE FIX)
-// Check kung plain text ba O hashed ang password
-$is_plain_text_match = ($password === $user['password']); // Check kung plain text
-$is_hash_match = password_verify($password, $user['password']); // Check kung encrypted
-
-if (!$is_plain_text_match && !$is_hash_match) {
-    $_SESSION['toast'] = "Incorrect password";
-    $_SESSION['toast_type'] = "error";
-    header("Location: $loginPage"); 
-    exit();
-}
-
-// 5. Role Checking
-$userRole = $user['user_type'] ?? 'Resident'; 
-
-// Kung nag-login sa Admin form pero Resident account lang
-if (!$isResidentForm && ($userRole !== 'Admin' && $userRole !== 'Staff')) {
-     $_SESSION['toast'] = "Access Denied: Only Officials can login here.";
-     $_SESSION['toast_type'] = "error";
-     header("Location: $loginPage"); 
-     exit();
-}
-
-// 6. Session Setup
-session_regenerate_id(true);
-$_SESSION['email'] = $user['email'];
-$_SESSION['role'] = $userRole;
-$_SESSION['user_id'] = $user['user_id'];  
-$_SESSION['username'] = $user['username']; 
-$_SESSION['status'] = $user['status'];
-
-// 7. Status Checks
-if ($userRole === 'Resident') {
-    if ($user['status'] === 'Pending') {
-        session_unset(); session_destroy();
-        $_SESSION['toast'] = "Account pending approval";
-        $_SESSION['toast_type'] = "warn";
-        header("Location: $loginPage");
-        exit();
-    }
-    if ($user['status'] === 'Inactive' || $user['status'] === 'Rejected') {
-        session_unset(); session_destroy();
-        $_SESSION['toast'] = "Account inactive or rejected";
-        $_SESSION['toast_type'] = "error";
-        header("Location: $loginPage");
-        exit();
-    }
-}
-
-// 8. Redirect
-if ($userRole === 'Staff' || $userRole === 'Admin') {
-    header("Location: ../pages/admin/admin_dashboard.php");
-} else {
-    header("Location: ../pages/resident/resident_dashboard.php");
-}
-exit();
 ?>

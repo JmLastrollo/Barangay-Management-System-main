@@ -14,6 +14,8 @@ try {
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
 } catch(PDOException $e) {
-    die("Connection failed: " . $e->getMessage());
+    // Mas maganda kung 'exit' ang gamit kaysa 'die' para malinis
+    exit("Connection failed: " . $e->getMessage());
 }
+
 ?>

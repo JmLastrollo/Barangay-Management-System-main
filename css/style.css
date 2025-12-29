@@ -136,8 +136,12 @@ body {
 }
 
 .text-success{
+    color: green !important;
+}
+.title{
     color: #FFD54F !important;
 }
+
 /* ================================================== */
 /* CARDS (SERVICES & ISSUANCE)                        */
 /* ================================================== */
@@ -186,12 +190,23 @@ body {
 /* ================================================== */
 .header-banner {
     padding: 80px 10%;
-    background: linear-gradient(rgba(13, 71, 161, 0.9), rgba(13, 71, 161, 0.8)), url("../assets/img/barangay-gusa.jpg") center/cover no-repeat;
+    background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('../assets/img/barangay langkaan post.jpg');
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
     color: white;
     display: flex;
     align-items: center;
     justify-content: space-between;
     min-height: 250px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Solid Blue Variant for Officials/Announcement Pages */
+.header-banner.header-banner-blue {
+    background-image: none !important;
+    background-color: #0d47a1 !important;
 }
 
 .header-banner img {
@@ -199,6 +214,7 @@ body {
     height: 110px;
     object-fit: contain;
     filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+    z-index: 2;
 }
 
 .header-text {
@@ -207,6 +223,7 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    z-index: 2;
 }
 
 .header-banner h1 {
@@ -226,7 +243,7 @@ body {
 }
 
 /* ================================================== */
-/* CALENDAR SECTION (RESTORED)                        */
+/* CALENDAR SECTION                                   */
 /* ================================================== */
 .calendar-container {
     max-width: 1000px;
@@ -378,7 +395,7 @@ body {
 /* OFFICIALS PAGE SPECIFIC                            */
 /* ================================================== */
 .official-card {
-    width: 240px;            
+    width: 100%; /* Changed from fixed width for responsiveness */
     border-radius: 12px;
     background: #ffffff;
     padding: 20px;
@@ -388,33 +405,232 @@ body {
     flex-direction: column;
     align-items: center;
     transition: transform 0.3s;
+    height: 100%;
 }
 
 .official-card:hover {
     transform: translateY(-5px);
 }
 
-.official-img-box {
-    width: 200px;          
-    height: 260px;         
-    border-radius: 15px;   
+.official-img-wrapper {
+    width: 200px;
+    height: 200px;
+    margin: 0 auto 15px;
+    border-radius: 50%;
     overflow: hidden;
-    background: #e3f2fd;
-    border: 4px solid #FFD54F;
-    margin-bottom: 15px;
+    border: 5px solid #f8f9fa;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
-.official-img-box img {
+.official-img {
     width: 100%;
     height: 100%;
-    object-fit: cover;      
+    object-fit: cover;
 }
 
-.official-page-title {
-    font-size: 1.2rem;
-    color: #1565C0;
+.official-name {
     font-weight: bold;
+    font-size: 1.2rem;
+    color: #0d47a1;
 }
+
+.official-position {
+    color: #6c757d;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+}
+
+/* ================================================== */
+/* ANNOUNCEMENT PAGE (FILTER & LIST)                  */
+/* ================================================== */
+
+/* 1. Filter Container (Search & Sort) */
+.filter-container {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    margin-bottom: 30px;
+}
+
+.filter-container .input-group,
+.filter-container .input-group-text,
+.filter-container .form-control,
+.filter-container .form-select {
+    height: 50px !important; 
+    line-height: 1.5;
+    border-radius: 8px; /* Consistent rounded corners */
+    font-size: 1rem;
+    display: flex;
+    align-items: center; /* Vertically center content */
+}
+
+.filter-container .input-group-text {
+    background-color: #fff;
+    border-right: none;
+    padding-left: 20px; /* More space for icon */
+}
+
+.filter-container .form-control {
+    border-left: none;
+    box-shadow: none; 
+    padding-left: 10px;
+}
+
+.filter-container .form-control:focus {
+    border-color: #ced4da; 
+}
+
+.filter-container .form-select {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+/* 3. Card Styles */
+.announcement-page-card {
+    border: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    border-radius: 12px;
+    transition: transform 0.3s;
+    background: #fff;
+}
+
+.announcement-page-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+
+.announcement-page-img {
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    width: 100%;
+}
+
+/* 4. Animation & Loader */
+.fade-in-item {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.ajax-loader {
+    display: none;
+    text-align: center;
+    padding: 20px;
+}
+
+.main-content-section {
+    padding-top: 2rem !important;
+    padding-bottom: 2rem !important;
+    min-height: 60vh;
+}
+
+#end-message {
+    margin-bottom: 0;
+    padding-bottom: 10px;
+}
+
+/* ================================================== */
+/* SEE MORE ANNOUNCEMENT PAGE (DETAILS)               */
+/* ================================================== */
+.see-more-announcement-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.see-more-card {
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #eee;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.see-more-announcement-button {
+    display: inline-block;
+    margin-bottom: 20px;
+    text-decoration: none;
+    color: #0d47a1;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.see-more-announcement-button:hover {
+    text-decoration: underline;
+    color: #FFD54F;
+}
+
+/* Map Container */
+.map-container {
+    position: relative;
+    padding-bottom: 75%; /* 4:3 Aspect Ratio */
+    height: 0;
+    overflow: hidden;
+    border-radius: 8px;
+    margin-top: 0;
+    border: 1px solid #ddd;
+}
+.map-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* Sidebar Specific Styles */
+.sidebar-card {
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #eee;
+    overflow: hidden;
+}
+.sidebar-header {
+    background: #1565C0;
+    color: white;
+    padding: 15px;
+    font-weight: bold;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+}
+.recent-item {
+    display: flex;
+    gap: 15px;
+    padding: 15px;
+    border-bottom: 1px solid #f0f0f0;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.2s;
+}
+.recent-item:last-child { border-bottom: none; }
+.recent-item:hover { background-color: #f8f9fa; }
+
+.recent-img {
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+.recent-info h6 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1565C0;
+    margin-bottom: 5px;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.recent-info small { color: #777; font-size: 0.8rem; }
 
 /* ================================================== */
 /* GENERAL COMPONENTS (FORMS, ANNOUNCEMENTS)          */
@@ -484,13 +700,13 @@ body {
 }
 
 /* ================================================== */
-/* FOOTER (RESTORED LAYOUT)                           */
+/* FOOTER (FIXED MARGIN)                              */
 /* ================================================== */
 footer {
     background: #0D47A1;
     color: #fff;
     padding: 40px 40px 20px;
-    margin-top: 80px;
+    margin-top: 0; /* Ensures no huge white space in Announcement Page */
 }
 
 .footer-container {
@@ -537,29 +753,53 @@ footer {
 }
 
 /* ================================================== */
+/* BACK TO TOP BUTTON                                 */
+/* ================================================== */
+#backToTop {
+    display: none; /* Hidden by default */
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 9999;
+    border: none;
+    outline: none;
+    background-color: #FFD54F; /* Yellow */
+    color: #0D47A1; /* Blue */
+    cursor: pointer;
+    padding: 0;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+    text-align: center;
+    line-height: 50px; /* Vertically center icon */
+}
+
+#backToTop:hover {
+    background-color: #FFCA28;
+    transform: translateY(-5px);
+}
+
+/* ================================================== */
 /* MOBILE RESPONSIVE FIXES                            */
 /* ================================================== */
 
 /* TABLET & MOBILE (Below 991px) */
 @media (max-width: 991px) {
-    /* Center the Logo & Remove Offset */
     .navbar-brand {
         right: 0 !important;
         margin: 0 !important;
         text-align: left;
     }
-    
-    /* Center Menu Items */
     .navbar-nav {
         text-align: center;
         margin-top: 20px;
     }
-    
     .navbar a {
         margin: 5px 0;
     }
-    
-    /* Login Button inside Navbar */
     .navbar .btn-outline-light {
         width: 100%;
         margin-top: 10px;
@@ -567,10 +807,8 @@ footer {
     }
 }
 
-
 /* Mobile Phones (Below 768px) */
 @media (max-width: 768px) {
-    /* 1. Navbar Brand Font Size */
     .navbar-brand {
         font-size: 20px !important;
     }
@@ -579,7 +817,6 @@ footer {
         height: 45px;
     }
 
-    /* 2. Hero Section */
     .hero {
         padding-top: 100px;
         padding-bottom: 50px;
@@ -588,7 +825,6 @@ footer {
     }
     .hero h1 { font-size: 2.2rem; }
     
-    /* Stack Buttons */
     .hero div.mt-3 {
         display: flex;
         flex-direction: column;
@@ -599,7 +835,6 @@ footer {
     }
     .hero .btn { width: 100%; margin: 0; }
 
-    /* 3. Header Banner (Issuance/Officials) */
     .header-banner {
         flex-direction: column; 
         padding: 40px 20px;
@@ -620,25 +855,22 @@ footer {
     .header-banner h1 { font-size: 2rem; }
     .header-banner h3 { font-size: 1.5rem; }
 
-    /* Reset offsets */
     .header-banner .right-logo, 
     .header-banner .left-logo {
         position: static !important;
     }
 
-    /* 4. Issuance Cards Stack */
     .container {
         padding-left: 20px;
         padding-right: 20px;
     }
     
     .card-custom {
-        width: 100% !important; /* Force full width on mobile */
+        width: 100% !important; 
         max-width: 350px; 
         margin-bottom: 20px;
     }
     
-    /* 5. Footer Stack */
     .footer-container {
         flex-direction: column;
         text-align: center;

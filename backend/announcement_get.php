@@ -1,26 +1,22 @@
 <?php
-require_once "config.php";
+require_once "db_connect.php"; 
 
 header("Content-Type: application/json");
 
-$announcements = $announcementCollection->find(
-    ["status" => "active"],
-    ["sort" => ["date" => -1, "time" => -1]]
-);
+try {
+    // Select all non-archived announcements, newest first
+    $sql = "SELECT * FROM announcements 
+            WHERE status != 'archived' 
+            ORDER BY date DESC, time DESC";
 
-$output = [];
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+    
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    echo json_encode($result);
 
-foreach ($announcements as $a) {
-    $output[] = [
-        "_id" => (string)$a->_id,
-        "title" => $a->title ?? "",
-        "details" => $a->details ?? "",
-        "location" => $a->location ?? "",
-        "date" => $a->date ?? "",
-        "time" => $a->time ?? "",
-        "image" => $a->image ?? ""
-    ];
+} catch (PDOException $e) {
+    echo json_encode(["error" => $e->getMessage()]);
 }
-
-echo json_encode($output);
 ?>

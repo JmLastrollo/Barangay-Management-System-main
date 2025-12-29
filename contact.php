@@ -18,14 +18,14 @@ require_once 'backend/config.php';
 <?php include 'includes/nav.php'; ?>
 
     <section class="header-banner">
-        <img src="assets/img/cdologo.png" class="left-logo" alt="LGU Logo">
+        <img src="assets/img/dasma logo-modified.png" class="left-logo" alt="LGU Logo">
         
         <div class="header-text">
             <h1>Barangay</h1> 
             <h3>Contact Us</h3>
         </div>
         
-        <img src="assets/img/barangaygusalogo.png" class="right-logo" alt="Barangay Logo">
+        <img src="assets/img/Langkaan 2 Logo-modified.png" class="right-logo" alt="Barangay Logo">
     </section>
 
     <section class="container py-5">
