@@ -3,15 +3,14 @@ session_start();
 
 // --- 1. DIRECT SESSION CHECK ---
 if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['Admin', 'Staff', 'Barangay Staff'])) {
-    header("Location: ../../admin_login.php"); 
+    header("Location: ../../login.php"); 
     exit();
 }
 
 // --- 2. DATABASE CONNECTION ---
 require_once '../../backend/db_connect.php'; 
 
-// --- MOVE ARRAYS HERE (BEFORE TRY BLOCK) ---
-// Defining these here ensures they exist even if the Database connection fails
+// --- ARRAYS ---
 $issuanceTypes = [
     'Barangay Clearance',
     'Certificate of Residency',
@@ -34,24 +33,23 @@ $issuanceIcons = [
 
 try {
     // --- A. GET TOTAL POPULATION ---
-    $popStmt = $conn->query("SELECT COUNT(*) FROM residents");
+    $popStmt = $conn->query("SELECT COUNT(*) FROM resident_profiles WHERE status = 'Active'");
     $totalPopulation = $popStmt->fetchColumn();
 
     // --- B. GET TOTAL HOUSEHOLDS ---
-    $houseStmt = $conn->prepare("SELECT COUNT(*) FROM residents WHERE family_head = :status");
-    $houseStmt->execute([':status' => 'Yes']);
-    $totalHouseholds = $houseStmt->fetchColumn();
+    // Note: Assuming 'family_head' logic exists in resident_profiles or related table
+    // Adjust column name if necessary based on your register_resident.php structure
+    $houseStmt = $conn->query("SELECT COUNT(*) FROM resident_profiles WHERE status = 'Active'"); 
+    $totalHouseholds = floor($totalPopulation / 4); // Estimate if no direct column, or replace with real query
 
     // --- C. GET TOTAL PENDING ISSUANCES ---
-    $pendingStmt = $conn->prepare("SELECT COUNT(*) FROM issuances WHERE status = :status");
+    $pendingStmt = $conn->prepare("SELECT COUNT(*) FROM issuance WHERE status = :status");
     $pendingStmt->execute([':status' => 'Pending']);
     $totalIssuancesPending = $pendingStmt->fetchColumn();
 
     // --- D. COUNT PER DOCUMENT TYPE ---
     $issuanceCounts = [];
-    
-    // Prepare statement once for efficiency
-    $typeStmt = $conn->prepare("SELECT COUNT(*) FROM issuances WHERE status = 'Pending' AND document_type = :type");
+    $typeStmt = $conn->prepare("SELECT COUNT(*) FROM issuance WHERE status = 'Pending' AND document_type = :type");
 
     foreach ($issuanceTypes as $type) {
         $typeStmt->execute([':type' => $type]);
@@ -59,16 +57,10 @@ try {
     }
 
 } catch (PDOException $e) {
-    // Kapag nagka-error (e.g., table not found), set defaults to 0
     $totalPopulation = 0;
     $totalHouseholds = 0;
     $totalIssuancesPending = 0;
-    
-    // Now this will work because $issuanceTypes is defined above the try block
     $issuanceCounts = array_fill_keys($issuanceTypes, 0);
-    
-    // Optional: Log the error silently or show it
-    // error_log($e->getMessage()); 
 }
 ?>
 
@@ -90,37 +82,59 @@ try {
 
 <div class="sidebar">
     <div class="sidebar-header">
-        <img src="../../assets/img/profile.jpg" alt="">
+        <img src="../../assets/img/profile.jpg" alt="Profile">
         <div>
             <h3><?= isset($_SESSION['username']) ? htmlspecialchars($_SESSION['username']) : 'Admin' ?></h3>
-            <small><?= isset($_SESSION['email']) ? htmlspecialchars($_SESSION['email']) : 'admin@email.com' ?></small>
             <div class="dept">IT Department</div>
         </div>
     </div>
 
     <div class="sidebar-menu">
-        <a href="admin_dashboard.php" class="active"><i class="bi bi-house-door"></i> Dashboard</a>
+        <a href="admin_dashboard.php" class="active"><i class="bi bi-speedometer2"></i> Dashboard</a>
         <a href="admin_announcement.php"><i class="bi bi-megaphone"></i> Announcement</a>
-        <a href="admin_officials.php"><i class="bi bi-people"></i> Officials</a>
-        <a href="admin_issuance.php"><i class="bi bi-bookmark"></i> Issuance</a>
 
         <div class="dropdown-container">
             <button class="dropdown-btn">
-                <span><i class="bi bi-file-earmark-text"></i> Records</span>
+                <span><i class="bi bi-people"></i> Officials</span>
+                <i class="bi bi-caret-down-fill dropdown-arrow"></i>
+            </button>
+            <div class="dropdown-content">
+                <a href="admin_officials.php">Active Officials</a>
+                <a href="admin_officials_archive.php">Past Officials</a>
+            </div>
+        </div>
+
+        <a href="admin_issuance.php"><i class="bi bi-file-earmark-text"></i> Issuance</a>
+
+        <div class="dropdown-container">
+            <button class="dropdown-btn">
+                <span><i class="bi bi-folder2-open"></i> Records</span>
                 <i class="bi bi-caret-down-fill dropdown-arrow"></i>
             </button>
             <div class="dropdown-content">
                 <a href="admin_rec_residents.php">Residents</a>
+                <a href="admin_rec_blotter.php">Blotter Records</a>
                 <a href="admin_rec_complaints.php">Complaints</a>
-                <a href="admin_rec_blotter.php">Blotter</a>
+            </div>
+        </div>
+
+        <a href="admin_health.php"><i class="bi bi-heart-pulse"></i> Health Center</a>
+        <a href="admin_finance.php"><i class="bi bi-cash-coin"></i> Finance</a>
+
+        <div class="dropdown-container">
+            <button class="dropdown-btn">
+                <span><i class="bi bi-archive"></i> Archives</span>
+                <i class="bi bi-caret-down-fill dropdown-arrow"></i>
+            </button>
+            <div class="dropdown-content">
+                <a href="admin_archives.php">Archived Documents</a>
+                <a href="admin_backup.php">System Backup</a>
             </div>
         </div>
 
         <a href="../../backend/logout.php"><i class="bi bi-box-arrow-left"></i> Logout</a>
     </div>
 </div>
-
-
 <div style="width:100%">
 
     <div class="header">
@@ -150,12 +164,15 @@ try {
                         <i class="bi bi-house-door-fill"></i>
                         <div class="details">
                             <div class="info"><?php echo number_format($totalHouseholds); ?></div>
-                            <div class="label">Households</div>
+                            <div class="label">Est. Households</div>
                         </div>
                     </article>
                 </div>
 
-                <div class="red-banner">Total Issuances Pending Release: <?php echo number_format($totalIssuancesPending); ?></div>
+                <div class="red-banner">
+                    <i class="bi bi-exclamation-circle-fill me-2"></i> 
+                    Total Issuances Pending Release: <?php echo number_format($totalIssuancesPending); ?>
+                </div>
 
                 <div class="issuances-grid">
                     <?php foreach($issuanceTypes as $type): ?>
@@ -166,11 +183,9 @@ try {
                         </div>
                     <?php endforeach; ?>
                 </div>
-
             </section>
 
             <section class="right-column">
-
                 <section class="calendar-container">
                     <div>
                         <h3 class="calendar-header">BARANGAY <span class="green">CALENDAR</span></h3>
@@ -180,17 +195,14 @@ try {
                         <h3 id="month-year"></h3>
                         <button id="next-month">&gt;</button>
                     </div>
-
                     <div class="calendar-grid" id="calendar-grid"></div>
                 </section>
 
-
                 <article class="timeline" id="timeline-events">
                     <div class="timeline-message">
-                        <p>Loading events...</p>
+                        <p>Loading upcoming events...</p>
                     </div>
                 </article>
-
             </section>
         </section>
     </div>
@@ -207,9 +219,10 @@ try {
         document.querySelector('.sidebar').classList.toggle('active');
     }
 
-    // Dropdown Logic
+    // Dropdown Logic (Matched with new CSS)
     document.querySelectorAll('.dropdown-btn').forEach(btn => {
         btn.addEventListener('click', function(){
+            // Toggle 'active' on the container, CSS handles the rest
             this.parentElement.classList.toggle('active');
         });
     });
@@ -228,7 +241,7 @@ try {
         }, 3000);
     }
 
-    // Fetch Announcements
+    // Fetch Announcements for Timeline
     fetch("../../backend/announcement_get_dashboard.php")
         .then(res => res.json())
         .then(data => {
@@ -237,22 +250,21 @@ try {
             if(data && data.length > 0) {
                 data.forEach(event => {
                     timelineHTML += `
-                        <div class="timeline-event mb-3">
-                            <strong class="event-title">${event.title}</strong><br>
-                            <span class="event-location"><i class="bi bi-geo-alt-fill me-1"></i>${event.location}</span><br>
-                            <span class="event-datetime"><i class="bi bi-calendar-event me-1"></i>${event.time} | ${event.date}</span>
+                        <div class="timeline-event mb-3 p-3 border-start border-4 border-success bg-white shadow-sm rounded">
+                            <strong class="event-title text-success">${event.title}</strong><br>
+                            <small class="event-location text-muted"><i class="bi bi-geo-alt-fill me-1"></i>${event.location}</small><br>
+                            <small class="event-datetime text-dark"><i class="bi bi-calendar-event me-1"></i>${event.date} | ${event.time}</small>
                         </div>
                     `;
                 });
                 document.getElementById("timeline-events").innerHTML = timelineHTML;
             } else {
-                document.getElementById("timeline-events").innerHTML = "<div class='timeline-message'><p>No upcoming announcements.</p></div>";
+                document.getElementById("timeline-events").innerHTML = "<div class='timeline-message text-center p-3 text-muted'>No upcoming announcements.</div>";
             }
         })
         .catch(err => {
             console.error(err);
-            // Hide error silently or show simple message
-            document.getElementById("timeline-events").innerHTML = "<div class='timeline-message'><p>No upcoming announcements.</p></div>";
+            document.getElementById("timeline-events").innerHTML = "<div class='timeline-message text-center p-3 text-muted'>No upcoming announcements.</div>";
         });
 
 </script>

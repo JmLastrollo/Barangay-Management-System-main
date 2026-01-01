@@ -1,165 +1,227 @@
-/* Reset */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: Arial, sans-serif;
-}
-
+/* ================================================== */
+/* LOGIN PAGE STYLES - BLUE & YELLOW THEME            */
+/* ================================================== */
+/* 1. Global Page Style */
 body {
-  background: #f5f5f5;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    
+    /* BACKGROUND IMAGE SETUP */
+    /* Palitan ang 'Barangay_langkaan 2 full view.jpg' ng tamang file name at extension (.jpg, .png) */
+    background-image: url('../assets/img/Barangay_langkaan 2 full view.jpg'); 
+    background-size: cover;       /* Para sakop buong screen */
+    background-position: center;  /* Para gitna ang image */
+    background-repeat: no-repeat; /* Para hindi mag-ulit */
+    background-attachment: fixed; /* Para steady lang pag nag-scroll */
+    
+    /* BLUR EFFECT & DARK OVERLAY (Para lutang ang login box) */
+    position: relative;
+    z-index: 1;
 }
 
-/* Container for left & right panels */
-.login-container {
-  display: flex;
-  height: 100vh;
-}
-
-/* Left panel (green background with logo) */
-.left {
-  flex: 1;
-  background: linear-gradient(135deg, #220c81, #b1a723);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.left img {
-  width: 200px;
-  height: 200px;
-  border-radius: 50%;
-  object-fit: cover;
-  background: white;
-  padding: 10px;
-}
-
-/* Right panel (form area) */
-.right {
-  flex: 1;
-  background: white;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 50px;
-}
-
-.right h2 {
-  margin-bottom: 20px;
-  font-size: 26px;
-  color: #111;
-}
-
-form {
-  display: flex;
-  flex-direction: column;
-}
-
-input, select {
-  padding: 12px;
-  margin: 8px 0;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  font-size: 14px;
-}
-
-button {
-  background: #0c8c3a;
-  color: white;
-  padding: 12px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
-  margin-top: 10px;
-}
-
-button:hover {
-  background: #096c2c;
-}
-
-/* Remember + Resident Login inline */
-label {
-  display: inline-block;
-  margin-top: 10px;
-  font-size: 14px;
-  color: #333;
-}
-
-.alt-login {
-  float: right;
-  margin-top: 10px;
-  font-size: 14px;
-  color: #0c8c3a;
-  text-decoration: none;
-}
-
-.alt-login:hover {
-  text-decoration: underline;
-}
-
-/* Back to homepage */
-.right a {
-  display: block;
-  margin-top: 20px;
-  font-size: 14px;
-  text-align: center;
-  color: #0c8c3a;
-  text-decoration: none;
-}
-
-.right a:hover {
-  text-decoration: underline;
-}
-
-/* MOBILE RESPONSIVE LAYOUT */
-@media (max-width: 768px) {
-  body {
-    background: linear-gradient(135deg, #0c8c3a, #1a632c);
-  }
-  .login-container {
-    background: none; 
-    flex-direction: column;   
-    height: auto;             
-    padding: 20px;
-    align-items: center;      
-    justify-content: center; 
-  }
-
-  .left, .right {
-    flex: none;
+/* Pseudo-element para sa Blur/Darkening */
+body::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
-    max-width: 400px;        
-    padding: 20px;
-    border-radius: 20px;
-  }
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4); /* Dark overlay (40% opacity) para mabasa ang text */
+    backdrop-filter: blur(5px);           /* Ito ang magpapalabunog (Blur effect) */
+    z-index: -1;                          /* Nasa likod ng login form */
+}
 
-  .left {
-    background: none;         
+/* 2. Main Container */
+.main-container {
+    width: 100%;
+    padding: 20px;
     display: flex;
     justify-content: center;
+    align-items: center;
+}
+
+/* 3. Login Card (The Box) */
+.login-card {
+    display: flex;
+    width: 1000px;
+    height: 600px;
+    background: #fff;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+}
+
+/* ================================================== */
+/* LEFT PANEL (BRANDING SIDE)                         */
+/* ================================================== */
+.left-panel {
+    flex: 1;
+    /* FIX: Pinagsama ang Pattern at Blue Gradient */
+    background-color: #1565C0; /* Fallback color */
+    background: 
+        radial-gradient(rgba(255,255,255,0.15) 1px, transparent 1px), /* Dots Pattern (Top Layer) */
+        linear-gradient(135deg, #0D47A1 0%, #1565C0 100%); /* Blue Gradient (Bottom Layer) */
+    background-size: 20px 20px, 100% 100%;
+    background-repeat: repeat, no-repeat;
+    
+    color: white;
+    padding: 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+}
+
+.left-panel .logo-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.left-panel .logo-header img {
+    /* ADJUSTED: Mas malaki na ang logo */
+    width: 100px;
+    height: 100px;
+    margin-right: 20px;
+    border-radius: 50%;
+    background: white;
+    padding: 4px;
+    border: 4px solid #FFD54F; /* Yellow Accent */
+    box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+    object-fit: contain;
+}
+
+.left-panel .logo-header .text h3 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    margin: 0;
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.left-panel .logo-header .text p {
+    font-size: 0.9rem;
+    margin: 0;
+    opacity: 1;
+    color: #FFD54F; /* Yellow Text */
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.left-panel .welcome-text h2 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    line-height: 1.1;
+}
+
+.left-panel .welcome-text p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    line-height: 1.6;
+    max-width: 90%;
+}
+
+.left-panel .footer-text {
+    position: absolute;
+    bottom: 30px;
+    left: 50px;
+    opacity: 0.6;
+    font-size: 0.85rem;
+}
+
+/* ================================================== */
+/* RIGHT PANEL (FORM SIDE)                            */
+/* ================================================== */
+.right-panel {
+    flex: 1;
+    padding: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background-color: #ffffff;
+}
+
+.right-panel h2 {
+    font-weight: 800;
+    color: #1565C0;
     margin-bottom: 10px;
-  }
+    font-size: 2.2rem;
+}
 
-  .left img {
-    width: 150px;
-    height: 150px;
-  }
+/* Inputs */
+.form-control {
+    height: 50px;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    font-size: 15px;
+    padding-left: 15px;
+}
 
-  .right {
-    padding: 20px;
-    text-align: center;
-  }
+.form-control:focus {
+    background-color: #fff;
+    border-color: #1565C0;
+    box-shadow: 0 0 0 4px rgba(21, 101, 192, 0.1);
+}
 
-  .right form {
-    width: 100%;
-    max-width: 350px;
-    margin: 0 auto;
-  }
+/* Eye Icon Fix */
+.input-group .form-control { border-right: none; }
+.input-group .btn { 
+    border: 1px solid #dee2e6; 
+    background-color: #f8f9fa; 
+    border-left: none; 
+    color: #666;
+}
+.input-group .btn:hover { background-color: #e9ecef; color: #1565C0; }
 
-  .alt-login {
-    float: none;
-    display: inline-block;
+/* Main Button */
+.btn-primary {
+    background-color: #1565C0;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.3s;
+    box-shadow: 0 4px 12px rgba(21, 101, 192, 0.3);
+    height: 50px;
     margin-top: 10px;
-  }
+}
+
+.btn-primary:hover {
+    background-color: #0D47A1;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(21, 101, 192, 0.4);
+}
+
+/* Links */
+.text-primary { color: #1565C0 !important; }
+.text-primary:hover { color: #0D47A1 !important; text-decoration: underline; }
+
+/* ================================================== */
+/* RESPONSIVE DESIGN                                  */
+/* ================================================== */
+@media (max-width: 991px) {
+    .login-card {
+        flex-direction: column;
+        height: auto;
+        width: 100%;
+        max-width: 500px;
+    }
+    
+    .left-panel { padding: 40px 30px; text-align: center; align-items: center; }
+    .left-panel .logo-header { flex-direction: column; text-align: center; }
+    .left-panel .logo-header img { margin-right: 0; margin-bottom: 15px; }
+    .left-panel .welcome-text p { max-width: 100%; }
+    .left-panel .footer-text { position: static; margin-top: 20px; }
+    
+    .right-panel { padding: 40px 30px; }
+    .right-panel h2 { font-size: 1.8rem; text-align: center; }
+    .right-panel p { text-align: center; }
 }

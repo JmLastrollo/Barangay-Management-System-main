@@ -1,16 +1,12 @@
 <?php 
 session_start(); 
 
-// --- 1. UNIFIED SESSION CHECK (Auto-Redirect) ---
-// Kung naka-login na, idiretso na sa tamang dashboard base sa role
+// --- UNIFIED SESSION CHECK ---
 if (isset($_SESSION['user_id'])) {
-    // Check for Admin / Staff roles
-    if (isset($_SESSION['role']) && in_array($_SESSION['role'], ['Admin', 'Staff', 'Barangay Staff'])) {
+    if (isset($_SESSION['role']) && in_array($_SESSION['role'], ['Admin', 'Staff'])) {
         header("Location: pages/admin/admin_dashboard.php");
         exit();
-    } 
-    // Check for Resident role
-    else if (isset($_SESSION['role']) && $_SESSION['role'] === 'Resident') {
+    } elseif (isset($_SESSION['role']) && $_SESSION['role'] === 'Resident') {
         header("Location: pages/resident/resident_dashboard.php");
         exit();
     }
@@ -24,89 +20,113 @@ if (isset($_SESSION['user_id'])) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BMS - Account Login</title>
   
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <link rel="stylesheet" href="css/login.css">
   <link rel="stylesheet" href="css/toast.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <link rel="icon" type="image/png" href="assets/img/Langkaan 2 Logo-modified.png">
-  
-  <style>
-    /* CSS para sa Password Eye Icon */
-    .password-wrapper { position: relative; width: 100%; margin: 10px 0; }
-    .password-wrapper input { width: 100%; padding-right: 45px !important; margin: 0 !important; height: 45px; }
-    .password-wrapper i { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #666; font-size: 1.2rem; z-index: 10; line-height: 1; }
-    .password-wrapper i:hover { color: #000; }
-  </style>
 </head>
 <body>
 
-<div class="login-container">
-  <div class="left">
-    <img src="assets/img/Langkaan 2 Logo-modified.png" alt="Barangay Logo">
-  </div>
-  
-  <div class="right">
-    <h2><b>Account</b> Login</h2>
-    <p class="text-muted" style="margin-bottom: 20px; font-size: 0.9rem;">Welcome back! Please login to your account.</p>
-    
-    <form action="backend/login_process.php" method="POST">
-      
-      <input type="email" name="email" placeholder="Email Address" required>
-      
-      <div class="password-wrapper">
-          <input type="password" name="password" id="password" placeholder="Password" required>
-          <i class="bi bi-eye-slash" id="togglePassword"></i>
-      </div>
+<div class="main-container">
+    <div class="login-card">
+        
+        <div class="left-panel">
+            <div class="content">
+                <div class="logo-header">
+                    <img src="assets/img/Langkaan 2 Logo-modified.png" alt="Logo">
+                    <div class="text">
+                        <h3>BRGY. LANGKAAN II</h3>
+                        <p>DASMARIÑAS CITY, CAVITE</p>
+                    </div>
+                </div>
+                
+                <div class="welcome-text">
+                    <h2>Welcome Back!</h2>
+                    <p>Secure access to Barangay Langkaan II's digital ecosystem. Please authenticate to continue.</p>
+                </div>
+                
+                <div class="footer-text">
+                    <small>System Version 1.0</small>
+                </div>
+            </div>
+        </div>
 
-      <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-          <label><input type="checkbox" name="remember"> Remember me</label>
-      </div>
+        <div class="right-panel">
+            <div class="form-content">
+                <h2>Account Login</h2>
+                <p class="text-muted mb-4">Enter your credentials to access the panel.</p>
 
-      <button type="submit">Login</button>
-    </form>
-    
-    <a href="register.php">Don't have an account? Register here</a>
-    <a href="index.php">Back to Homepage</a>
-  </div>
+                <form action="backend/login_process.php" method="POST">
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Email Address</label>
+                        <input type="email" name="email" class="form-control" placeholder="name@example.com" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Password</label>
+                        <div class="input-group">
+                            <input type="password" name="password" id="password" class="form-control" placeholder="••••••••" required>
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                <i class="bi bi-eye-slash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="remember" id="remember">
+                            <label class="form-check-label small text-muted" for="remember">Remember me</label>
+                        </div>
+                        <a href="forgot_password.php" class="small text-primary text-decoration-none fw-bold">Forgot Password?</a>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Sign In</button>
+                </form>
+
+                <div class="text-center mt-4">
+                    <p class="small text-muted">New Resident? <a href="register.php" class="text-primary fw-bold text-decoration-none">Create Account</a></p>
+                    <a href="index.php" class="small text-muted text-decoration-none">← Back to Home Page</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
 </div>
 
 <div id="toast" class="toast"></div>
 
-<script>
-// --- Toggle Password Script ---
-const togglePassword = document.querySelector('#togglePassword');
-const password = document.querySelector('#password');
-togglePassword.addEventListener('click', function (e) {
-    const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-    password.setAttribute('type', type);
-    this.classList.toggle('bi-eye');
-    this.classList.toggle('bi-eye-slash');
-});
-
-// --- Toast Function ---
-function showToast(message, type = "error") {
-    const t = document.getElementById("toast");
-    t.className = "toast"; 
-    t.textContent = message;
-    t.classList.add(type);
-    t.classList.add("show");
-    setTimeout(() => { t.classList.remove("show"); }, 3000);
-}
-</script>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Toggle Password Visibility
+    const togglePassword = document.querySelector('#togglePassword');
+    const password = document.querySelector('#password');
+    const icon = togglePassword.querySelector('i');
+
+    togglePassword.addEventListener('click', function () {
+        const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+        password.setAttribute('type', type);
+        icon.classList.toggle('bi-eye');
+        icon.classList.toggle('bi-eye-slash');
+    });
+
+    // Toast Function
+    function showToast(message, type = "error") {
+        const t = document.getElementById("toast");
+        t.className = "toast"; 
+        t.innerHTML = `<div class="toast-body">${message}</div>`;
+        t.classList.add(type);
+        t.classList.add("show");
+        setTimeout(() => { t.classList.remove("show"); }, 3000);
+    }
+</script>
 
 <?php if (isset($_SESSION['toast'])): ?>
 <script>
-    <?php if (is_array($_SESSION['toast'])): ?>
-        showToast("<?= htmlspecialchars($_SESSION['toast']['msg']) ?>", "<?= htmlspecialchars($_SESSION['toast']['type']) ?>");
-    <?php else: ?>
-        showToast("<?= htmlspecialchars($_SESSION['toast']) ?>", "<?= htmlspecialchars($_SESSION['toast_type'] ?? 'error') ?>");
-    <?php endif; ?>
+    showToast("<?= htmlspecialchars($_SESSION['toast']['msg']) ?>", "<?= htmlspecialchars($_SESSION['toast']['type']) ?>");
 </script>
-<?php 
-    unset($_SESSION['toast'], $_SESSION['toast_type']); 
-endif; 
-?>
+<?php unset($_SESSION['toast']); endif; ?>
 
 </body>
-</html>     
+</html>

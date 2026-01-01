@@ -35,7 +35,7 @@ require_once 'backend/config.php';
 
             <h3 class="fw-bold mb-3">
                 BARANGAY <span style="color:#3cbf4c;">CALENDAR</span>
-                <span style="color:#8dc63f;">2025</span>
+                <span style="color:#8dc63f;">2026</span>
             </h3>
 
             <div class="calendar-header d-flex justify-content-between align-items-center mb-3">

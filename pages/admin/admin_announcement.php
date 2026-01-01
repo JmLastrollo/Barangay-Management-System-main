@@ -32,7 +32,6 @@ require_once '../../backend/db_connect.php';
         <img src="../../assets/img/profile.jpg" alt="Profile">
         <div>
             <h3><?= isset($_SESSION['username']) ? htmlspecialchars($_SESSION['username']) : 'Admin' ?></h3>
-            <small><?= isset($_SESSION['email']) ? htmlspecialchars($_SESSION['email']) : 'admin@email.com' ?></small>
             <div class="dept">IT Department</div>
         </div>
     </div>
