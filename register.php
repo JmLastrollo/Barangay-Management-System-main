@@ -10,9 +10,6 @@
     <link rel="stylesheet" href="css/toast.css">
 </head>
 <body>
-
-<?php include 'includes/nav.php'; ?>
-
   <section class="header-banner">
     <img src="assets/img/cdologo.png" class="left-logo" alt="left logo">
     <div class="header-text">
@@ -20,7 +17,7 @@
         <h3>Registration</h3>
     </div>
     <img src="assets/img/barangaygusalogo.png" class="right-logo" alt="right logo">
-</section>
+  </section>
 
   <section class="registration-form">
     <h2 style="font-weight: bold; color: #228B22;">FILL OUT THE REGISTRATION FORM</h2>
@@ -102,7 +99,7 @@
       <button type="submit">REGISTER NOW</button>
     </form>
     <p style="text-align:center; margin-top:20px;">
-      <a href="resident_login.php">Back to Login</a>
+      <a href="login.php">Back to Login</a>
     </p>
   </section>
 

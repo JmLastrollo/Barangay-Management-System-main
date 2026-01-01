@@ -1,6 +1,6 @@
 <?php 
 session_start();
-// Security Check
+// 1. Security Check
 if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['Admin', 'Staff'])) {
     header("Location: ../../admin_login.php");
     exit();
@@ -8,7 +8,7 @@ if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['Admin', 'Staf
 
 require_once '../../backend/db_connect.php'; 
 
-// Fetch Archived Announcements
+// 2. Fetch Archived Announcements
 $sql = "SELECT * FROM announcements WHERE status = 'archived' ORDER BY date DESC";
 $stmt = $conn->prepare($sql);
 $stmt->execute();
@@ -44,25 +44,31 @@ $announcements = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <img src="../../assets/img/profile.jpg" alt="Profile">
         <div>
             <h3><?= isset($_SESSION['username']) ? htmlspecialchars($_SESSION['username']) : 'Admin' ?></h3>
+            <small><?= isset($_SESSION['email']) ? htmlspecialchars($_SESSION['email']) : 'admin@email.com' ?></small>
             <div class="dept">IT Department</div>
         </div>
     </div>
+
     <div class="sidebar-menu">
         <a href="admin_dashboard.php"><i class="bi bi-house-door"></i> Dashboard</a>
         
-        <div class="dropdown-container active">
+        <a href="admin_announcement.php"><i class="bi bi-megaphone"></i> Announcement</a>
+        <a href="admin_officials.php"><i class="bi bi-people"></i> Officials</a>
+        <a href="admin_issuance.php"><i class="bi bi-bookmark"></i> Issuance</a>
+
+        <div class="dropdown-container">
             <button class="dropdown-btn">
                 <span><i class="bi bi-file-earmark-text"></i> Records</span>
                 <i class="bi bi-caret-down-fill dropdown-arrow"></i>
             </button>
-            <div class="dropdown-content" style="display: block;">
-                <a href="admin_announcement_archive.php" class="active"><i class="bi bi-megaphone"></i> Announcement</a>
-                <a href="admin_officials_archive.php"><i class="bi bi-people"></i> Officials</a>
-                <a href="admin_issuance_archive.php"><i class="bi bi-bookmark"></i> Issuance</a>
+            <div class="dropdown-content">
+                <a href="admin_rec_residents.php">Residents</a>
+                <a href="admin_rec_complaints.php">Complaints</a>
+                <a href="admin_rec_blotter.php">Blotter</a>
             </div>
         </div>
-        
-        <a href="admin_announcement.php"><i class="bi bi-arrow-left"></i> Back to List</a>
+
+        <a href="../../backend/logout.php"><i class="bi bi-box-arrow-left"></i> Logout</a>
     </div>
 </div>
 
@@ -77,6 +83,18 @@ $announcements = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </div>
 
     <div class="content">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search Title or Details..." class="form-control">
+                <button><i class="bi bi-search"></i></button>
+            </div>
+            
+            <div class="mt-2 mt-md-0">
+                <a href="admin_announcement.php" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+            </div>
+        </div>
         <div class="table-responsive">
             <table class="table table-hover align-middle">
                 <thead class="table-light">
@@ -84,15 +102,15 @@ $announcements = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <th>Title</th>
                         <th>Details</th>
                         <th>Original Date</th>
-                        <th>Action</th>
+                        <th style="width: 150px;">Action</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="archiveTableBody">
                 <?php if (empty($announcements)): ?>
                     <tr><td colspan="4" class="text-center text-muted">No archived items found.</td></tr>
                 <?php else: ?>
                     <?php foreach ($announcements as $item): 
-                        // Format date directly using strtotime
+                        // Format date
                         $formattedDate = date('M d, Y', strtotime($item['date']));
                     ?>
                     <tr>
@@ -100,9 +118,17 @@ $announcements = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <td><small class="text-muted"><?= htmlspecialchars(substr($item['details'], 0, 50)) ?>...</small></td>
                         <td><?= $formattedDate ?></td>
                         <td>
-                            <button class="btn btn-sm btn-success" onclick='openRestoreModal("<?= $item['announcement_id'] ?>")'>
-                                <i class="bi bi-arrow-counterclockwise"></i>
-                            </button>
+                            <div class="d-flex gap-1">
+                                <button class="btn btn-sm btn-success" title="Restore" 
+                                    onclick='openRestoreModal("<?= $item['announcement_id'] ?>")'>
+                                    <i class="bi bi-arrow-counterclockwise"></i>
+                                </button>
+                                
+                                <button class="btn btn-sm btn-danger" title="Delete Permanently"
+                                    onclick="openDeleteModal('<?= $item['announcement_id'] ?>')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     <?php endforeach; ?>
@@ -127,15 +153,35 @@ $announcements = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <form action="../../backend/announcement_update.php" method="POST">
                 <input type="hidden" name="id" id="r_id">
                 <input type="hidden" name="status" value="active"> 
-                
                 <input type="hidden" name="from_page" value="archive">
-
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button class="btn btn-success" type="submit">Yes, Restore</button>
             </form>
         </div>
     </div>
   </div>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger">Delete Permanently</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>This action cannot be undone. Are you sure you want to permanently delete this record?</p>
+            </div>
+            <div class="modal-footer">
+                <form action="../../backend/announcement_delete.php" method="POST">
+                    <input type="hidden" name="id" id="d_id">
+                    <input type="hidden" name="permanent" value="true"> 
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div id="toast" class="toast"></div>
@@ -148,16 +194,31 @@ $announcements = $stmt->fetchAll(PDO::FETCH_ASSOC);
         document.querySelector('.sidebar').classList.toggle('active'); 
     }
 
-    // --- MODAL FUNCTION ---
+    // --- MODAL FUNCTIONS (ADDED openDeleteModal) ---
     function openRestoreModal(id) {
         document.getElementById('r_id').value = id;
         new bootstrap.Modal(document.getElementById('restoreModal')).show();
+    }
+
+    function openDeleteModal(id) {
+        document.getElementById('d_id').value = id;
+        new bootstrap.Modal(document.getElementById('deleteModal')).show();
     }
 
     // --- DROPDOWN FUNCTION ---
     document.querySelectorAll('.dropdown-btn').forEach(btn => {
         btn.addEventListener('click', function () {
             this.parentElement.classList.toggle('active');
+        });
+    });
+
+    // --- SEARCH FUNCTION (ADDED) ---
+    document.getElementById("searchInput").addEventListener("keyup", function() {
+        let filter = this.value.toLowerCase();
+        let rows = document.querySelectorAll("#archiveTableBody tr");
+        rows.forEach(row => {
+            let text = row.innerText.toLowerCase();
+            row.style.display = text.includes(filter) ? "" : "none";
         });
     });
 
@@ -178,7 +239,6 @@ $announcements = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         if (success === 'restored') {
             showToast('Announcement restored successfully!', 'success');
-            // Clean URL
             window.history.replaceState({}, document.title, window.location.pathname);
         }
     });

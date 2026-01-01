@@ -1,33 +1,57 @@
 <?php
 session_start();
-require_once "db_connect.php";
+require_once 'db_connect.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $name = $_POST["name"];
-    $position = $_POST["position"];
-    $filename = "";
+    $name = $_POST['name'];
+    $position = $_POST['position'];
+    $term_start = !empty($_POST['term_start']) ? $_POST['term_start'] : NULL;
+    $term_end = !empty($_POST['term_end']) ? $_POST['term_end'] : NULL;
 
-    $uploadDir = "../uploads/officials/";
-    if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+    // --- LOGIC: AUTO-DETECT STATUS ---
+    // Default is Active
+    $status = 'Active';
+    
+    // If term_end is provided AND it is a past date, set to Archived
+    if (!empty($term_end) && $term_end < date('Y-m-d')) {
+        $status = 'Archived';
+    }
 
-    if (!empty($_FILES["photo"]["name"])) {
-        $extension = pathinfo($_FILES["photo"]["name"], PATHINFO_EXTENSION);
-        $filename = time() . "_" . uniqid() . "." . $extension;
-        move_uploaded_file($_FILES["photo"]["tmp_name"], $uploadDir . $filename);
+    // Image Upload
+    $image = "";
+    if (isset($_FILES['photo']['name']) && $_FILES['photo']['name'] != "") {
+        $targetDir = "../uploads/officials/";
+        $image = time() . "_" . basename($_FILES["photo"]["name"]);
+        move_uploaded_file($_FILES["photo"]["tmp_name"], $targetDir . $image);
     }
 
     try {
-        // FIX: Insert with 'Active' status (Capital A)
-        $sql = "INSERT INTO barangay_officials (full_name, position, image, status) VALUES (:name, :pos, :img, 'Active')";
+        $sql = "INSERT INTO barangay_officials 
+                (full_name, position, image, status, term_start, term_end) 
+                VALUES (:name, :pos, :img, :status, :t_start, :t_end)";
+        
         $stmt = $conn->prepare($sql);
-        $stmt->execute([':name' => $name, ':pos' => $position, ':img' => $filename]);
-        $_SESSION['toast'] = ['msg' => 'Official added successfully!', 'type' => 'success'];
-    } catch (PDOException $e) {
-        $_SESSION['toast'] = ['msg' => 'Error adding official: ' . $e->getMessage(), 'type' => 'error'];
-    }
+        $stmt->execute([
+            ':name' => $name,
+            ':pos' => $position,
+            ':img' => $image,
+            ':status' => $status,
+            ':t_start' => $term_start,
+            ':t_end' => $term_end
+        ]);
 
-    // FIX: Redirect path ../ lang
-    header("Location: ../pages/admin/admin_officials.php");
-    exit;
+        $_SESSION['toast'] = ['type' => 'success', 'msg' => 'Official added successfully!'];
+        
+        // Redirect based on the calculated status
+        if($status == 'Active'){
+            header("Location: ../pages/admin/admin_officials.php");
+        } else {
+            header("Location: ../pages/admin/admin_officials_archive.php");
+        }
+
+    } catch (PDOException $e) {
+        $_SESSION['toast'] = ['type' => 'error', 'msg' => 'Error: ' . $e->getMessage()];
+        header("Location: ../pages/admin/admin_officials.php");
+    }
 }
 ?>

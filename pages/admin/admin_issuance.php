@@ -1,78 +1,54 @@
 <?php
-require_once '../../backend/auth_admin.php';
-require_once '../../backend/config.php';
+session_start();
 
-$requests = iterator_to_array(
-    $issuanceCollection->aggregate([
-        [
-            '$match' => [
-                'status' => ['$ne' => 'Archived']
-            ]
-        ],
-        [
-            '$addFields' => [
-                'normalized_time' => [
-                    '$cond' => [
-                        [
-                            '$eq' => [
-                                [ '$strLenCP' => '$request_time' ],
-                                8
-                            ]
-                        ],
-                        '$request_time',
-                        [
-                            '$concat' => [
-                                '$request_time',
-                                ':00'
-                            ]
-                        ]
-                    ]
-                ]
-            ]
-        ],
-        [
-            '$addFields' => [
-                'full_request_datetime' => [
-                    '$toDate' => [
-                        '$concat' => [
-                            '$request_date',
-                            "T",
-                            '$normalized_time'
-                        ]
-                    ]
-                ]
-            ]
-        ],
-        [
-            '$sort' => [
-                'full_request_datetime' => -1
-            ]
-        ]
-    ])
-);
+// 1. Security Check
+if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['Admin', 'Staff'])) {
+    header("Location: ../../admin_login.php");
+    exit();
+}
 
+require_once '../../backend/db_connect.php';
 
+// 2. Fetch Requests
+$sql = "SELECT i.*, 
+               CONCAT(rp.first_name, ' ', rp.last_name) as current_resident_name,
+               p.amount, 
+               p.payment_method, 
+               p.reference_no, 
+               p.payment_status 
+        FROM issuance i
+        LEFT JOIN resident_profiles rp ON i.resident_id = rp.resident_id
+        LEFT JOIN payments p ON i.issuance_id = p.issuance_id
+        WHERE i.status != 'Archived'
+        ORDER BY i.request_date DESC";
+
+$stmt = $conn->prepare($sql);
+$stmt->execute();
+$requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>BMS - Admin Issuance</title>
-<link rel="icon" type="image/png" href="../../assets/img/BMS.png">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-<link rel="stylesheet" href="../../css/dashboard.css?v=1">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BMS - Admin Issuance</title>
+    <link rel="icon" type="image/png" href="../../assets/img/Langkaan 2 Logo-modified.png">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../../css/dashboard.css?v=1">
+    <link rel="stylesheet" href="../../css/toast.css"> 
 </head>
 
 <body>
+
 <div class="sidebar">
     <div class="sidebar-header">
-        <img src="../../assets/img/profile.jpg" alt="">
+        <img src="../../assets/img/profile.jpg" alt="Profile">
         <div>
-            <h3>Anonymous 1</h3>
-            <small>admin@email.com</small>
+            <h3><?= isset($_SESSION['username']) ? htmlspecialchars($_SESSION['username']) : 'Admin' ?></h3>
+            <small><?= isset($_SESSION['email']) ? htmlspecialchars($_SESSION['email']) : 'admin@email.com' ?></small>
             <div class="dept">IT Department</div>
         </div>
     </div>
@@ -85,7 +61,7 @@ $requests = iterator_to_array(
 
         <div class="dropdown-container">
             <button class="dropdown-btn">
-                <i class="bi bi-file-earmark-text"></i> Records
+                <span><i class="bi bi-file-earmark-text"></i> Records</span>
                 <i class="bi bi-caret-down-fill dropdown-arrow"></i>
             </button>
             <div class="dropdown-content">
@@ -100,11 +76,10 @@ $requests = iterator_to_array(
 </div>
 
 <div style="width:100%">
-
+    
     <div class="header">
-        <div class="hamburger" onclick="toggleSidebar()">☰</div>
+        <div class="hamburger" onclick="document.querySelector('.sidebar').classList.toggle('active')">☰</div>
         <h1 class="header-title"><span class="green">ISSUANCE</span></h1>
-
         <div class="header-logos">
             <img src="../../assets/img/barangaygusalogo.png">
             <img src="../../assets/img/cdologo.png">
@@ -112,251 +87,245 @@ $requests = iterator_to_array(
     </div>
 
     <div class="content">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div class="search-box d-flex">
-                <input type="text" id="searchInput" placeholder="Search for Resident Name or Document Type" class="form-control">
-                <button class="search-btn"><i class="bi bi-search"></i></button>
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+            
+            <div class="d-flex align-items-center gap-2">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search Resident or Doc Type" class="form-control">
+                    <button><i class="bi bi-search"></i></button>
+                </div>
             </div>
-            <a href="admin_issuance_archive.php" class="btn btn-secondary">
-                <i class="bi bi-archive"></i> Archive
-            </a>
+
+            <div class="mt-2 mt-md-0">
+                <a href="admin_issuance_archive.php" class="btn btn-secondary">
+                    <i class="bi bi-archive"></i> Archives
+                </a>
+            </div>
         </div>
 
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Resident Name</th>
-                    <th>Document Type</th>
-                    <th>Request Date & Time</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="issuanceTable">
-                <?php if(empty($requests)): ?>
-                    <tr><td colspan="5" class="text-center">No requests found.</td></tr>
-                <?php else: ?>
-                    <?php foreach($requests as $r): ?>
-                        <tr data-id="<?= $r->_id ?>"
-                            data-document_type="<?= htmlspecialchars($r->document_type) ?>"
-                            data-status="<?= htmlspecialchars($r->status) ?>"
-                            data-purpose="<?= htmlspecialchars($r->purpose ?? '') ?>"
-                            data-certificate_for="<?= htmlspecialchars($r->certificate_for ?? '') ?>"
-                            data-certificate_for_fullname="<?= htmlspecialchars($r->certificate_for_fullname ?? '') ?>"
-                            data-business_name="<?= htmlspecialchars($r->business_name ?? '') ?>"
-                            data-business_location="<?= htmlspecialchars($r->business_location ?? '') ?>"
-                        >
-                            <td><?= htmlspecialchars($r->resident_name) ?></td>
-                            <td><?= htmlspecialchars($r->document_type) ?></td>
-                            <td><?= htmlspecialchars($r->request_date . ' ' . $r->request_time) ?></td>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Resident Name</th>
+                        <th>Document Type</th>
+                        <th>Purpose / Details</th>
+                        <th>Date Requested</th>
+                        <th>Status</th>
+                        <th>Payment</th> 
+                        <th style="width: 150px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="issuanceTable">
+                    <?php if (empty($requests)): ?>
+                        <tr><td colspan="7" class="text-center text-muted">No pending requests found.</td></tr>
+                    <?php else: ?>
+                        <?php foreach($requests as $r): 
+                            $name = $r['current_resident_name'] ?? $r['resident_name'];
+                            $date = date('M d, Y h:i A', strtotime($r['request_date']));
+                        ?>
+                        <tr>
+                            <td class="fw-bold"><?= htmlspecialchars($name) ?></td>
                             <td>
-                                <span class="status 
-                                    <?= strtolower($r->status) === 'pending' ? 'pending' : '' ?>
-                                    <?= strtolower($r->status) === 'ready for pickup' ? 'ready' : '' ?>
-                                    <?= strtolower($r->status) === 'rejected' ? 'decline' : '' ?>
-                                    <?= strtolower($r->status) === 'received' ? 'received' : '' ?>
+                                <?= htmlspecialchars($r['document_type']) ?>
+                                <br>
+                                <small class="text-muted">Price: ₱<?= number_format($r['price'], 2) ?></small>
+                            </td>
+                            <td>
+                                <small><?= htmlspecialchars(substr($r['purpose'], 0, 50)) ?>...</small>
+                                <?php if(!empty($r['business_name'])): ?>
+                                    <br><small class="text-primary"><i class="bi bi-shop"></i> <?= htmlspecialchars($r['business_name']) ?></small>
+                                <?php endif; ?>
+                            </td>
+                            <td><?= $date ?></td>
+                            <td>
+                                <span class="badge rounded-pill 
+                                    <?= $r['status'] == 'Pending' ? 'text-bg-warning' : '' ?>
+                                    <?= $r['status'] == 'Ready for Pickup' ? 'text-bg-primary' : '' ?>
+                                    <?= $r['status'] == 'Received' ? 'text-bg-success' : '' ?>
+                                    <?= $r['status'] == 'Rejected' ? 'text-bg-danger' : '' ?>
                                 ">
-                                    <?= ucwords($r->status) ?>
+                                    <?= htmlspecialchars($r['status']) ?>
                                 </span>
                             </td>
-                            <td class="d-flex gap-1">
-                                <a href="admin_issuance_print.php?id=<?= $r->_id ?>" target="_blank" class="btn btn-sm btn-warning"><i class="bi bi-printer"></i></a>
-                                <button class="btn btn-info btn-sm text-white" data-bs-toggle="modal" data-bs-target="#viewModal"
-                                    onclick="viewRequest('<?= $r->_id ?>')"><i class="bi bi-eye"></i></button>
-                                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editModal"
-                                    onclick="editRequest('<?= $r->_id ?>')"><i class="bi bi-pencil-square"></i></button>
-                                <button class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#archiveModal"
-                                    onclick="document.getElementById('a_id').value='<?= $r->_id ?>'"><i class="bi bi-archive"></i></button>
+                            
+                            <td>
+                                <?php if ($r['amount'] > 0): ?>
+                                    <div class="d-flex flex-column" style="font-size: 0.85rem;">
+                                        <span class="fw-bold">₱<?= number_format($r['amount'], 2) ?></span>
+                                        <small class="text-muted"><?= htmlspecialchars($r['payment_method']) ?></small>
+                                        
+                                        <div class="mt-1">
+                                            <?php if($r['payment_status'] == 'Paid'): ?>
+                                                <span class="badge bg-success">Paid</span>
+                                            <?php elseif($r['payment_status'] == 'Pending'): ?>
+                                                <span class="badge bg-warning text-dark">Verify</span>
+                                            <?php elseif($r['payment_status'] == 'Rejected'): ?>
+                                                <span class="badge bg-danger">Rejected</span>
+                                            <?php else: ?>
+                                                <span class="badge bg-secondary"><?= htmlspecialchars($r['payment_status']) ?></span>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                <?php else: ?>
+                                    <span class="badge bg-light text-secondary border">Unpaid / Free</span>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-info text-white" onclick='viewRequest(<?= json_encode($r) ?>)' title="View"><i class="bi bi-eye"></i></button>
+                                <button class="btn btn-sm btn-primary" onclick="editStatus(<?= $r['issuance_id'] ?>, '<?= $r['status'] ?>')" title="Update Status"><i class="bi bi-pencil-square"></i></button>
+                                <button class="btn btn-sm btn-warning" onclick="openArchiveModal(<?= $r['issuance_id'] ?>)" title="Archive"><i class="bi bi-archive"></i></button>
                             </td>
                         </tr>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </tbody>
-        </table>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
-<!-- View Modal -->
 <div class="modal fade" id="viewModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content p-3">
-            <h5 class="modal-title">Request Details</h5>
-            <hr>
-            <div class="modal-body">
-                <p><strong>Resident Name:</strong> <span id="v_name"></span></p>
-                <p><strong>Document Type:</strong> <span id="v_doc"></span></p>
-                <p><strong>Request Date:</strong> <span id="v_date"></span></p>
-                <p><strong>Request Time:</strong> <span id="v_time"></span></p>
-                <p><strong>Status:</strong> <span id="v_status"></span></p>
-                <div id="v_extra"></div>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Request Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
+            <div class="modal-body" id="viewBody">
+                </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="#" id="printLink" target="_blank" class="btn btn-dark"><i class="bi bi-printer"></i> Print</a>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Edit Modal -->
-<div class="modal fade" id="editModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content p-3">
-            <h5 class="modal-title">Edit Issuance</h5>
+<div class="modal fade" id="statusModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
             <div class="modal-body">
                 <input type="hidden" id="edit_id">
-                <p><strong>Resident Name:</strong> <span id="e_name"></span></p>
-                <p><strong>Document Type:</strong> <span id="e_doc"></span></p>
-
-                <div class="mb-3" id="edit_certificate_for_div" style="display:none;">
-                    <label class="form-label">Certificate For</label>
-                    <input type="text" id="e_certificate_for" class="form-control">
-                </div>
-
-                <div class="mb-3" id="edit_certificate_purpose_div" style="display:none;">
-                    <label class="form-label">Purpose</label>
-                    <input type="text" id="e_certificate_purpose" class="form-control">
-                </div>
-
-                <div class="mb-3" id="edit_business_name_div" style="display:none;">
-                    <label class="form-label">Business Name</label>
-                    <input type="text" id="e_business_name" class="form-control">
-                </div>
-
-                <div class="mb-3" id="edit_business_location_div" style="display:none;">
-                    <label class="form-label">Business Location</label>
-                    <input type="text" id="e_business_location" class="form-control">
-                </div>
-
-                <div class="mb-3">
-                    <label for="statusSelect" class="form-label">Update Status</label>
-                    <select id="statusSelect" class="form-select">
-                        <option value="Pending">Pending</option>
-                        <option value="Ready for Pickup">Ready For Pickup</option>
-                        <option value="Rejected">Rejected</option>
-                        <option value="Received">Received</option>
-                    </select>
-                </div>
+                <label class="form-label fw-bold">Select New Status:</label>
+                <select id="edit_status" class="form-select">
+                    <option value="Pending">Pending</option>
+                    <option value="Ready for Pickup">Ready for Pickup</option>
+                    <option value="Received">Received</option>
+                    <option value="Rejected">Rejected</option>
+                </select>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-success" onclick="updateStatus()">Save Changes</button>
+                <button type="button" class="btn btn-success" onclick="saveStatus()">Save Changes</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Archive Modal -->
 <div class="modal fade" id="archiveModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content p-3">
-            <h5>Archive Request</h5>
-            <p>Are you sure you want to archive this request?</p>
-            <form action="../../backend/admin_issuance_update.php" method="POST">
-                <input type="hidden" name="issuance_id" id="a_id">
-                <input type="hidden" name="status" value="archived">
-                <button type="submit" class="btn btn-secondary">Archive</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            </form>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger">Archive Request</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to archive this request?</p>
+            </div>
+            <div class="modal-footer">
+                <form action="../../backend/admin_issuance_update.php" method="POST">
+                    <input type="hidden" name="issuance_id" id="archive_id">
+                    <input type="hidden" name="status" value="Archived"> 
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Yes, Archive</button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
-const BASE_PATH = "/Barangay-Management-System/backend/";
-
-// View request function
-function viewRequest(id){
-    fetch(`${BASE_PATH}admin_issuance_get_single.php?id=${id}`)
-    .then(res => res.json())
-    .then(data => {
-        document.getElementById('v_name').textContent = data.resident_name || 'N/A';
-        document.getElementById('v_doc').textContent = data.document_type || 'N/A';
-        document.getElementById('v_date').textContent = data.request_date || 'N/A';
-        document.getElementById('v_time').textContent = data.request_time || 'N/A';
-        document.getElementById('v_status').textContent = data.status || 'Pending';
-
-        let extraHTML = '';
-        if(data.document_type === 'Certificate of Indigency'){
-            extraHTML += `<p><strong>Certificate For:</strong> ${data.certificate_for || '-'}</p>`;
-            extraHTML += `<p><strong>Purpose:</strong> ${data.purpose || '-'}</p>`;
-            extraHTML += `<p><strong>Reason:</strong> ${data.reason || '-'}</p>`;
-        } else if(data.document_type === 'Barangay Business Clearance'){
-            extraHTML += `<p><strong>Business Name:</strong> ${data.business_name || '-'}</p>`;
-            extraHTML += `<p><strong>Business Location:</strong> ${data.business_location || '-'}</p>`;
-            extraHTML += `<p><strong>Reason:</strong> ${data.reason || '-'}</p>`;
-        } else {
-            extraHTML += `<p><strong>Reason:</strong> ${data.reason || '-'}</p>`;
-        }
-
-        document.getElementById('v_extra').innerHTML = extraHTML;
+    // --- DROPDOWNS & SIDEBAR ---
+    document.querySelector('.hamburger').addEventListener('click', () => {
+        document.querySelector('.sidebar').classList.toggle('active');
     });
-}
+    
+    document.querySelectorAll('.dropdown-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            this.parentElement.classList.toggle('active');
+        });
+    });
 
-// Edit request function
-function editRequest(id){
-    fetch(`${BASE_PATH}admin_issuance_get_single.php?id=${id}`)
-    .then(res => res.json())
-    .then(data => {
+    // --- MODAL LOGIC ---
+    function viewRequest(data) {
+        let content = `
+            <div class="mb-2"><strong>Resident:</strong> ${data.current_resident_name || data.resident_name}</div>
+            <div class="mb-2"><strong>Document:</strong> ${data.document_type}</div>
+            <div class="mb-2"><strong>Price:</strong> ₱${data.price}</div>
+            <div class="mb-2"><strong>Status:</strong> ${data.status}</div>
+            <hr>
+            <div class="mb-2"><strong>Purpose:</strong></div>
+            <div class="p-2 bg-light border rounded mb-2">${data.purpose}</div>
+        `;
+        
+        if(data.business_name) {
+            content += `
+                <div class="mb-2"><strong>Business Name:</strong> ${data.business_name}</div>
+                <div class="mb-2"><strong>Location:</strong> ${data.business_location}</div>
+            `;
+        }
+        
+        document.getElementById('viewBody').innerHTML = content;
+        
+        // Setup Print Link (kung meron kang print page)
+        document.getElementById('printLink').href = `admin_issuance_print.php?id=${data.issuance_id}`;
+        
+        new bootstrap.Modal(document.getElementById('viewModal')).show();
+    }
+
+    function editStatus(id, status) {
         document.getElementById('edit_id').value = id;
-        document.getElementById('e_name').textContent = data.resident_name || 'N/A';
-        document.getElementById('e_doc').textContent = data.document_type || 'N/A';
-        document.getElementById('statusSelect').value = data.status || 'Pending';
+        document.getElementById('edit_status').value = status;
+        new bootstrap.Modal(document.getElementById('statusModal')).show();
+    }
 
-        // show/hide relevant fields
-        document.getElementById('edit_certificate_for_div').style.display = data.document_type === 'Certificate of Indigency' ? 'block' : 'none';
-        document.getElementById('edit_certificate_purpose_div').style.display = data.document_type === 'Certificate of Indigency' ? 'block' : 'none';
-        document.getElementById('edit_business_name_div').style.display = data.document_type === 'Barangay Business Clearance' ? 'block' : 'none';
-        document.getElementById('edit_business_location_div').style.display = data.document_type === 'Barangay Business Clearance' ? 'block' : 'none';
+    function openArchiveModal(id) {
+        document.getElementById('archive_id').value = id;
+        new bootstrap.Modal(document.getElementById('archiveModal')).show();
+    }
 
-        document.getElementById('e_certificate_for').value = data.certificate_for || '';
-        document.getElementById('e_certificate_purpose').value = data.purpose || '';
-        document.getElementById('e_business_name').value = data.business_name || '';
-        document.getElementById('e_business_location').value = data.business_location || '';
+    function saveStatus() {
+        const id = document.getElementById('edit_id').value;
+        const status = document.getElementById('edit_status').value;
+        const formData = new FormData();
+        formData.append('issuance_id', id);
+        formData.append('status', status);
+
+        // UPDATED: Nakaturo na sa existing file mo
+        fetch('../../backend/admin_issuance_update.php', { method: 'POST', body: formData })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'success') location.reload();
+            else alert('Error updating status');
+        });
+    }
+
+    // --- SEARCH ---
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        const value = this.value.toLowerCase();
+        document.querySelectorAll('#issuanceTable tr').forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(value) ? '' : 'none';
+        });
     });
-}
-
-// Update status function (also saves other fields)
-function updateStatus(){
-    const id = document.getElementById('edit_id').value;
-    const status = document.getElementById('statusSelect').value;
-    const payload = new FormData();
-    payload.append('ajax', 1);
-    payload.append('issuance_id', id);
-    payload.append('status', status);
-
-    // add editable fields
-    payload.append('certificate_for', document.getElementById('e_certificate_for').value);
-    payload.append('purpose', document.getElementById('e_certificate_purpose').value);
-    payload.append('business_name', document.getElementById('e_business_name').value);
-    payload.append('business_location', document.getElementById('e_business_location').value);
-
-    fetch(BASE_PATH + 'admin_issuance_update.php', {method:'POST', body: payload})
-    .then(res => res.json())
-    .then(data => {
-        if(data.status==='success'){
-            const row = document.querySelector(`#issuanceTable tr[data-id='${id}']`);
-            if(row) row.querySelector('span.status').textContent = status; 
-            const statusSpan = row.querySelector('span.status');
-            statusSpan.textContent = status;
-
-            statusSpan.classList.remove("pending", "ready", "received", "decline");
-
-
-            if(status === "Pending") statusSpan.classList.add("pending");
-            if(status === "Ready for Pickup") statusSpan.classList.add("ready");
-            if(status === "Rejected") statusSpan.classList.add("decline");
-            if(status === "Received") statusSpan.classList.add("received");
-
-            bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
-        }
-    });
-}
-
-// Sidebar toggle
-document.querySelectorAll('.dropdown-btn').forEach(btn => {
-    btn.addEventListener('click', () => btn.parentElement.classList.toggle('active'));
-});
 </script>
+
 </body>
 </html>

@@ -57,7 +57,7 @@ if ($email) {
                 Request Now
             </button>
         <?php else: ?>
-            <a href="resident_login.php" class="btn btn-success">Request Now</a>
+            <a href="login.php" class="btn btn-success">Request Now</a>
         <?php endif; ?>
     </div>
 
@@ -72,7 +72,7 @@ if ($email) {
                 Request Now
             </button>
         <?php else: ?>
-            <a href="resident_login.php" class="btn btn-success">Request Now</a>
+            <a href="login.php" class="btn btn-success">Request Now</a>
         <?php endif; ?>
     </div>
 
@@ -87,7 +87,7 @@ if ($email) {
                 Request Now
             </button>
         <?php else: ?>
-            <a href="resident_login.php" class="btn btn-success">Request Now</a>
+            <a href="login.php" class="btn btn-success">Request Now</a>
         <?php endif; ?>
     </div>
 
@@ -102,7 +102,7 @@ if ($email) {
                 Request Now
             </button>
         <?php else: ?>
-            <a href="resident_login.php" class="btn btn-success">Request Now</a>
+            <a href="login.php" class="btn btn-success">Request Now</a>
         <?php endif; ?>
     </div>
 </div>
