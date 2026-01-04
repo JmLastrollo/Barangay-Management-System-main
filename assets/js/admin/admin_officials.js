@@ -149,26 +149,37 @@ function setupImagePreview() {
     }
 }
 
-// --- 6. ARCHIVE OFFICIAL (Modal Trigger) ---
+// --- 6. ARCHIVE OFFICIAL (Active Page) ---
 window.archiveOfficial = function(id, name) {
-    // Set values sa hidden input at span text
     setValue('archive_id', id);
-    setText('archive_name_display', name); // Para makita kung sino ang buburahin
-    
-    // Show Modal
+    setText('archive_name_display', name);
     new bootstrap.Modal(document.getElementById('archiveModal')).show();
 };
 
-// --- 7. FILTER BY YEAR (Archive Page) ---
+// --- 7. RESTORE OFFICIAL (Archive Page) ---
+window.restoreOfficial = function(id, name) {
+    setValue('restore_id', id);
+    setText('restore_name_display', name);
+    new bootstrap.Modal(document.getElementById('restoreModal')).show();
+};
+
+// --- 8. DELETE OFFICIAL PERMANENTLY (Archive Page) ---
+window.deleteOfficial = function(id, name) {
+    setValue('delete_id', id);
+    setText('delete_name_display', name);
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+};
+
+// --- 9. FILTER BY YEAR (Archive Page) ---
 window.filterByYear = function(year) {
     if (year) {
-        // I-add ang ?year=XXXX sa URL
         window.location.href = '?year=' + year;
     } else {
-        // Kung "All Years", tanggalin ang query params
         window.location.href = window.location.pathname;
     }
 };
+
+// ... (Rest of utilities)
 
 // --- UTILITIES / HELPERS ---
 function setText(id, text) {

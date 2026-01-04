@@ -6,12 +6,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST["id"])) {
     $id = $_POST["id"];
     
     try {
-        $stmt = $conn->prepare("UPDATE barangay_officials SET status = 'Archived' WHERE official_id = :id");
+        // UPDATED: Set status to 'Inactive' instead of 'Archived'
+        $stmt = $conn->prepare("UPDATE barangay_officials SET status = 'Inactive' WHERE official_id = :id");
         $stmt->execute([':id' => $id]);
         
-        $_SESSION['toast'] = ['msg' => 'Official archived successfully!', 'type' => 'success'];
+        $_SESSION['toast'] = ['msg' => 'Official moved to Inactive list.', 'type' => 'success'];
     } catch (PDOException $e) {
-        $_SESSION['toast'] = ['msg' => 'Error archiving official: ' . $e->getMessage(), 'type' => 'error'];
+        $_SESSION['toast'] = ['msg' => 'Error: ' . $e->getMessage(), 'type' => 'error'];
     }
     
     header("Location: ../pages/admin/admin_officials.php");

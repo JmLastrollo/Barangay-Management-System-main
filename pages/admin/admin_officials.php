@@ -8,18 +8,19 @@ if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['Admin', 'Staf
     exit();
 }
 
-// --- AUTO-INACTIVE LOGIC  ---
+// --- AUTO-INACTIVE LOGIC ---
+// Ito ang script na kusa naglilipat sa 'Inactive' kapag expired na ang term
 try {
     $currentDate = date('Y-m-d');
     $updateStmt = $conn->prepare("UPDATE barangay_officials 
-                                  SET status = 'Inactive'  /* BINAGO: Ginawang 'Inactive' */
+                                  SET status = 'Inactive' 
                                   WHERE term_end IS NOT NULL 
                                   AND term_end != '0000-00-00' 
                                   AND term_end < :currDate 
                                   AND status = 'Active'");
     $updateStmt->execute([':currDate' => $currentDate]);
 } catch (PDOException $e) {
-
+    // Silent fail
 }
 
 // Fetch Active Officials
@@ -44,7 +45,8 @@ try {
     <link rel="stylesheet" href="../../css/admin.css">
     <link rel="stylesheet" href="../../css/sidebar.css">
     <link rel="stylesheet" href="../../css/officials.css">
-    <link rel="stylesheet" href="../../css/toast.css"> </head>
+    <link rel="stylesheet" href="../../css/toast.css">
+</head>
 <body>
     
     <?php include '../../includes/sidebar.php'; ?>
@@ -73,7 +75,7 @@ try {
                         <i class="bi bi-person-plus-fill"></i> Add Official
                     </button>
                     <a href="admin_officials_archive.php" class="btn btn-secondary d-flex align-items-center gap-2">
-                        <i class="bi bi-archive-fill"></i> Archives
+                        <i class="bi bi-clock-history"></i> Past Officials
                     </a>
                 </div>
             </div>
@@ -231,6 +233,15 @@ try {
                                 <input type="date" name="term_end" id="edit_term_end" class="form-control">
                             </div>
                         </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">STATUS</label>
+                            <select name="status" id="edit_status" class="form-select">
+                                <option value="Active">Active</option>
+                                <option value="Resigned">Resigned</option>
+                            </select>
+                        </div>
+
                         <div class="mb-3">
                             <label class="form-label small fw-bold">UPDATE PHOTO</label>
                             <input type="file" name="photo" class="form-control" accept="image/*">
@@ -257,7 +268,7 @@ try {
                 </div>
 
                 <div class="modal-body">
-                    <h3 class="fw-bold mb-1" id="v_name">Official Name</h3>
+                    <h3 class="fw-bold mb-1 text-center" id="v_name">Official Name</h3>
                     <div class="text-center mb-4">
                         <span id="v_status_badge" class="status-badge-custom">Active</span>
                     </div>
@@ -283,29 +294,30 @@ try {
 
     <div class="modal fade" id="archiveModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content position-relative"> <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" style="z-index: 5;"></button>
+            <div class="modal-content position-relative"> 
+                <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" style="z-index: 5;"></button>
 
-                <div class="modal-body text-center p-4"> <div class="mt-2 mb-3 text-danger">
+                <div class="modal-body text-center p-4"> 
+                    <div class="mt-2 mb-3 text-danger">
                         <i class="bi bi-exclamation-circle-fill" style="font-size: 3.5rem;"></i>
                     </div>
                     
-                    <h4 class="fw-bold mb-2">Archive Official?</h4>
+                    <h4 class="fw-bold mb-2">Move to Inactive?</h4>
                     <p class="text-muted mb-4">
                         Are you sure you want to move <br>
-                        <span id="archive_name_display" class="fw-bold text-dark"></span> to archives?
+                        <span id="archive_name_display" class="fw-bold text-dark"></span> to the inactive list?
                     </p>
                     
                     <form action="../../backend/officials_delete.php" method="POST">
                         <input type="hidden" name="id" id="archive_id">
                         <div class="d-flex justify-content-center gap-2">
                             <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-danger px-4">Yes, Archive</button>
+                            <button type="submit" class="btn btn-danger px-4">Yes, Move</button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
-    </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
