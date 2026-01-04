@@ -10,23 +10,25 @@
     font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
 }
 
+/* --- SCROLL FIX: LOCK BODY --- */
 body { 
     background-color: #f4f6f9; 
-    min-height: 100vh; 
-    overflow-x: hidden;
+    height: 100vh;      /* Fixed height */
+    overflow: hidden;   /* Disable body scroll */
 }
 
-/* Main Content Wrapper */
+/* --- SCROLL FIX: MAIN CONTAINER --- */
 #main-content {
     margin-left: 240px; /* Match sa width ng sidebar */
     width: calc(100% - 240px);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+    height: 100vh;          /* Full screen height */
+    display: flex;          /* Flex layout */
+    flex-direction: column; /* Vertical stack */
     transition: all 0.3s;
+    overflow: hidden;       /* Disable scroll here */
 }
 
-/* --- HEADER STYLES --- */
+/* --- HEADER STYLES (Fixed Top) --- */
 .header {
     height: 90px;
     background-image: linear-gradient(rgba(13, 71, 161, 0.85), rgba(21, 101, 192, 0.75)), url('../assets/img/barangay langkaan post.jpg');
@@ -39,6 +41,9 @@ body {
     padding: 0 30px;
     color: white;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    
+    flex-shrink: 0; /* IMPORTANT: Prevent header from shrinking */
+    z-index: 10;
 }
 
 .header-title { 
@@ -60,6 +65,64 @@ body {
     object-fit: contain;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
 }
+
+/* --- CONTENT AREA (Flex Container) --- */
+.content { 
+    padding: 25px 30px; 
+    
+    display: flex;          /* Enable Flexbox */
+    flex-direction: column; /* Vertical arrangement */
+    height: 100%;           /* Take up remaining height */
+    overflow: hidden;       /* Contain child elements */
+}
+
+/* Search Box Area (Fixed above table) */
+.content > .d-flex {
+    flex-shrink: 0; /* Prevent shrinking */
+    margin-bottom: 20px !important;
+}
+
+/* --- CARD (Expands to fill space) --- */
+.card {
+    flex-grow: 1;           /* Occupy remaining vertical space */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;       /* Contain internal scroll */
+    min-height: 0;          /* Allow shrinking in Firefox */
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card-body {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+}
+
+/* --- TABLE SCROLL AREA (Only this part scrolls) --- */
+.table-responsive {
+    flex-grow: 1;       /* Occupy all space inside card body */
+    overflow-y: auto;   /* Enable Vertical Scroll */
+    height: 100%;
+}
+
+/* Sticky Header inside Table */
+.table-responsive thead th {
+    position: sticky;
+    top: 0;
+    background-color: #f8f9fa;
+    z-index: 5;
+    box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1);
+}
+
+/* Custom Scrollbar for Table */
+.table-responsive::-webkit-scrollbar { width: 8px; }
+.table-responsive::-webkit-scrollbar-track { background: #f1f1f1; }
+.table-responsive::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+.table-responsive::-webkit-scrollbar-thumb:hover { background: #aaa; }
+
 
 /* --- SEARCH BOX (Seamless Fix) --- */
 .search-box {
@@ -117,7 +180,6 @@ body {
 }
 
 /* --- DASHBOARD WIDGETS --- */
-.content { padding: 25px 30px; }
 
 /* Red Banner (Pending) */
 .red-banner {
