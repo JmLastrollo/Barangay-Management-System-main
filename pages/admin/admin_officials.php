@@ -8,6 +8,20 @@ if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['Admin', 'Staf
     exit();
 }
 
+// --- AUTO-INACTIVE LOGIC  ---
+try {
+    $currentDate = date('Y-m-d');
+    $updateStmt = $conn->prepare("UPDATE barangay_officials 
+                                  SET status = 'Inactive'  /* BINAGO: Ginawang 'Inactive' */
+                                  WHERE term_end IS NOT NULL 
+                                  AND term_end != '0000-00-00' 
+                                  AND term_end < :currDate 
+                                  AND status = 'Active'");
+    $updateStmt->execute([':currDate' => $currentDate]);
+} catch (PDOException $e) {
+
+}
+
 // Fetch Active Officials
 try {
     $stmt = $conn->query("SELECT * FROM barangay_officials WHERE status = 'Active' ORDER BY term_start DESC");
@@ -26,60 +40,17 @@ try {
     <link rel="icon" type="image/png" href="../../assets/img/Langkaan 2 Logo-modified.png"> 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
     <link rel="stylesheet" href="../../css/admin.css">
     <link rel="stylesheet" href="../../css/sidebar.css">
     <link rel="stylesheet" href="../../css/officials.css">
-    
-    <style>
-        /* Floating Toast Style (Matching Residents) */
-        #toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-        }
-        .toast-custom {
-            min-width: 300px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            display: none;
-            padding: 15px 20px;
-            border-left: 5px solid;
-            animation: slideIn 0.4s ease forwards;
-        }
-        .toast-custom.show { display: block; }
-        .toast-custom.success { border-left-color: #198754; color: #198754; }
-        .toast-custom.error { border-left-color: #dc3545; color: #dc3545; }
-        .toast-custom.warning { border-left-color: #ffc107; color: #856404; }
-        
-        @keyframes slideIn { 
-            from { transform: translateX(100%); opacity: 0; } 
-            to { transform: translateX(0); opacity: 1; } 
-        }
-
-        /* Action Buttons */
-        .btn-action {
-            width: 35px; height: 35px;
-            display: inline-flex; align-items: center; justify-content: center;
-            background-color: #fff; border: 1px solid #dee2e6;
-            border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            transition: all 0.2s ease; margin: 0 3px; cursor: pointer;
-        }
-        .btn-action:hover { transform: translateY(-2px); background-color: #f8f9fa; }
-        .btn-action.view i { color: #0d6efd; }
-        .btn-action.edit i { color: #198754; }
-        .btn-action.archive i { color: #dc3545; }
-    </style>
-</head>
+    <link rel="stylesheet" href="../../css/toast.css"> </head>
 <body>
     
     <?php include '../../includes/sidebar.php'; ?>
 
     <div id="main-content">
-        <div id="toast-container">
-            <div id="toast" class="toast-custom"></div>
-        </div>
+        <div id="toast" class="toast"></div>
 
         <div class="header">
             <h1 class="header-title">BARANGAY <span class="green">OFFICIALS</span></h1>
@@ -151,15 +122,14 @@ try {
                                                 <button class="btn-action view" onclick='viewOfficial(<?= json_encode($off) ?>)' title="View">
                                                     <i class="bi bi-eye-fill"></i>
                                                 </button>
+                                                
                                                 <button class="btn-action edit" onclick='editOfficial(<?= json_encode($off) ?>)' title="Edit">
                                                     <i class="bi bi-pencil-square"></i>
                                                 </button>
-                                                <form action="../../backend/officials_delete.php" method="POST" style="display:inline;" onsubmit="return confirm('Archive this official?');">
-                                                    <input type="hidden" name="id" value="<?= $off['official_id'] ?>">
-                                                    <button type="submit" class="btn-action archive" title="Archive">
-                                                        <i class="bi bi-archive-fill"></i>
-                                                    </button>
-                                                </form>
+                                                
+                                                <button class="btn-action archive" onclick="archiveOfficial(<?= $off['official_id'] ?>, '<?= htmlspecialchars($off['full_name'], ENT_QUOTES) ?>')" title="Archive">
+                                                    <i class="bi bi-archive-fill"></i>
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -278,24 +248,32 @@ try {
     <div class="modal fade" id="viewModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow">
-                <div class="modal-header border-0">
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <div class="modal-profile-header">
+                    <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body text-center mt-n3 pb-4">
-                    <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle bg-light border shadow-sm" 
-                         id="v_image_container" 
-                         style="width: 130px; height: 130px; overflow: hidden;">
-                        </div>
-                    <h3 class="fw-bold mb-1" id="v_name"></h3>
-                    <span class="badge bg-success rounded-pill px-4 mb-4" id="v_status_badge">Active</span>
-                    <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle bg-light border shadow-sm" 
-                        id="v_image_container" 
-                        style="width: 130px; height: 130px; overflow: hidden;">
-                        <img id="v_image" src="" style="width: 100%; height: 100%; object-fit: cover;">
+                
+                <div class="profile-img-container" id="v_image_container">
+                    <img id="v_image" src="" class="profile-img-view">
+                </div>
+
+                <div class="modal-body">
+                    <h3 class="fw-bold mb-1" id="v_name">Official Name</h3>
+                    <div class="text-center mb-4">
+                        <span id="v_status_badge" class="status-badge-custom">Active</span>
                     </div>
+
+                    <div class="row text-start px-3 g-3">
+                        <div class="col-12">
+                            <label class="info-label">Position</label>
+                            <span class="info-value" id="v_position">Barangay Captain</span>
+                        </div>
                         <div class="col-6">
-                            <small class="text-muted d-block text-uppercase small fw-bold">End of Term</small>
-                            <span class="text-dark" id="v_term_end">---</span>
+                            <label class="info-label">Start of Term</label>
+                            <span class="info-value" id="v_term_start">Jan 01, 2023</span>
+                        </div>
+                        <div class="col-6">
+                            <label class="info-label">End of Term</label>
+                            <span class="info-value" id="v_term_end">---</span>
                         </div>
                     </div>
                 </div>
@@ -303,7 +281,44 @@ try {
         </div>
     </div>
 
+    <div class="modal fade" id="archiveModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content position-relative"> <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" style="z-index: 5;"></button>
+
+                <div class="modal-body text-center p-4"> <div class="mt-2 mb-3 text-danger">
+                        <i class="bi bi-exclamation-circle-fill" style="font-size: 3.5rem;"></i>
+                    </div>
+                    
+                    <h4 class="fw-bold mb-2">Archive Official?</h4>
+                    <p class="text-muted mb-4">
+                        Are you sure you want to move <br>
+                        <span id="archive_name_display" class="fw-bold text-dark"></span> to archives?
+                    </p>
+                    
+                    <form action="../../backend/officials_delete.php" method="POST">
+                        <input type="hidden" name="id" id="archive_id">
+                        <div class="d-flex justify-content-center gap-2">
+                            <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-danger px-4">Yes, Archive</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../assets/js/admin/admin_officials.js"></script>
+
+    <?php if (isset($_SESSION['toast'])): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                showToast("<?= $_SESSION['toast']['msg'] ?>", "<?= $_SESSION['toast']['type'] ?>");
+            });
+        </script>
+        <?php unset($_SESSION['toast']); ?>
+    <?php endif; ?>
+
 </body>
 </html>

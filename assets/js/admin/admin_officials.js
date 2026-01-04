@@ -1,12 +1,12 @@
 /**
  * BMS - Admin Officials Script
- * Updated to match Resident Script structure with Toast signals
+ * Updated to work with css/toast.css and PHP Sessions
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    checkUrlParams();      // 1. Check URL signals for floating toast
-    setupSearch();         // 2. Real-time table filter
-    setupImagePreview();   // 3. Add Modal Image Preview
+    checkUrlParams();      // Optional: Check URL signals (backward compatibility)
+    setupSearch();         // Real-time table filter
+    setupImagePreview();   // Add Modal Image Preview
 });
 
 // --- 1. TOAST NOTIFICATION LOGIC ---
@@ -15,7 +15,7 @@ function showToast(message, type = 'success') {
     if (!toast) return;
     
     toast.textContent = message;
-    // Ginagamit ang classes base sa css: toast.success, toast.error, toast.warning
+    // Set classes based on css/toast.css: .toast.show.success, etc.
     toast.className = `toast ${type} show`;
     
     // Auto-hide after 3 seconds
@@ -58,30 +58,36 @@ window.viewOfficial = function (data) {
     const badge = document.getElementById('v_status_badge');
     if (badge) {
         badge.innerText = data.status;
-        badge.className = 'badge rounded-pill px-4 mb-4 bg-success';
-        if (data.status !== 'Active') {
-            badge.classList.replace('bg-success', 'bg-secondary');
+        if (data.status === 'Active') {
+            badge.className = 'status-badge-custom';
+        } else {
+            badge.className = 'status-badge-custom status-badge-inactive';
         }
     }
 
     const imgEl = document.getElementById('v_image');
-    const imgContainer = document.getElementById('v_image_container'); // ID ng div wrapper
+    const imgContainer = document.getElementById('v_image_container');
     const defaultIcon = '../../assets/img/profile.jpg';
     const initial = data.full_name.charAt(0).toUpperCase();
 
     if (imgEl && imgContainer) {
+        // Reset contents
+        imgContainer.innerHTML = ''; 
+
         if (data.image && data.image.trim() !== "") {
-            imgEl.style.display = 'block';
-            imgEl.src = `../../uploads/officials/${data.image}`;
-            // Tanggalin ang initials kung may image
-            const oldInitial = imgContainer.querySelector('.initials-placeholder');
-            if(oldInitial) oldInitial.remove();
+            // Kung may image file
+            const img = document.createElement('img');
+            img.src = `../../uploads/officials/${data.image}`;
+            img.className = 'profile-img-view';
+            img.onerror = function() { this.src = defaultIcon; };
+            imgContainer.appendChild(img);
         } else {
-            // Itago ang img tag at ipakita ang Initials gaya ng sa table
-            imgEl.style.display = 'none';
-            imgContainer.innerHTML = `<span class="initials-placeholder fw-bold text-secondary" style="font-size: 50px;">${initial}</span>`;
+            // Kung walang image, Initials lang
+            const div = document.createElement('div');
+            div.className = 'profile-initials';
+            div.innerText = initial;
+            imgContainer.appendChild(div);
         }
-        imgEl.onerror = function() { this.src = defaultIcon; };
     }
 
     new bootstrap.Modal(document.getElementById('viewModal')).show();
@@ -94,7 +100,6 @@ window.editOfficial = function (data) {
     setValue('edit_position', data.position);
     setValue('edit_term_start', data.term_start);
     
-    // Handle Term End (Empty if 0000-00-00 or null)
     const termEndVal = (data.term_end && data.term_end !== '0000-00-00') ? data.term_end : '';
     setValue('edit_term_end', termEndVal);
 
@@ -108,11 +113,10 @@ function setupSearch() {
     if (searchInput) {
         searchInput.addEventListener('keyup', function() {
             const filter = this.value.toLowerCase();
-            const rows = document.querySelectorAll('#officialsTable tr'); // Siguraduhing tama ang ID ng tbody/table
+            const rows = document.querySelectorAll('#officialsTable tr');
 
             rows.forEach(row => {
-                // Skip placeholder rows (e.g., "No data found")
-                if (row.cells.length <= 1) return;
+                if (row.cells.length <= 1) return; // Skip "No data" rows
 
                 const text = row.innerText.toLowerCase();
                 row.style.display = text.includes(filter) ? '' : 'none';
@@ -123,7 +127,7 @@ function setupSearch() {
 
 // --- 5. IMAGE PREVIEW (Add Modal) ---
 function setupImagePreview() {
-    const addInput = document.getElementById('add-photo'); // Base sa admin_officials.php mo
+    const addInput = document.getElementById('add-photo');
     const addPreview = document.getElementById('add-preview');
     const addPlaceholder = document.getElementById('add-placeholder');
 
@@ -144,6 +148,27 @@ function setupImagePreview() {
         });
     }
 }
+
+// --- 6. ARCHIVE OFFICIAL (Modal Trigger) ---
+window.archiveOfficial = function(id, name) {
+    // Set values sa hidden input at span text
+    setValue('archive_id', id);
+    setText('archive_name_display', name); // Para makita kung sino ang buburahin
+    
+    // Show Modal
+    new bootstrap.Modal(document.getElementById('archiveModal')).show();
+};
+
+// --- 7. FILTER BY YEAR (Archive Page) ---
+window.filterByYear = function(year) {
+    if (year) {
+        // I-add ang ?year=XXXX sa URL
+        window.location.href = '?year=' + year;
+    } else {
+        // Kung "All Years", tanggalin ang query params
+        window.location.href = window.location.pathname;
+    }
+};
 
 // --- UTILITIES / HELPERS ---
 function setText(id, text) {

@@ -1,15 +1,15 @@
 /* ================================================== */
-/* --- MODERN MODAL STYLING (UPDATED) ---             */
+/* --- OFFICIALS MODAL & PAGE STYLING ---             */
 /* ================================================== */
 
-/* 1. The Container Window */
+/* 1. Modal Container */
 .modal-content {
     border: none;
     border-radius: 12px;
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
 }
 
-/* 2. The Blue Header */
+/* 2. Modal Header with Gradient Background */
 .modal-profile-header {
     background: linear-gradient(135deg, #0d6efd, #0043a8);
     height: 130px;
@@ -17,42 +17,48 @@
     border-radius: 12px 12px 0 0;
 }
 
-/* 3. The Floating Picture Container */
+/* 3. Floating Profile Picture Container */
 .profile-img-container {
-    width: 140px;  /* Laki ng bilog */
+    width: 140px;
     height: 140px;
     border-radius: 50%;
-    border: 5px solid #fff; /* Makapal na white border */
+    border: 5px solid #fff;
     box-shadow: 0 5px 15px rgba(0,0,0,0.15);
     position: absolute;
-    bottom: -70px; /* Hinihila pababa sa body */
+    top: 60px; /* Relative to modal-content container (approx) */
     left: 50%;
     transform: translateX(-50%);
     background: #fff;
     overflow: hidden;
     z-index: 10;
     
-    /* Center content (para sa Initials fallback) */
+    /* Center content for Initials */
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-/* --- ADDED: Style para sa Image mula sa Database --- */
+/* Fix for View Modal Header Positioning */
+#viewModal .modal-content {
+    position: relative;
+    overflow: visible; /* Allow image to overflow if needed */
+}
+
+/* Image styling */
 .profile-img-view { 
     width: 100%; 
     height: 100%; 
-    object-fit: cover; /* Siguradong hindi unat ang mukha */
+    object-fit: cover;
     display: block;
 }
 
-/* --- ADDED: Style para sa Initials (Kapag walang picture) --- */
+/* Initials Styling (No Image) */
 .profile-initials {
     width: 100%;
     height: 100%;
-    background-color: #e9ecef; /* Light gray background */
-    color: #495057;            /* Dark gray text */
-    font-size: 3.5rem;         /* Malaking letra */
+    background-color: #e9ecef;
+    color: #495057;
+    font-size: 3.5rem;
     font-weight: 700;
     display: flex;
     align-items: center;
@@ -60,18 +66,18 @@
     text-transform: uppercase;
 }
 
-/* 4. Modal Body Spacing (The Fix) */
+/* 4. Modal Body Spacing */
 .modal-body {
-    padding-top: 90px !important; /* Ibaba ang text para hindi matakpan */
+    padding-top: 80px !important; /* Space for the floating image */
     padding-bottom: 30px;
-    text-align: center;
 }
 
-/* 5. Typography Styles */
-.modal-body h3 { /* Para sa Name */
+/* 5. Typography */
+.modal-body h3 {
     font-weight: 700;
     color: #333;
     margin-bottom: 5px;
+    text-align: center;
 }
 
 .info-label { 
@@ -91,7 +97,7 @@
     color: #212529; 
     background-color: #fff;
     border: 1px solid #dee2e6; 
-    border-left: 4px solid #0d6efd; /* Blue accent border */
+    border-left: 4px solid #0d6efd;
     padding: 8px 12px;
     border-radius: 4px; 
     box-shadow: none;
@@ -100,9 +106,7 @@
     width: 100%;
 }
 
-/* =========================================
-   6. Status Badge
-   ========================================= */
+/* 6. Status Badges */
 .status-badge-custom {
     display: inline-block;
     padding: 6px 20px;
@@ -115,9 +119,21 @@
     margin-bottom: 20px;
 }
 
-/* Kung Inactive ang status (Red) */
 .status-badge-custom.status-badge-inactive {
     background-color: #f8d7da;
     color: #842029;
     border-color: #f5c2c7;
 }
+
+/* Action Buttons in Table */
+.btn-action {
+    width: 35px; height: 35px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background-color: #fff; border: 1px solid #dee2e6;
+    border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: all 0.2s ease; margin: 0 3px; cursor: pointer;
+}
+.btn-action:hover { transform: translateY(-2px); background-color: #f8f9fa; }
+.btn-action.view i { color: #0d6efd; }
+.btn-action.edit i { color: #198754; }
+.btn-action.archive i { color: #dc3545; }
