@@ -1,0 +1,123 @@
+/* ================================================== */
+/* --- MODERN MODAL STYLING (UPDATED) ---             */
+/* ================================================== */
+
+/* 1. The Container Window */
+.modal-content {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* 2. The Blue Header */
+.modal-profile-header {
+    background: linear-gradient(135deg, #0d6efd, #0043a8);
+    height: 130px;
+    position: relative;
+    border-radius: 12px 12px 0 0;
+}
+
+/* 3. The Floating Picture Container */
+.profile-img-container {
+    width: 140px;  /* Laki ng bilog */
+    height: 140px;
+    border-radius: 50%;
+    border: 5px solid #fff; /* Makapal na white border */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+    position: absolute;
+    bottom: -70px; /* Hinihila pababa sa body */
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fff;
+    overflow: hidden;
+    z-index: 10;
+    
+    /* Center content (para sa Initials fallback) */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* --- ADDED: Style para sa Image mula sa Database --- */
+.profile-img-view { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; /* Siguradong hindi unat ang mukha */
+    display: block;
+}
+
+/* --- ADDED: Style para sa Initials (Kapag walang picture) --- */
+.profile-initials {
+    width: 100%;
+    height: 100%;
+    background-color: #e9ecef; /* Light gray background */
+    color: #495057;            /* Dark gray text */
+    font-size: 3.5rem;         /* Malaking letra */
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+}
+
+/* 4. Modal Body Spacing (The Fix) */
+.modal-body {
+    padding-top: 90px !important; /* Ibaba ang text para hindi matakpan */
+    padding-bottom: 30px;
+    text-align: center;
+}
+
+/* 5. Typography Styles */
+.modal-body h3 { /* Para sa Name */
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.info-label { 
+    font-size: 0.7rem; 
+    text-transform: uppercase; 
+    letter-spacing: 0.8px; 
+    color: #adb5bd;
+    font-weight: 700; 
+    margin-bottom: 5px; 
+    display: block;
+    text-align: left;
+}
+
+.info-value {
+    font-size: 1rem; 
+    font-weight: 500; 
+    color: #212529; 
+    background-color: #fff;
+    border: 1px solid #dee2e6; 
+    border-left: 4px solid #0d6efd; /* Blue accent border */
+    padding: 8px 12px;
+    border-radius: 4px; 
+    box-shadow: none;
+    text-align: left;
+    display: block;
+    width: 100%;
+}
+
+/* =========================================
+   6. Status Badge
+   ========================================= */
+.status-badge-custom {
+    display: inline-block;
+    padding: 6px 20px;
+    border-radius: 50px;
+    background-color: #d1e7dd; /* Active Green */
+    color: #0f5132;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid #badbcc;
+    margin-bottom: 20px;
+}
+
+/* Kung Inactive ang status (Red) */
+.status-badge-custom.status-badge-inactive {
+    background-color: #f8d7da;
+    color: #842029;
+    border-color: #f5c2c7;
+}

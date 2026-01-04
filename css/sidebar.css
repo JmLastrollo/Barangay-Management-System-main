@@ -1,0 +1,130 @@
+/* ================================================== */
+/* SIDEBAR.CSS - Navigation & Icon Alignment          */
+/* ================================================== */
+
+/* Sidebar Container */
+#sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 240px; /* Compact Width */
+    background: #ffffff;
+    box-shadow: 2px 0 15px rgba(0,0,0,0.05);
+    z-index: 1000;
+    overflow-y: auto; 
+    transition: all 0.3s;
+}
+
+/* Sidebar Header (Profile) */
+.sidebar-header {
+    background: linear-gradient(135deg, #1565C0, #0D47A1);
+    padding: 20px 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-bottom: 4px solid #FFD54F;
+}
+
+.admin-profile-img img {
+    width: 45px; height: 45px;
+    border-radius: 50%;
+    border: 2px solid #FFD54F;
+    object-fit: cover;
+    background: white;
+}
+
+.profile-info h6 {
+    font-size: 15px; 
+    margin-bottom: 2px;
+    color: #fff;
+    font-weight: 600;
+    white-space: nowrap; 
+}
+
+.profile-info span {
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    color: #e3f2fd;
+}
+
+/* --- NAVIGATION LINKS --- */
+.nav-link {
+    color: #444;
+    font-weight: 600;
+    padding: 12px 20px;
+    font-size: 14px;
+    border-left: 4px solid transparent;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center; /* Vertical Center */
+    text-decoration: none;
+    width: 100%;
+}
+
+/* Fix para sa Text na nasa loob ng DIV (Dropdown Toggles) */
+.nav-link > div {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+/* --- ICON ALIGNMENT FIX (Ito ang nagpapapantay) --- */
+/* Targetin lahat ng icons maliban sa arrow down */
+.nav-link i.bi:not(.bi-chevron-down) { 
+    width: 35px;           /* Fixed Width Container */
+    min-width: 35px;       /* Siguraduhing hindi liliit */
+    height: 30px;          
+    line-height: 30px;     /* Gitna vertically */
+    text-align: center;    /* Gitna horizontally */
+    display: inline-block; 
+    font-size: 18px;       
+    color: #1565C0; 
+    margin-right: 5px;     /* Space bago ang text */
+}
+
+/* Arrow Down (Right Side) */
+.nav-link .bi-chevron-down {
+    margin-left: auto;     /* Itulak sa dulo */
+    font-size: 12px;
+    transition: transform 0.3s;
+    color: #888;
+}
+
+/* Rotate arrow pag open */
+.nav-link[aria-expanded="true"] .bi-chevron-down {
+    transform: rotate(180deg);
+    color: #1565C0;
+}
+
+/* Hover Effects */
+.nav-link:hover {
+    background-color: #f0f7ff;
+    color: #1565C0;
+    border-left: 4px solid #1565C0;
+}
+
+/* Active State (Parent Menu) */
+.nav-link.active {
+    background-color: #e3f2fd;
+    color: #0D47A1;
+    font-weight: 700;
+    border-left: 4px solid #FFD54F;
+}
+
+/* --- SUBMENU STYLES --- */
+.submenu .nav-link {
+    padding-left: 65px; /* Indent para sa sub-items */
+    padding-top: 10px;
+    padding-bottom: 10px;
+    font-size: 13px;
+    color: #666;
+}
+
+/* Active Submenu Item */
+.submenu .nav-link.active {
+    background-color: transparent;
+    color: #1565C0;
+    font-weight: 700;
+    border-left: 4px solid #1565C0; /* Blue border indicator sa child */
+}

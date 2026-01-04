@@ -9,7 +9,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="icon" type="image/png" href="assets/img/Langkaan 2 Logo-modified.png">
-    
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/toast.css" />
 </head>
@@ -34,13 +33,13 @@
           <h5 class="section-header"><i class="bi bi-person-vcard-fill me-2"></i>Personal Information</h5>
           <div class="row">
               <div class="col-md-3 mb-3">
-                  <input type="text" name="fname" placeholder="First Name" required>
+                  <input type="text" name="fname" placeholder="First Name" required onkeyup="checkPassword()">
               </div>
               <div class="col-md-3 mb-3">
-                  <input type="text" name="mname" placeholder="Middle Name (optional)">
+                  <input type="text" name="mname" placeholder="Middle Name (optional)" onkeyup="checkPassword()">
               </div>
               <div class="col-md-3 mb-3">
-                  <input type="text" name="lname" placeholder="Last Name" required>
+                  <input type="text" name="lname" placeholder="Last Name" required onkeyup="checkPassword()">
               </div>
               <div class="col-md-3 mb-3">
                   <input type="text" name="sname" placeholder="Suffix (e.g. Jr.)">
@@ -50,7 +49,8 @@
           <div class="row">
               <div class="col-md-4 mb-3">
                   <label class="small text-muted ms-1">Birth Date</label>
-                  <input type="date" id="bdate" name="bdate" required>
+                  <input type="date" id="bdate" name="bdate" required onchange="validateAge()">
+                  <span id="ageMessage" class="d-block small fw-bold mt-1" style="font-size: 0.75rem;"></span>
               </div>
               <div class="col-md-4 mb-3">
                   <label class="small text-muted ms-1">Birth Place</label>
@@ -79,8 +79,14 @@
           <h5 class="section-header mt-2"><i class="bi bi-geo-alt-fill me-2"></i>Demographics & Residence</h5>
           
           <div class="row">
-              <div class="col-md-12 mb-3">
-                  <input type="text" name="address" placeholder="Present Address (House No., Street, Block & Lot)" required>
+              <div class="col-md-6 mb-3">
+                  <input type="text" name="address" placeholder="House No., Street, Block & Lot, Subdivision" required>
+              </div>
+              <div class="col-md-3 mb-3">
+                  <input type="text" name="city" placeholder="City / Municipality" required>
+              </div>
+              <div class="col-md-3 mb-3">
+                  <input type="text" name="province" placeholder="Province" required>
               </div>
           </div>
 
@@ -92,6 +98,7 @@
                       <option value="Phase 2">Phase 2</option>
                       <option value="Phase 3">Phase 3</option>
                       <option value="Phase 4">Phase 4</option>
+                      <option value="Phase 5">Phase 5</option>
                       <option value="R 5">R 5</option>
                   </select>
               </div>
@@ -102,7 +109,10 @@
                   <input type="number" id="YearInput" name="resident_since" placeholder="Resident Since (Year)" min="1900" max="2099" required>
               </div>
               <div class="col-md-3 mb-3">
-                  <input type="text" name="contact" placeholder="Contact No. (09xxxxxxxxx)" required>
+                  <input type="tel" name="contact" placeholder="09xxxxxxxxx (11 digits)" 
+                         pattern="[0-9]{11}" maxlength="11" 
+                         oninput="this.value = this.value.replace(/[^0-9]/g, '');" 
+                         title="Please enter exactly 11 numeric digits starting with 09" required>
               </div>
           </div>
 
@@ -120,9 +130,9 @@
               </div>
               <div class="col-md-2 mb-3">
                   <select name="voter" required>
-                      <option value="" disabled selected>Voter?</option>
-                      <option value="Yes">Yes</option>
-                      <option value="No">No</option>
+                      <option value="" disabled selected>Voter Status</option>
+                      <option value="Registered">Registered</option>
+                      <option value="Not Registered">Not Registered</option>
                   </select>
               </div>
               <div class="col-md-2 mb-3">
@@ -131,6 +141,22 @@
                       <option value="No">No</option>
                       <option value="Yes">Yes</option>
                   </select>
+              </div>
+          </div>
+
+          <div class="row">
+              <div class="col-md-4 mb-3">
+                  <label class="small text-muted ms-1">Person with Disability (PWD)?</label>
+                  <select name="is_pwd" class="form-select" required>
+                    <option value="" disabled selected></option>
+                      <option value="No" >No</option>
+                      <option value="Yes">Yes</option>
+                  </select>
+              </div>
+              <div class="col-md-8 d-flex align-items-center">
+                  <small class="text-muted fst-italic">
+                      <i class="bi bi-info-circle me-1"></i> Senior Citizen status is automatically determined based on your Birth Date.
+                  </small>
               </div>
           </div>
 
@@ -158,7 +184,7 @@
                           <i class="bi bi-eye" id="icon-cpass"></i>
                       </button>
                   </div>
-                  <span id="message" class="mt-1"></span>
+                  <span id="message" class="mt-1 d-block" style="font-size: 0.85rem;"></span>
               </div>
           </div>
 
@@ -182,64 +208,16 @@
       </div>
   </div>
 
+<button type="button" id="backToTop" title="Go to top">
+    <i class="bi bi-arrow-up"></i>
+</button>
+
   <?php include('includes/footer.php'); ?>
 
 <div id="toast" class="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    document.getElementById("YearInput").value = new Date().getFullYear();
-
-    // SHOW/HIDE PASSWORD FUNCTION
-    function togglePass(inputId, iconId) {
-        const input = document.getElementById(inputId);
-        const icon = document.getElementById(iconId);
-        
-        if (input.type === "password") {
-            input.type = "text";
-            icon.classList.remove("bi-eye");
-            icon.classList.add("bi-eye-slash");
-        } else {
-            input.type = "password";
-            icon.classList.remove("bi-eye-slash");
-            icon.classList.add("bi-eye");
-        }
-    }
-
-    // CHECK PASSWORD MATCH
-    function checkPassword() {
-        let password = document.getElementById("password").value;
-        let cpassword = document.getElementById("cpassword").value;
-        let message = document.getElementById("message");
-        let btn = document.getElementById("submitBtn");
-
-        if (cpassword.length !== 0) {
-            if (password == cpassword) {
-                message.style.color = "green";
-                message.innerHTML = "<i class='bi bi-check-circle-fill'></i> Passwords Match";
-                btn.disabled = false;
-                btn.style.opacity = "1";
-            } else {
-                message.style.color = "red";
-                message.innerHTML = "<i class='bi bi-x-circle-fill'></i> Passwords Do Not Match";
-                btn.disabled = true;
-                btn.style.opacity = "0.6";
-            }
-        } else {
-            message.innerHTML = "";
-            btn.disabled = false;
-        }
-    }
-
-    function showToast(message, type = "error") {
-        const t = document.getElementById("toast");
-        t.className = "toast";
-        t.innerHTML = `<div class="toast-body">${message}</div>`;
-        t.classList.add(type);
-        t.classList.add("show");
-        setTimeout(() => { t.classList.remove("show"); }, 3000);
-    }
-</script>
+<script src="assets/js/register.js"></script>
 
 <?php if (isset($_SESSION['toast'])): ?>
 <script>

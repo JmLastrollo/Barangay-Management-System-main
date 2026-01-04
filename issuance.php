@@ -36,12 +36,12 @@ if ($email) {
 <?php include 'includes/nav.php'; ?>
 
 <section class="header-banner">
-    <img src="assets/img/cdologo.png" class="left-logo" alt="left logo">
+    <img src="assets/img/dasma logo-modified.png" class="left-logo" alt="left logo">
     <div class="header-text">
         <h1>Barangay</h1>
         <h3>Issuance</h3>
     </div>
-    <img src="assets/img/barangaygusalogo.png" class="right-logo" alt="right logo">
+    <img src="assets/img/Langkaan 2 Logo-modified.png" class="right-logo" alt="right logo">
 </section>
 
 <div class="container" style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-bottom:50px; margin-top: 50px">
@@ -166,7 +166,9 @@ if ($email) {
 </div>
 
 <div id="toast"></div>
-
+<button onclick="topFunction()" id="backToTop" title="Go to top">
+    <i class="bi bi-arrow-up"></i>
+</button>
 <?php include('includes/footer.php'); ?>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -302,6 +304,27 @@ requestForm.addEventListener('submit', async e => {
         showToast("Error submitting request.", "danger");
     }
 });
+</script>
+<script>
+    // Get the button
+    let mybutton = document.getElementById("backToTop");
+
+    // Listen to scroll event
+    window.onscroll = function() { scrollFunction() };
+
+    function scrollFunction() {
+        // Show button if scrolled down 300px
+        if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+            mybutton.style.display = "block";
+        } else {
+            mybutton.style.display = "none";
+        }
+    }
+
+    // Scroll to top when clicked
+    function topFunction() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 </script>
 
 </body>

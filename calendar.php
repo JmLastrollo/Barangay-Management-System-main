@@ -59,7 +59,9 @@ require_once 'backend/config.php';
     </div>
 
 </section>
-
+<button onclick="topFunction()" id="backToTop" title="Go to top">
+    <i class="bi bi-arrow-up"></i>
+</button>
 <?php include('includes/footer.php'); ?>
 
 <script src="assets/js/calendar.js"></script>
@@ -92,6 +94,28 @@ fetch(timelinePath)
             timelineHTML || "<p>No upcoming announcements.</p>";
     });
 
+</script>
+
+<script>
+    // Get the button
+    let mybutton = document.getElementById("backToTop");
+
+    // Listen to scroll event
+    window.onscroll = function() { scrollFunction() };
+
+    function scrollFunction() {
+        // Show button if scrolled down 300px
+        if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+            mybutton.style.display = "block";
+        } else {
+            mybutton.style.display = "none";
+        }
+    }
+
+    // Scroll to top when clicked
+    function topFunction() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 </script>
 </body>
 </html>

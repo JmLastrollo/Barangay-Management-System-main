@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once 'db_connect.php'; 
+require_once 'log_audit.php'; // Siguraduhin na nandito ito
 
 // --- CONFIGURATION: PATHS ---
 $loginPage          = '../login.php';
@@ -11,7 +12,7 @@ $residentDashboard  = '../pages/resident/resident_dashboard.php';
 // Function para sa Error Message
 function redirectWithError($message, $location) {
     $_SESSION['toast'] = $message;
-    $_SESSION['toast_type'] = 'error';
+    $_SESSION['toast_type'] = 'danger'; // FIX: Ginawang 'danger' para maging pula (Red)
     header("Location: $location");
     exit();
 }
@@ -29,9 +30,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     try {
-        // 3. Database Query (Hanapin ang user gamit ang email)
-        // Tinanggal muna natin ang 'AND status = Active' sa query para ma-detect kung inactive ang account
-        $stmt = $conn->prepare("SELECT user_id, email, password, role, status FROM users WHERE email = :email LIMIT 1");
+        // 3. Database Query
+        $stmt = $conn->prepare("SELECT user_id, first_name, last_name, email, password, role, status FROM users WHERE email = :email LIMIT 1");
         $stmt->execute([':email' => $email]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -47,7 +47,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 
                 // --- SUCCESS LOGIN ---
                 
-                // Security: Regenerate Session ID to prevent session fixation
+                // Security: Regenerate Session ID
                 session_regenerate_id(true);
 
                 // Set Session Variables
@@ -55,8 +55,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $_SESSION['role']    = $user['role'];
                 $_SESSION['email']   = $user['email']; 
                 
-                // Optional: Pwede mong dagdagan ng query dito para kunin ang pangalan sa resident_profiles o barangay_officials
+                // Kunin ang pangalan
                 $_SESSION['username'] = explode('@', $user['email'])[0]; 
+                $_SESSION['login_welcome'] = true;      
+
+                // ---------------------------------------------------------
+                // RECORD SA HISTORY LOGS
+                // ---------------------------------------------------------
+                logActivity($conn, $user['user_id'], "Logged in to the system");
 
                 // 5. Role Redirection
                 $role = $user['role'];
@@ -64,8 +70,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 if ($role === 'Admin') {
                     header("Location: $adminDashboard");
                 } elseif ($role === 'Staff') {
-                    // Kung iisa lang ang dashboard ng Admin at Staff
-                    header("Location: $adminDashboard"); 
+                    // FIX: Ginamit na natin ang $staffDashboard variable
+                    header("Location: $staffDashboard"); 
                 } elseif ($role === 'Resident') {
                     header("Location: $residentDashboard");
                 } else {
@@ -82,7 +88,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
 
         } else {
-            // Email not found in database
+            // Email not found
             redirectWithError("Email address not found.", $loginPage);
         }
 

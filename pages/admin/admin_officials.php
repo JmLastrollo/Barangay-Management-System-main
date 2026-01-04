@@ -1,317 +1,309 @@
 <?php
 session_start();
-// 1. Security Check
+require_once '../../backend/db_connect.php';
+
+// Auth Check
 if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['Admin', 'Staff'])) {
-    header("Location: ../../admin_login.php");
+    header("Location: ../../login.php");
     exit();
 }
 
-require_once '../../backend/db_connect.php';
-
+// Fetch Active Officials
 try {
-    // --- AUTOMATIC ARCHIVING LOGIC ---
-    // Checks if any active official has a term_end that is in the past.
-    // If yes, automatically changes their status to 'Archived'.
-    $currentDate = date('Y-m-d');
-    $autoArchiveSql = "UPDATE barangay_officials 
-                       SET status = 'Archived' 
-                       WHERE status = 'Active' 
-                       AND term_end IS NOT NULL 
-                       AND term_end < :currDate";
-    $stmtArchive = $conn->prepare($autoArchiveSql);
-    $stmtArchive->execute([':currDate' => $currentDate]);
-
-    // --- FETCH ACTIVE OFFICIALS ---
-    $stmt = $conn->prepare("SELECT * FROM barangay_officials WHERE status = 'Active' ORDER BY official_id ASC");
-    $stmt->execute();
+    $stmt = $conn->query("SELECT * FROM barangay_officials WHERE status = 'Active' ORDER BY term_start DESC");
     $officials = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-} catch (PDOException $e) {
-    $officials = [];
+} catch (PDOException $e) { 
+    $officials = []; 
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>BMS - Active Officials</title>
-    <link rel="icon" type="image/png" href="../../assets/img/BMS.png">
-    
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>BMS - Barangay Officials</title>
+    <link rel="icon" type="image/png" href="../../assets/img/Langkaan 2 Logo-modified.png"> 
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../../css/admin.css">
+    <link rel="stylesheet" href="../../css/sidebar.css">
+    <link rel="stylesheet" href="../../css/officials.css">
     
-    <link rel="stylesheet" href="../../css/dashboard.css">
-    <link rel="stylesheet" href="../../css/toast.css">
+    <style>
+        /* Floating Toast Style (Matching Residents) */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+        .toast-custom {
+            min-width: 300px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: none;
+            padding: 15px 20px;
+            border-left: 5px solid;
+            animation: slideIn 0.4s ease forwards;
+        }
+        .toast-custom.show { display: block; }
+        .toast-custom.success { border-left-color: #198754; color: #198754; }
+        .toast-custom.error { border-left-color: #dc3545; color: #dc3545; }
+        .toast-custom.warning { border-left-color: #ffc107; color: #856404; }
+        
+        @keyframes slideIn { 
+            from { transform: translateX(100%); opacity: 0; } 
+            to { transform: translateX(0); opacity: 1; } 
+        }
+
+        /* Action Buttons */
+        .btn-action {
+            width: 35px; height: 35px;
+            display: inline-flex; align-items: center; justify-content: center;
+            background-color: #fff; border: 1px solid #dee2e6;
+            border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.2s ease; margin: 0 3px; cursor: pointer;
+        }
+        .btn-action:hover { transform: translateY(-2px); background-color: #f8f9fa; }
+        .btn-action.view i { color: #0d6efd; }
+        .btn-action.edit i { color: #198754; }
+        .btn-action.archive i { color: #dc3545; }
+    </style>
 </head>
-
 <body>
-<div class="sidebar">
-    <div class="sidebar-header">
-        <img src="../../assets/img/profile.jpg" alt="Profile">
-        <div>
-            <h3><?= isset($_SESSION['username']) ? htmlspecialchars($_SESSION['username']) : 'Admin' ?></h3>
-            <div class="dept">IT Department</div>
-        </div>
-    </div>
+    
+    <?php include '../../includes/sidebar.php'; ?>
 
-    <div class="sidebar-menu">
-        <a href="admin_dashboard.php"><i class="bi bi-house-door"></i> Dashboard</a>
-        <a href="admin_announcement.php"><i class="bi bi-megaphone"></i> Announcement</a>
-        
-        <div class="dropdown-container active">
-            <button class="dropdown-btn">
-                <span><i class="bi bi-people"></i> Officials</span>
-                <i class="bi bi-caret-down-fill dropdown-arrow"></i>
-            </button>
-            <div class="dropdown-content" style="display: block;">
-                <a href="admin_officials.php" class="active">Active Officials</a>
-                <a href="admin_officials_archive.php">Past Officials</a>
-            </div>
+    <div id="main-content">
+        <div id="toast-container">
+            <div id="toast" class="toast-custom"></div>
         </div>
-        
-        <a href="admin_issuance.php"><i class="bi bi-bookmark"></i> Issuance</a>
-        
-        <div class="dropdown-container">
-            <button class="dropdown-btn">
-                <span><i class="bi bi-file-earmark-text"></i> Records</span>
-                <i class="bi bi-caret-down-fill dropdown-arrow"></i>
-            </button>
-            <div class="dropdown-content">
-                <a href="admin_rec_residents.php">Residents</a>
-                <a href="admin_rec_complaints.php">Complaints</a>
-                <a href="admin_rec_blotter.php">Blotter</a>
+
+        <div class="header">
+            <h1 class="header-title">BARANGAY <span class="green">OFFICIALS</span></h1>
+            <div class="header-logos">
+                <img src="../../assets/img/Langkaan 2 Logo-modified.png">
+                <img src="../../assets/img/dasma logo-modified.png">
             </div>
         </div>
 
-        <a href="../../backend/logout.php"><i class="bi bi-box-arrow-left"></i> Logout</a>
-    </div>
-</div>
+        <div class="content container-fluid">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                
+                <div class="search-box">
+                    <input type="text" id="officialSearch" class="form-control" placeholder="Search official name..." aria-label="Search Official">
+                    <button type="button" aria-label="Search"><i class="bi bi-search"></i></button>
+                </div>
 
-<div style="width:100%">
-    <div class="header">
-        <div class="hamburger" onclick="toggleSidebar()">☰</div>
-        <h1 class="header-title">ACTIVE <span class="green">OFFICIALS</span></h1>
-    </div>
-
-    <div class="content">
-        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Search Active Officials..." class="form-control">
-                <button><i class="bi bi-search"></i></button>
+                <div class="action-buttons d-flex gap-2">
+                    <button class="btn btn-primary d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#addOfficialModal">
+                        <i class="bi bi-person-plus-fill"></i> Add Official
+                    </button>
+                    <a href="admin_officials_archive.php" class="btn btn-secondary d-flex align-items-center gap-2">
+                        <i class="bi bi-archive-fill"></i> Archives
+                    </a>
+                </div>
             </div>
-            
-            <div class="mt-2 mt-md-0">
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
-                    <i class="bi bi-plus-circle"></i> Add New
-                </button>
-            </div>
-        </div>
 
-        <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th style="width: 100px;">Image</th>
-                        <th>Name</th>
-                        <th>Position</th>
-                        <th>Term Start</th>
-                        <th style="width: 150px;">Action</th>
-                    </tr>
-                </thead>
-                <tbody id="officialsTableBody">
-                    <?php if (!empty($officials)): ?>
-                        <?php foreach ($officials as $row): ?>
-                            <tr>
-                                <td>
-                                    <?php $imgSrc = !empty($row['image']) ? "../../uploads/officials/" . $row['image'] : "../../assets/img/profile_placeholder.png"; ?>
-                                    <img src="<?= htmlspecialchars($imgSrc) ?>" style="width:60px;height:60px;object-fit:cover;border-radius:50%; border: 2px solid #ddd;">
-                                </td>
-                                <td class="fw-bold"><?= htmlspecialchars($row['full_name']) ?></td>
-                                <td><?= htmlspecialchars($row['position']) ?></td>
-                                <td>
-                                    <?= $row['term_start'] ? date('M d, Y', strtotime($row['term_start'])) : '-' ?>
-                                </td>
-                                <td>
-                                    <div class="d-flex gap-1">
-                                        <button class="btn btn-sm btn-info text-white" onclick="openViewModal('<?= htmlspecialchars($row['full_name']) ?>', '<?= htmlspecialchars($row['position']) ?>', '<?= htmlspecialchars($imgSrc) ?>')" title="View"><i class="bi bi-eye"></i></button>
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4">Official Name</th>
+                                    <th>Position</th>
+                                    <th>Term Period</th>
+                                    <th>Status</th>
+                                    <th class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="officialsTable">
+                                <?php if(empty($officials)): ?>
+                                    <tr><td colspan="5" class="text-center py-5 text-muted">No active officials found.</td></tr>
+                                <?php else: ?>
+                                    <?php foreach ($officials as $off): ?>
+                                    <tr>
+                                        <td class="ps-4">
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-circle me-3 bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                                     style="width: 40px; height: 40px; font-size: 14px; overflow: hidden;">
+                                                    <?php if(!empty($off['image'])): ?>
+                                                        <img src="../../uploads/officials/<?= htmlspecialchars($off['image']) ?>" alt="Img" style="width: 100%; height: 100%; object-fit: cover;">
+                                                    <?php else: ?>
+                                                        <?= substr(htmlspecialchars($off['full_name']), 0, 1) ?>
+                                                    <?php endif; ?>
+                                                </div>
+                                                <span class="fw-bold"><?= htmlspecialchars($off['full_name']) ?></span>
+                                            </div>
+                                        </td>
+                                        <td><?= htmlspecialchars($off['position']) ?></td>
+                                        <td class="small text-muted">
+                                            <?= date("M d, Y", strtotime($off['term_start'])) ?> - 
+                                            <?= ($off['term_end'] && $off['term_end'] != '0000-00-00') ? date("M d, Y", strtotime($off['term_end'])) : '<span class="text-success fw-bold">Present</span>' ?>
+                                        </td>
+                                        <td><span class="badge bg-success-subtle text-success border border-success rounded-pill px-3">Active</span></td>
                                         
-                                        <button class="btn btn-sm btn-primary" onclick="openEditModal('<?= $row['official_id'] ?>', '<?= htmlspecialchars($row['full_name'], ENT_QUOTES) ?>', '<?= htmlspecialchars($row['position'], ENT_QUOTES) ?>')" title="Edit"><i class="bi bi-pencil-square"></i></button>
-                                        
-                                        <button class="btn btn-sm btn-secondary" onclick="openArchiveModal('<?= $row['official_id'] ?>')" title="Move to Past"><i class="bi bi-archive"></i></button>
-                                    </div>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <tr><td colspan="5" class="text-center text-muted p-4">No active officials found.</td></tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="addModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <form action="../../backend/officials_add.php" method="POST" enctype="multipart/form-data">
-                <div class="modal-header">
-                    <h5 class="modal-title">Add Official</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Photo</label>
-                        <input type="file" name="photo" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Name</label>
-                        <input type="text" name="name" class="form-control" required placeholder="Hon. Juan Dela Cruz">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Position</label>
-                        <input type="text" name="position" class="form-control" required placeholder="Punong Barangay">
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-6">
-                            <label class="form-label">Term Start</label>
-                            <input type="date" name="term_start" class="form-control" required>
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label">Term End</label>
-                            <input type="date" name="term_end" class="form-control">
-                            <small class="text-muted" style="font-size:11px;">If this date is past, official moves to Archive automatically.</small>
-                        </div>
+                                        <td class="text-center">
+                                            <div class="d-flex justify-content-center">
+                                                <button class="btn-action view" onclick='viewOfficial(<?= json_encode($off) ?>)' title="View">
+                                                    <i class="bi bi-eye-fill"></i>
+                                                </button>
+                                                <button class="btn-action edit" onclick='editOfficial(<?= json_encode($off) ?>)' title="Edit">
+                                                    <i class="bi bi-pencil-square"></i>
+                                                </button>
+                                                <form action="../../backend/officials_delete.php" method="POST" style="display:inline;" onsubmit="return confirm('Archive this official?');">
+                                                    <input type="hidden" name="id" value="<?= $off['official_id'] ?>">
+                                                    <button type="submit" class="btn-action archive" title="Archive">
+                                                        <i class="bi bi-archive-fill"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Save Record</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="editModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <form action="../../backend/officials_update.php" method="POST" enctype="multipart/form-data">
-                <input type="hidden" name="id" id="edit-id">
-                <div class="modal-header">
-                    <h5 class="modal-title">Edit Official</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label>Photo</label>
-                        <input type="file" name="photo" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label>Name</label>
-                        <input type="text" name="name" id="edit-name" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label>Position</label>
-                        <input type="text" name="position" id="edit-position" class="form-control" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Update</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="archiveModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <form action="../../backend/officials_update.php" method="POST">
-                <input type="hidden" name="id" id="o_id">
-                <input type="hidden" name="status" value="Archived">
-                <div class="modal-header">
-                    <h5 class="modal-title text-warning">Move to Past Officials</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p>End term for this official?</p>
-                    <div class="mb-3">
-                        <label>Term End Date:</label>
-                        <input type="date" name="term_end" class="form-control" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-warning">Confirm</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="viewModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content p-4 text-center">
-            <div class="modal-header border-0">
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <img id="v_image" src="" style="width:150px;height:150px;object-fit:cover;border-radius:50%;margin-bottom:15px; border: 3px solid #28a745;">
-                <h4 id="v_name" class="fw-bold"></h4>
-                <p id="v_position" class="text-muted"></p>
-                <span class="badge bg-success">Active Official</span>
             </div>
         </div>
     </div>
-</div>
 
-<div id="toast" class="toast"></div>
+    <div class="modal fade" id="addOfficialModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered"> 
+            <div class="modal-content">
+                <form id="addOfficialForm" action="../../backend/officials_add.php" method="POST" enctype="multipart/form-data">
+                    <div class="modal-header border-bottom-0 pb-0">
+                        <h5 class="modal-title fw-bold">Add New Official</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body pt-4">
+                        <div class="text-center mb-4">
+                            <div class="mx-auto mb-2 d-flex align-items-center justify-content-center rounded-circle bg-light border" style="width: 100px; height: 100px; overflow: hidden;">
+                                <img id="add-preview" src="../../assets/img/profile.jpg" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                                <i id="add-placeholder" class="bi bi-person-fill text-secondary" style="font-size: 3rem;"></i>
+                            </div>
+                            <small class="text-muted d-block text-uppercase small fw-bold mt-1">Upload Photo</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-secondary text-uppercase">Full Name</label>
+                            <input type="text" name="name" class="form-control" placeholder="e.g. Juan Dela Cruz" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-secondary text-uppercase">Position</label>
+                            <select name="position" class="form-select" required>
+                                <option value="" selected disabled>Select Position</option>
+                                <option>Barangay Captain</option>
+                                <option>Kagawad</option>
+                                <option>Secretary</option>
+                                <option>Treasurer</option>
+                                <option>SK Chairman</option>
+                            </select>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-secondary text-uppercase">Term Start</label>
+                                <input type="date" name="term_start" class="form-control" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-secondary text-uppercase">Term End</label>
+                                <input type="date" name="term_end" class="form-control">
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <input type="file" name="photo" id="add-photo" class="form-control form-control-sm" accept="image/*">
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top-0">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary px-4">Save Official</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    function toggleSidebar() { document.querySelector('.sidebar').classList.toggle('active'); }
-    document.querySelectorAll('.dropdown-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-            this.parentElement.classList.toggle('active');
-        });
-    });
+    <div class="modal fade" id="editOfficialModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form action="../../backend/officials_update.php" method="POST" enctype="multipart/form-data">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold">Edit Official</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="id" id="edit_id">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">FULL NAME</label>
+                            <input type="text" name="name" id="edit_name" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">POSITION</label>
+                            <select name="position" id="edit_position" class="form-select" required>
+                                <option>Barangay Captain</option>
+                                <option>Kagawad</option>
+                                <option>Secretary</option>
+                                <option>Treasurer</option>
+                                <option>SK Chairman</option>
+                            </select>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-bold">TERM START</label>
+                                <input type="date" name="term_start" id="edit_term_start" class="form-control" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-bold">TERM END</label>
+                                <input type="date" name="term_end" id="edit_term_end" class="form-control">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">UPDATE PHOTO</label>
+                            <input type="file" name="photo" class="form-control" accept="image/*">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-warning">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
-    function openEditModal(id, name, pos) {
-        document.getElementById('edit-id').value = id;
-        document.getElementById('edit-name').value = name;
-        document.getElementById('edit-position').value = pos;
-        new bootstrap.Modal(document.getElementById('editModal')).show();
-    }
-    function openArchiveModal(id) {
-        document.getElementById('o_id').value = id;
-        new bootstrap.Modal(document.getElementById('archiveModal')).show();
-    }
-    function openViewModal(name, pos, img) {
-        document.getElementById('v_name').innerText = name;
-        document.getElementById('v_position').innerText = pos;
-        document.getElementById('v_image').src = img;
-        new bootstrap.Modal(document.getElementById('viewModal')).show();
-    }
-    document.getElementById("searchInput").addEventListener("keyup", function() {
-        let filter = this.value.toLowerCase();
-        let rows = document.querySelectorAll("#officialsTableBody tr");
-        rows.forEach(row => {
-            let text = row.innerText.toLowerCase();
-            row.style.display = text.includes(filter) ? "" : "none";
-        });
-    });
-    function showToast(message, type) {
-        const t = document.getElementById("toast");
-        t.className = "toast " + type + " show"; 
-        t.textContent = message;
-        setTimeout(() => { t.classList.remove("show"); }, 3000);
-    }
-</script>
-<?php if (isset($_SESSION['toast'])): ?>
-<script>showToast("<?= htmlspecialchars($_SESSION['toast']['msg']) ?>", "<?= htmlspecialchars($_SESSION['toast']['type']) ?>");</script>
-<?php unset($_SESSION['toast']); endif; ?>
+    <div class="modal fade" id="viewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center mt-n3 pb-4">
+                    <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle bg-light border shadow-sm" 
+                         id="v_image_container" 
+                         style="width: 130px; height: 130px; overflow: hidden;">
+                        </div>
+                    <h3 class="fw-bold mb-1" id="v_name"></h3>
+                    <span class="badge bg-success rounded-pill px-4 mb-4" id="v_status_badge">Active</span>
+                    <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle bg-light border shadow-sm" 
+                        id="v_image_container" 
+                        style="width: 130px; height: 130px; overflow: hidden;">
+                        <img id="v_image" src="" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                        <div class="col-6">
+                            <small class="text-muted d-block text-uppercase small fw-bold">End of Term</small>
+                            <span class="text-dark" id="v_term_end">---</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/admin/admin_officials.js"></script>
 </body>
 </html>

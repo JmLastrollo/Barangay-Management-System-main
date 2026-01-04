@@ -3,12 +3,14 @@ session_start();
 
 // --- UNIFIED SESSION CHECK ---
 if (isset($_SESSION['user_id'])) {
-    if (isset($_SESSION['role']) && in_array($_SESSION['role'], ['Admin', 'Staff'])) {
-        header("Location: pages/admin/admin_dashboard.php");
-        exit();
-    } elseif (isset($_SESSION['role']) && $_SESSION['role'] === 'Resident') {
-        header("Location: pages/resident/resident_dashboard.php");
-        exit();
+    if (isset($_SESSION['role'])) {
+        if (in_array($_SESSION['role'], ['Admin', 'Staff'])) {
+            header("Location: pages/admin/admin_dashboard.php");
+            exit();
+        } elseif ($_SESSION['role'] === 'Resident') {
+            header("Location: pages/resident/resident_dashboard.php");
+            exit();
+        }
     }
 }
 ?>
@@ -23,7 +25,7 @@ if (isset($_SESSION['user_id'])) {
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <link rel="stylesheet" href="css/login.css">
-  <link rel="stylesheet" href="css/toast.css">
+  <link rel="stylesheet" href="css/toast.css"> 
   <link rel="icon" type="image/png" href="assets/img/Langkaan 2 Logo-modified.png">
 </head>
 <body>
@@ -61,13 +63,13 @@ if (isset($_SESSION['user_id'])) {
                     
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-uppercase text-muted">Email Address</label>
-                        <input type="email" name="email" class="form-control" placeholder="name@example.com" required>
+                        <input type="email" name="email" class="form-control" placeholder="sec.juan@langkaan2.com" required>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-uppercase text-muted">Password</label>
                         <div class="input-group">
-                            <input type="password" name="password" id="password" class="form-control" placeholder="••••••••" required>
+                            <input type="password" name="password" id="password" class="form-control" placeholder="secJuan2026" required>
                             <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                                 <i class="bi bi-eye-slash"></i>
                             </button>
@@ -111,22 +113,42 @@ if (isset($_SESSION['user_id'])) {
         icon.classList.toggle('bi-eye-slash');
     });
 
-    // Toast Function
-    function showToast(message, type = "error") {
-        const t = document.getElementById("toast");
-        t.className = "toast"; 
-        t.innerHTML = `<div class="toast-body">${message}</div>`;
-        t.classList.add(type);
-        t.classList.add("show");
-        setTimeout(() => { t.classList.remove("show"); }, 3000);
+    // UPDATED Toast Function
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        toast.innerHTML = `<div class="toast-body">${message}</div>`; // Changed to innerHTML to wrap content
+        
+        // Reset classes
+        toast.className = 'toast'; 
+        toast.classList.add(type); // 'success' or 'error' (css usually defines .error or .danger)
+
+        // Show animation
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 100);
+
+        // Hide after 3 seconds
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
     }
 </script>
 
 <?php if (isset($_SESSION['toast'])): ?>
 <script>
-    showToast("<?= htmlspecialchars($_SESSION['toast']['msg']) ?>", "<?= htmlspecialchars($_SESSION['toast']['type']) ?>");
+    document.addEventListener('DOMContentLoaded', function() {
+        // Correctly accessing the array structure set in register.php
+        showToast(
+            "<?= htmlspecialchars($_SESSION['toast']['msg']) ?>", 
+            "<?= htmlspecialchars($_SESSION['toast']['type']) ?>"
+        );
+    });
 </script>
-<?php unset($_SESSION['toast']); endif; ?>
+<?php 
+    // Clean up session
+    unset($_SESSION['toast']); 
+endif; 
+?>
 
 </body>
 </html>

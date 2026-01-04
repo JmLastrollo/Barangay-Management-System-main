@@ -3,7 +3,7 @@
    Theme: Blue (#1565C0) & Yellow (#FFD54F)
    ========================================================================== */
 
-/* --- 1. GLOBAL STYLES --- */
+/* --- 1. GLOBAL STYLES (STICKY FOOTER FIX) --- */
 body {
     font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     margin: 0;
@@ -15,6 +15,16 @@ body {
     background-size: 20px 20px;
     background-position: 0 0, 10px 10px;
     background-attachment: fixed;
+    
+    /* Flex Column for Sticky Footer */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Main Content Push Footer Down */
+.main-content-section {
+    flex: 1; 
 }
 
 a { text-decoration: none; }
@@ -183,7 +193,7 @@ a { text-decoration: none; }
 
 /* --- 5. FORMS (REGISTER & LOGIN) --- */
 .registration-form {
-    max-width: 900px;
+    max-width: 980px;
     margin: 40px auto 60px;
     padding: 40px;
     background: #fff;
@@ -372,33 +382,116 @@ a { text-decoration: none; }
 .official-name { font-weight: bold; font-size: 1.2rem; color: #0d47a1; }
 .official-position { color: #6c757d; font-weight: 500; text-transform: uppercase; font-size: 0.9rem; }
 
-/* --- 8. ANNOUNCEMENTS & FILTERS --- */
+/* --- 8. ANNOUNCEMENTS & FILTERS (IMPROVED LAYOUT) --- */
 .filter-container {
     background: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    margin-bottom: 30px;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    margin-bottom: 40px;
+    border-top: 4px solid #1565C0;
 }
 
+.filter-container .form-control,
+.filter-container .form-select {
+    height: 50px;
+    border-radius: 8px;
+    font-size: 15px;
+}
+
+.filter-container .input-group-text {
+    background-color: #f8f9fa;
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+    border-right: 0;
+}
+
+.filter-container .form-control { border-left: 0; }
+
+.filter-container .form-control:focus,
+.filter-container .form-select:focus {
+    box-shadow: none;
+    border-color: #1565C0;
+}
+
+/* Announcement Cards */
 .announcement-page-card {
     border: none;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
     border-radius: 12px;
-    transition: transform 0.3s;
+    overflow: hidden;
     background: #fff;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .announcement-page-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+    box-shadow: 0 10px 25px rgba(21, 101, 192, 0.15);
 }
 
 .announcement-page-img {
     height: 200px;
-    object-fit: cover;
-    border-radius: 8px;
     width: 100%;
+    object-fit: cover;
+    border-bottom: 3px solid #FFD54F;
+}
+
+.announcement-page-card .card-body {
+    padding: 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.announcement-page-card .card-title {
+    font-weight: 700;
+    color: #1565C0;
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+
+.announcement-page-card .card-text {
+    color: #666;
+    font-size: 0.9rem;
+    flex-grow: 1;
+    margin-bottom: 15px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.announcement-meta {
+    font-size: 0.8rem;
+    color: #999;
+    border-top: 1px solid #eee;
+    padding-top: 10px;
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+}
+
+.btn-read-more {
+    background-color: transparent;
+    color: #1565C0;
+    border: 1px solid #1565C0;
+    padding: 5px 15px;
+    font-size: 0.85rem;
+    border-radius: 20px;
+    transition: all 0.3s;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.btn-read-more:hover {
+    background-color: #1565C0;
+    color: white;
 }
 
 /* Home Announcement Card */
@@ -413,88 +506,117 @@ a { text-decoration: none; }
 .home-announce-title { color: #1565C0; font-weight: bold; margin-top: 15px; }
 .home-date { background-color: #FFD54F !important; color: #333 !important; font-weight: bold; }
 
+/* Loader & Empty State */
+.ajax-loader {
+    display: none;
+    text-align: center;
+    padding: 40px;
+}
+
+#end-message {
+    text-align: center;
+    padding: 20px;
+    color: #888;
+    font-style: italic;
+}
+
 /* ================================================== */
 /* --- 9. CALENDAR & TIMELINE (FIXED LAYOUT) ---      */
 /* ================================================== */
 
 /* 1. Main Calendar Wrapper */
 .calendar-container {
-    max-width: 1100px; 
-    margin: 30px auto;
-    padding: 30px;
+    max-width: 1200px; 
+    margin: 40px auto;
+    padding: 30px 30px 10px 30px; 
     background: #fff;
     border-radius: 16px;
     box-shadow: 0 5px 20px rgba(0,0,0,0.08);
 }
 
-/* 2. Header (Month/Year & Buttons) */
+/* Flexbox Equal Height */
+.calendar-container .row {
+    display: flex;
+    align-items: stretch;
+}
+
+/* 2. CALENDAR SIDE (LEFT) */
+.calendar-wrapper {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
 .calendar-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
     background: #f8f9fa;
-    padding: 10px 15px;
-    border-radius: 10px;
+    padding: 12px 20px;
+    border-radius: 12px;
 }
 
 .calendar-header h2 {
     margin: 0;
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     color: #1565C0;
     font-weight: 800;
     text-transform: uppercase;
 }
 
-/* Navigation Buttons */
 .nav-btn {
     background: #1565C0;
     color: white;
     border: none;
-    width: 35px;
-    height: 35px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     font-weight: bold;
+    font-size: 1.2rem;
     cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
+    line-height: 1;
 }
 
 .nav-btn:hover { background: #0D47A1; transform: scale(1.1); }
 
-/* 3. THE CALENDAR GRID (FIX) */
+/* 3. CALENDAR GRID */
 .calendar-grid {
-    display: grid !important; 
-    grid-template-columns: repeat(7, 1fr); 
-    gap: 8px;
+    display: grid !important;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px; 
     text-align: center;
     width: 100%;
+    margin-bottom: 10px;
+    flex-grow: 1;
 }
 
-/* Cells (Days & Headers) */
+/* Cells */
 .calendar-grid div {
-    height: 50px;
+    aspect-ratio: 1 / 1; 
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 500;
-    border-radius: 8px;
+    border-radius: 10px;
     transition: background 0.2s;
     user-select: none;
+    height: auto;
 }
 
-/* Day Headers (Sun, Mon...) */
 .calendar-day-header { 
     font-weight: 800;
-    color: #888;
+    color: #555;
     text-transform: uppercase;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
 }
 
-/* Hover Effect for Days */
 .calendar-grid div:not(.calendar-day-header):hover {
     background-color: #e3f2fd;
     color: #1565C0;
@@ -502,39 +624,48 @@ a { text-decoration: none; }
     font-weight: bold;
 }
 
-/* Current Day Highlight */
 .curr-date {
     background-color: #FFD54F !important;
     color: #0D47A1 !important;
     font-weight: 800;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
 
-/* 4. TIMELINE SIDE */
+/* 4. TIMELINE SIDE (RIGHT) */
+.timeline-wrapper {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
 .timeline {
     background: #f8f9fa;
-    padding: 20px;
+    padding: 25px;
     border-radius: 12px;
-    height: 95%;
-    min-height: 400px;
+    flex-grow: 1;
     border: 1px solid #eee;
+    height: 100%;
+    overflow-y: auto;
+    min-height: 300px; 
 }
 
 .timeline p {
     color: #777;
     font-style: italic;
     text-align: center;
-    margin-top: 50px;
+    margin-top: 40%;
+    transform: translateY(-50%);
 }
 
 /* ================================================== */
-/* --- 10. FOOTER (COMPACT VERSION) ---               */
+/* --- 10. FOOTER (FIXED & COMPACT) ---               */
 /* ================================================== */
 footer {
     background: #0D47A1;
     color: #fff;
     padding: 20px 5% 15px; 
-    margin-top: 0;
+    margin-top: auto; /* Pushes footer to bottom */
+    width: 100%;
 }
 
 .footer-container {
@@ -602,16 +733,45 @@ footer {
     .hero div.mt-3 { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 300px; margin: 0 auto; }
     .hero .btn { width: 100%; margin: 0; }
 
-    /* Compact Header for Mobile */
-    .header-banner { flex-direction: column; padding: 20px; text-align: center; height: auto; min-height: auto; }
-    .header-banner img { width: 70px; height: 70px; margin: 10px 0; }
-    .header-text { order: 2; margin: 10px 0; }
-    .header-banner h1 { font-size: 1.8rem; }
-    .header-banner h3 { font-size: 1.2rem; }
-    
-    /* Hide Right Logo on very small screens if desired */
-    .header-banner .right-logo { display: block; } 
+    /* CUSTOM HEADER FOR MOBILE: Logos Side-by-Side on Top */
+    .header-banner { 
+        display: flex;
+        flex-direction: row; 
+        flex-wrap: wrap;     
+        justify-content: center;
+        align-items: center;
+        padding: 25px 15px; 
+        height: auto;
+        min-height: auto;
+    }
 
+    /* Logo 1 (Left) */
+    .header-banner img.left-logo { 
+        order: 1; 
+        width: 65px; 
+        height: 65px; 
+        margin: 0 10px 0 0 !important; 
+    }
+
+    /* Logo 2 (Right) */
+    .header-banner img.right-logo { 
+        display: block !important; 
+        order: 2; 
+        width: 65px; 
+        height: 65px; 
+        margin: 0 0 0 10px !important; 
+    }
+
+    /* Text */
+    .header-text { 
+        order: 3; 
+        width: 100%; 
+        margin-top: 15px !important; 
+    }
+
+    .header-banner h1 { font-size: 1.8rem; }
+    .header-banner h3 { font-size: 1.1rem; }
+    
     .container { padding-left: 20px; padding-right: 20px; }
     
     .registration-form { margin: 20px auto; padding: 25px; }

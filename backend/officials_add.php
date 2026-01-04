@@ -3,55 +3,58 @@ session_start();
 require_once 'db_connect.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $name = $_POST['name'];
-    $position = $_POST['position'];
-    $term_start = !empty($_POST['term_start']) ? $_POST['term_start'] : NULL;
-    $term_end = !empty($_POST['term_end']) ? $_POST['term_end'] : NULL;
 
-    // --- LOGIC: AUTO-DETECT STATUS ---
-    // Default is Active
-    $status = 'Active';
+    // 1. Sanitize Inputs
+    $fullname   = trim($_POST['name']);
+    $position   = trim($_POST['position']);
+    $term_start = $_POST['term_start'];
     
-    // If term_end is provided AND it is a past date, set to Archived
-    if (!empty($term_end) && $term_end < date('Y-m-d')) {
+    // Handle Term End: Convert empty string to NULL
+    $term_end   = !empty($_POST['term_end']) ? $_POST['term_end'] : NULL;
+
+    // Determine Status
+    $status = 'Active';
+    if ($term_end && $term_end < date('Y-m-d')) {
         $status = 'Archived';
     }
 
-    // Image Upload
-    $image = "";
-    if (isset($_FILES['photo']['name']) && $_FILES['photo']['name'] != "") {
+    // 2. Image Upload Handling
+    $image_name = ""; 
+    if (!empty($_FILES['photo']['name'])) {
         $targetDir = "../uploads/officials/";
-        $image = time() . "_" . basename($_FILES["photo"]["name"]);
-        move_uploaded_file($_FILES["photo"]["tmp_name"], $targetDir . $image);
-    }
-
-    try {
-        $sql = "INSERT INTO barangay_officials 
-                (full_name, position, image, status, term_start, term_end) 
-                VALUES (:name, :pos, :img, :status, :t_start, :t_end)";
         
-        $stmt = $conn->prepare($sql);
-        $stmt->execute([
-            ':name' => $name,
-            ':pos' => $position,
-            ':img' => $image,
-            ':status' => $status,
-            ':t_start' => $term_start,
-            ':t_end' => $term_end
-        ]);
-
-        $_SESSION['toast'] = ['type' => 'success', 'msg' => 'Official added successfully!'];
-        
-        // Redirect based on the calculated status
-        if($status == 'Active'){
-            header("Location: ../pages/admin/admin_officials.php");
-        } else {
-            header("Location: ../pages/admin/admin_officials_archive.php");
+        // Use 0755 for better security instead of 0777
+        if (!is_dir($targetDir)) {
+            mkdir($targetDir, 0755, true);
         }
 
-    } catch (PDOException $e) {
-        $_SESSION['toast'] = ['type' => 'error', 'msg' => 'Error: ' . $e->getMessage()];
-        header("Location: ../pages/admin/admin_officials.php");
+        $ext = strtolower(pathinfo($_FILES['photo']['name'], PATHINFO_EXTENSION));
+        $allowed = ['jpg', 'jpeg', 'png', 'gif'];
+
+        if (in_array($ext, $allowed)) {
+            $image_name = 'off_' . time() . '_' . uniqid() . '.' . $ext;
+            if (!move_uploaded_file($_FILES['photo']['tmp_name'], $targetDir . $image_name)) {
+                $_SESSION['toast'] = ['type' => 'error', 'msg' => 'Failed to upload image.'];
+            }
+        } else {
+            $_SESSION['toast'] = ['type' => 'error', 'msg' => 'Invalid file type. Only JPG, PNG, & GIF allowed.'];
+            header("Location: ../pages/admin/admin_officials.php");
+            exit();
+        }
     }
+
+    // 3. Database Insertion
+    try {
+        $stmt = $conn->prepare("INSERT INTO barangay_officials (full_name, position, term_start, term_end, status, image) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$fullname, $position, $term_start, $term_end, $status, $image_name]);
+
+        $_SESSION['toast'] = ['type' => 'success', 'msg' => 'Official added successfully!'];
+
+    } catch (PDOException $e) {
+        $_SESSION['toast'] = ['type' => 'error', 'msg' => 'Database Error: ' . $e->getMessage()];
+    }
+
+    header("Location: ../pages/admin/admin_officials.php");
+    exit();
 }
 ?>

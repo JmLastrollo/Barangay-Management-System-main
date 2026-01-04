@@ -48,36 +48,50 @@ try {
     // 3. Output HTML
     if ($announcements) {
         foreach ($announcements as $item) {
+            // Image Logic
             $imgSrc = !empty($item->image) ? "uploads/announcements/" . $item->image : "assets/img/announcement_placeholder.png";
-            $dateDisplay = date("d M Y", strtotime($item->date));
-            $timeDisplay = !empty($item->time) ? " | " . date("h:i A", strtotime($item->time)) : "";
             
+            // Date Logic
+            $dateDisplay = date("M d, Y", strtotime($item->date));
+            $timeDisplay = !empty($item->time) ? date("h:i A", strtotime($item->time)) : "";
+            
+            // Location Logic
             $locDisplay = "";
             if (!empty($item->location)) {
-                $locDisplay = '<div class="mb-2 text-secondary small"><i class="bi bi-geo-alt-fill text-danger"></i> ' . htmlspecialchars($item->location) . '</div>';
+                $locDisplay = '<span class="ms-3"><i class="bi bi-geo-alt-fill me-1 text-danger"></i> ' . htmlspecialchars($item->location) . '</span>';
             }
 
-            $details = strlen($item->details) > 80 ? substr($item->details, 0, 80) . "..." : htmlspecialchars($item->details);
+            // Description Logic (Truncate)
+            $details = strlen($item->details) > 100 ? substr($item->details, 0, 100) . "..." : htmlspecialchars($item->details);
 
             echo '
-            <div class="col-md-4 d-flex fade-in-item">
-                <div class="card announcement-page-card p-3 h-100 w-100 d-flex flex-column">
-                    <img src="' . htmlspecialchars($imgSrc) . '" class="mb-3 w-100 announcement-page-img" alt="Announcement Image" />
+            <div class="col-md-6 col-lg-4 fade-in-item">
+                <div class="card announcement-page-card">
                     
-                    <div class="d-flex flex-column flex-grow-1 text-start">
-                        <span class="badge bg-success mb-2 align-self-start">' . $dateDisplay . $timeDisplay . '</span>
-                        ' . $locDisplay . '
+                    <img src="' . htmlspecialchars($imgSrc) . '" class="card-img-top announcement-page-img" alt="Announcement">
+                    
+                    <div class="card-body">
+                        <h5 class="card-title">' . htmlspecialchars($item->title) . '</h5>
                         
-                        <h5 class="fw-bold mt-2 text-primary">' . htmlspecialchars($item->title) . '</h5>
-                        <p class="text-muted flex-grow-1">' . $details . '</p>
+                        <p class="card-text">
+                            ' . $details . '
+                        </p>
                         
-                        <a href="see-more-announcement.php?id=' . $item->announcement_id . '" class="btn btn-outline-primary rounded-pill w-100 mt-auto">Read More</a>
+                        <div class="announcement-meta">
+                            <span><i class="bi bi-calendar-event me-1"></i> ' . $dateDisplay . '</span>
+                            ' . $locDisplay . '
+                        </div>
+
+                        <a href="see-more-announcement.php?id=' . $item->announcement_id . '" class="btn-read-more w-100">
+                            Read Details <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
                     </div>
+
                 </div>
             </div>';
         }
     }
 } catch (PDOException $e) {
-    // Fail silently
+    // Fail silently or log error
 }
 ?>
