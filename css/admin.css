@@ -1,5 +1,5 @@
 /* ================================================== */
-/* ADMIN.CSS - Main Content, Header & Widgets         */
+/* ADMIN.CSS - Fixed Layout & Calendar Fix            */
 /* ================================================== */
 
 /* Global Reset */
@@ -124,7 +124,7 @@ body {
 .table-responsive::-webkit-scrollbar-thumb:hover { background: #aaa; }
 
 
-/* --- SEARCH BOX (Seamless Fix) --- */
+/* --- SEARCH BOX --- */
 .search-box {
     display: flex;
     align-items: center;
@@ -245,7 +245,31 @@ body {
 
 .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
 .calendar-day { padding: 10px 0; font-size: 14px; border-radius: 6px; }
-.today { background: #FFD54F; color: #0D47A1; font-weight: bold; }
+
+/* --- DITO ANG PAGBABAGO PARA SA HIGHLIGHT --- */
+/* Pinalitan ang .today ng .calendar-day.active */
+.calendar-day.active { 
+    background: #FFD54F; 
+    color: #0D47A1; 
+    font-weight: bold; 
+}
+
+/* Event Indicator (Blue Dot) */
+.calendar-day.event {
+    position: relative;
+    font-weight: bold;
+}
+.calendar-day.event::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 5px;
+    height: 5px;
+    background-color: #0D47A1; /* Blue Dot */
+    border-radius: 50%;
+}
 
 .timeline-event {
     background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid #FFD54F;
@@ -349,33 +373,13 @@ body.modal-open {
     box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
 
-/* --- UPDATED ACTION BUTTONS CSS --- */
-.btn-action {
-    background-color: #fff;
-    border: 1px solid #dee2e6; /* Gray Border */
-    padding: 5px 10px;
-    border-radius: 6px;
-    transition: all 0.2s ease;
-}
-
-.btn-action:hover, .btn-action:focus, .btn-action:active {
-    background-color: #fff !important; 
-    border-color: #adb5bd !important; 
-    box-shadow: none !important;
-}
-
-/* ================================================== */
-/* ACTION BUTTONS (Added for Announcement)            */
-/* ================================================== */
-
-/* Container para gitna at may gap ang buttons */
+/* --- ACTION BUTTONS --- */
 .action-btn-container {
     display: flex;
     justify-content: center;
     gap: 5px;
 }
 
-/* Base Style ng Button (Square, White Background, Border) */
 .btn-action {
     width: 32px;
     height: 32px;
@@ -390,7 +394,6 @@ body.modal-open {
     transition: all 0.2s ease;
 }
 
-/* Hover Effect */
 .btn-action:hover {
     background-color: #f8f9fa;
     border-color: #adb5bd;
@@ -398,21 +401,6 @@ body.modal-open {
 }
 
 /* --- ICON COLORS --- */
-
-/* View - Blue */
-.btn-action.view i { 
-    color: #0d6efd; 
-    font-size: 1.1rem;
-}
-
-/* Edit - Green */
-.btn-action.edit i { 
-    color: #198754; 
-    font-size: 1.1rem;
-}
-
-/* Archive - Red */
-.btn-action.archive i { 
-    color: #dc3545; 
-    font-size: 1.1rem;
-}
+.btn-action.view i { color: #0d6efd; font-size: 1.1rem; }
+.btn-action.edit i { color: #198754; font-size: 1.1rem; }
+.btn-action.archive i { color: #dc3545; font-size: 1.1rem; }

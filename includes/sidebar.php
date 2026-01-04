@@ -101,7 +101,7 @@ $is_health_active   = in_array($current_page, $health_pages);
                 </a>
                 <div class="collapse <?= $is_issuance_active ? 'show' : '' ?>" id="issuanceSubmenu" data-bs-parent="#accordionSidebar">
                     <ul class="nav flex-column ms-3 submenu">
-                        <li><a class="nav-link small <?= $current_page == 'admin_issuance.php' ? 'active' : '' ?>" href="admin_issuance.php">Document Requests</a></li>
+                        <li><a class="nav-link small <?= $current_page == 'admin_issuance.php' ? 'active' : '' ?>" href="admin_issuance.php">Docs. Requests</a></li>
                         <li><a class="nav-link small <?= $current_page == 'admin_issuance_approved.php' ? 'active' : '' ?>" href="admin_issuance_approved.php">Approved / History</a></li>
                     </ul>
                 </div>
