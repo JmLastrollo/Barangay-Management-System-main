@@ -51,11 +51,13 @@ $pdf->SetFont('Arial','',10);
 $pdf->Cell(0, 5, 'Punong Barangay', 0, 1, 'C');
 
 // --- FOOTER / OR NUMBER ---
-$pdf->SetY(-40);
-$pdf->SetFont('Arial','',10);
-$pdf->Cell(0,5,'O.R. No: _________________',0,1,'L');
-$pdf->Cell(0,5,'Amount Paid: P ' . number_format($data['amount'] ?? 0, 2),0,1,'L');
-$pdf->Cell(0,5,'Date Issued: ' . date('Y-m-d'),0,1,'L');
+// Set Y position near bottom (e.g., 260 mm from top)
+$pdf->SetY(-40); 
+
+$pdf->SetFont('Arial', '', 10);
+$pdf->Cell(0, 5, "O.R. No: " . ($requestArr['reference_no'] ?? '____________'), 0, 1);
+$pdf->Cell(0, 5, "Amount Paid: ₱" . number_format($requestArr['amount'] ?? 0, 2), 0, 1);
+$pdf->Cell(0, 5, "Date Issued: " . date('Y-m-d'), 0, 1);
 
 $pdf->Output();
 ?>
