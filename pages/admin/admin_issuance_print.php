@@ -1,118 +1,76 @@
 <?php
-session_start();
+// 1. Database Connection
 require_once '../../backend/db_connect.php';
+require_once '../../backend/fpdf186/fpdf.php'; 
 
-if (!isset($_GET['id'])) { die("Request ID not found."); }
+// 2. Get ID
+$id = $_GET['id'] ?? null;
+if (!$id) {
+    die("Error: Missing ID.");
+}
 
-$id = $_GET['id'];
+// 3. Fetch Data (Issuance + Resident Info)
+try {
+    // FIXED: Pinalitan ang 'rp.sex' ng 'rp.gender' para tumugma sa database mo
+    $sql = "SELECT i.*, 
+                   rp.first_name, rp.middle_name, rp.last_name, rp.address, rp.civil_status, rp.gender, rp.age 
+            FROM issuance i
+            LEFT JOIN resident_profiles rp ON i.resident_id = rp.resident_id
+            WHERE i.issuance_id = :id";
+            
+    $stmt = $conn->prepare($sql);
+    $stmt->execute([':id' => $id]);
+    $data = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// Fetch Record
-$sql = "SELECT i.*, 
-               CONCAT(rp.first_name, ' ', rp.last_name) as full_name,
-               rp.address, rp.civil_status, rp.citizenship
-        FROM issuance i
-        LEFT JOIN resident_profiles rp ON i.resident_id = rp.resident_id
-        WHERE i.issuance_id = ?";
-$stmt = $conn->prepare($sql);
-$stmt->execute([$id]);
-$data = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$data) {
+        die("Error: Record not found. Please check if the issuance ID exists.");
+    }
 
-if (!$data) { die("Record not found."); }
+} catch (PDOException $e) {
+    die("Database Error: " . $e->getMessage());
+}
 
-// Format Title based on Document Type
-$docTitle = strtoupper($data['document_type']);
-$dateIssued = date('jS \d\a\y \o\f F Y');
+// 4. Prepare Variables (Para gamitin sa PDF Template)
+// Helper for Middle Initial
+$middleInitial = !empty($data['middle_name']) ? strtoupper($data['middle_name'][0]) . '.' : '';
+
+$residentName = strtoupper($data['first_name'] . ' ' . $middleInitial . ' ' . $data['last_name']);
+$address = $data['address'] ?? 'Brgy. Langkaan II, Dasmariñas City';
+$purpose = $data['purpose'] ?? '';
+$age = $data['age'] ?? '';
+$civilStatus = $data['civil_status'] ?? 'Single';
+$gender = $data['gender'] ?? ''; // Added gender variable
+$dateIssued = date('jS \d\a\y \o\f F Y'); // e.g. "5th day of January 2026"
+$officialSignatory = "HON. FERNANDO B. LAUDATO JR."; 
+
+// 5. Load the Correct Template based on Document Type
+$docType = strtolower(trim($data['document_type']));
+
+// (Check kung anong template ang tatawagin)
+if (strpos($docType, 'clearance') !== false) {
+    // Check if file exists to avoid error
+    if (file_exists('pdf_files/pdf_clearance.php')) {
+        require_once 'pdf_files/pdf_clearance.php';
+    } else {
+        require_once 'pdf_files/pdf_generic.php';
+    }
+} 
+elseif (strpos($docType, 'indigency') !== false) {
+    if (file_exists('pdf_files/pdf_indigency.php')) {
+        require_once 'pdf_files/pdf_indigency.php';
+    } else {
+        require_once 'pdf_files/pdf_generic.php';
+    }
+} 
+elseif (strpos($docType, 'residency') !== false) {
+    if (file_exists('pdf_files/pdf_residency.php')) {
+        require_once 'pdf_files/pdf_residency.php';
+    } else {
+        require_once 'pdf_files/pdf_generic.php';
+    }
+} 
+else {
+    // Default / Generic Template
+    require_once 'pdf_files/pdf_generic.php';
+}
 ?>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Print - <?= $docTitle ?></title>
-    <style>
-        body { font-family: 'Times New Roman', serif; margin: 40px; color: #000; }
-        .header { text-align: center; line-height: 1.2; margin-bottom: 40px; position: relative; }
-        .header img { position: absolute; width: 100px; }
-        .header .logo-left { left: 20px; top: 0; }
-        .header .logo-right { right: 20px; top: 0; }
-        .header h4, .header h3 { margin: 0; font-weight: bold; }
-        .header h4 { font-size: 14px; }
-        .header h3 { font-size: 16px; margin-top: 5px; }
-        
-        .title { text-align: center; font-size: 24px; font-weight: bold; text-decoration: underline; margin-bottom: 40px; text-transform: uppercase; }
-        
-        .content { font-size: 16px; line-height: 1.8; text-align: justify; padding: 0 50px; }
-        .indent { text-indent: 40px; }
-        .bold { font-weight: bold; }
-        
-        .footer { margin-top: 80px; padding: 0 50px; display: flex; justify-content: flex-end; }
-        .signature-box { text-align: center; width: 250px; }
-        .signature-line { border-top: 1px solid #000; margin-top: 40px; }
-        
-        /* Print Settings */
-        @media print {
-            @page { margin: 0.5in; }
-            .no-print { display: none; }
-        }
-        
-        .btn-print {
-            position: fixed; top: 20px; right: 20px; 
-            padding: 10px 20px; background: #0d6efd; color: white; 
-            border: none; border-radius: 5px; cursor: pointer; font-family: sans-serif;
-        }
-    </style>
-</head>
-<body>
-
-    <button class="btn-print no-print" onclick="window.print()">Print Document</button>
-
-    <div class="header">
-        <img src="../../assets/img/Langkaan 2 Logo-modified.png" class="logo-left">
-        <h4>REPUBLIC OF THE PHILIPPINES</h4>
-        <h4>PROVINCE OF CAVITE</h4>
-        <h4>CITY OF DASMARIÑAS</h4>
-        <h3>BARANGAY LANGKAAN II</h3>
-    </div>
-
-    <div class="title">
-        <?= $docTitle ?>
-    </div>
-
-    <div class="content">
-        <p class="bold">TO WHOM IT MAY CONCERN:</p>
-
-        <p class="indent">
-            THIS IS TO CERTIFY that <span class="bold"><?= strtoupper($data['full_name']) ?></span>, 
-            <?= strtolower($data['civil_status'] ?? 'single') ?>, <?= strtolower($data['citizenship'] ?? 'Filipino') ?> citizen, 
-            is a bonafide resident of <?= $data['address'] ?? 'Barangay Langkaan II, Dasmariñas City, Cavite' ?>.
-        </p>
-
-        <?php if ($data['document_type'] == 'Certificate of Indigency'): ?>
-            <p class="indent">
-                This is to certify further that the above-named person belongs to the indigent family in this barangay and is seeking assistance for: <span class="bold"><?= strtoupper($data['purpose']) ?></span>.
-            </p>
-        <?php elseif ($data['document_type'] == 'Barangay Business Clearance'): ?>
-            <p class="indent">
-                This clearance is hereby granted for the business <span class="bold"><?= strtoupper($data['business_name']) ?></span> located at <?= $data['business_location'] ?>.
-            </p>
-        <?php else: ?>
-            <p class="indent">
-                This certification is being issued upon the request of the interested party for: <span class="bold"><?= strtoupper($data['purpose']) ?></span>.
-            </p>
-        <?php endif; ?>
-
-        <p class="indent">
-            Issued this <span class="bold"><?= $dateIssued ?></span> at Barangay Langkaan II, City of Dasmariñas, Cavite.
-        </p>
-    </div>
-
-    <div class="footer">
-        <div class="signature-box">
-            <span class="bold">HON. David John Paulo C. Laudato</span><br>
-            Punong Barangay
-            <div class="signature-line"></div>
-        </div>
-    </div>
-
-</body>
-</html>

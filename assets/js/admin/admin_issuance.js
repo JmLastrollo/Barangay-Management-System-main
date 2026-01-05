@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Search Functionality
+    // Search functionality for issuance table rows
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.addEventListener('keyup', function() {
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // --- VIEW REQUEST DETAILS ---
 window.viewRequest = function(data) {
     const residentName = data.current_resident_name || data.resident_name || 'N/A';
-    
+
     let content = `
         <div class="text-center mb-4">
             <div class="avatar-circle bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 60px; height: 60px; font-size: 24px;">
@@ -55,7 +55,8 @@ window.viewRequest = function(data) {
     content += `</div>`;
     
     document.getElementById('viewBody').innerHTML = content;
-    
+
+    // Set print button URL
     const printBtn = document.getElementById('printLink');
     if(printBtn) {
         printBtn.href = `admin_issuance_print.php?id=${data.issuance_id}`;
@@ -64,13 +65,14 @@ window.viewRequest = function(data) {
     new bootstrap.Modal(document.getElementById('viewModal')).show();
 };
 
-// --- UPDATE STATUS ---
+// --- EDIT STATUS MODAL ---
 window.editStatus = function(id, status) {
     document.getElementById('edit_id').value = id;
     document.getElementById('edit_status').value = status;
     new bootstrap.Modal(document.getElementById('statusModal')).show();
 };
 
+// --- SAVE STATUS ---
 window.saveStatus = function() {
     const id = document.getElementById('edit_id').value;
     const status = document.getElementById('edit_status').value;
@@ -81,13 +83,19 @@ window.saveStatus = function() {
     fetch('../../backend/admin_issuance_update.php', { method: 'POST', body: formData })
     .then(res => res.json())
     .then(data => {
-        if(data.status === 'success') location.reload();
-        else alert('Error updating status');
+        if(data.status === 'success') {
+            location.reload();
+        } else {
+            alert('Error updating status.');
+        }
     })
-    .catch(err => console.error(err));
+    .catch(err => {
+        console.error(err);
+        alert('Error updating status.');
+    });
 };
 
-// --- ARCHIVE REQUEST ---
+// --- ARCHIVE REQUEST MODAL ---
 window.openArchiveModal = function(id) {
     document.getElementById('archive_id').value = id;
     new bootstrap.Modal(document.getElementById('archiveModal')).show();

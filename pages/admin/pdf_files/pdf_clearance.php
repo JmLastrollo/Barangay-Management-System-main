@@ -1,139 +1,61 @@
 <?php
-require_once "../../../backend/auth_admin.php";  
-require_once "../../../backend/config.php";
-require_once "../../../backend/fpdf186/fpdf.php";
+// pages/admin/pdf_files/pdf_clearance.php
 
-class ResidencyPDF extends FPDF {
-    function Header(){
-        $leftLogo = __DIR__ . '/../../../assets/img/cdologo.png';
-        $rightLogo = __DIR__ . '/../../../assets/img/barangaygusalogo.png';
-
-        if (file_exists($leftLogo)) $this->Image($leftLogo,10,8,28);
-        if (file_exists($rightLogo)) $this->Image($rightLogo,170,8,28);
-
-        $this->SetY(12);
-        $this->SetFont('Times','',10);
-        $this->Cell(0,5,'Republic of the Philippines',0,1,'C');
-        $this->Cell(0,5,'Province of Misamis Oriental',0,1,'C');
-        $this->Cell(0,5,'City of Cagayan de Oro',0,1,'C');
-
-        $this->SetFont('Times','B',12);
-        $this->Cell(0,6,'BARANGAY GUSA',0,1,'C');
-
-        $this->Ln(4);
-        $this->SetFont('Times','B',16);
-        $this->Cell(0,8,'OFFICE OF THE PUNONG BARANGAY',0,1,'C');
-        $this->Ln(6);
-    }
-
-    function Footer(){
-        $this->SetY(-45);
-        $this->SetFont('Arial','',11);
-
-        $this->Cell(0,6,'',0,1);
-        $this->Cell(0,6,'______________________________',0,1,'R');
-        
-        $this->Cell(0,6,'Punong Barangay / Authorized Official',0,1,'R');
-
-        $this->Ln(5);
-        $this->SetFont('Arial','I',8);
-        $this->Cell(0,6,'This is a generated document from Barangay Management System',0,0,'C');
-    }
-}
-
-$pdf = new ResidencyPDF('P','mm','A4');
+// Create PDF Instance
+$pdf = new FPDF('P','mm','Letter');
 $pdf->AddPage();
-$pdf->SetMargins(18, 10, 18);
-$pdf->SetFont('Times','',12);
 
-// Data
-$name = strtoupper(trim(
-    $residentArr['first_name'].' '.
-    ($residentArr['middle_name'] ?? '').' '.
-    ($residentArr['last_name'] ?? '')
-));
-
-$purok = $residentArr['purok'] ?? 'N/A';
-$years = 'N/A';
-if (!empty($residentArr['resident_since'])) {
-    $startYear = (int)$residentArr['resident_since'];
-    $currentYear = (int)date("Y");
-    $years = $currentYear - $startYear; 
-}
-
-$civil_status = strtolower($residentArr['civil_status'] ?? 'N/A');
-$issueDay = date('jS');
-$issueMonthYear = strtoupper(date('F Y'));
-
-$pdf->Ln(8);
-
-// Title
-$pdf->SetFont('Times','B',18);
-$pdf->Cell(0,8,'BARANGAY CLEARANCE',0,1,'C');
+// --- HEADER ---
+// (Ayusin mo ito base sa actual logo/header image mo kung meron)
+$pdf->SetFont('Arial','',12);
+$pdf->Cell(0,5,'Republic of the Philippines',0,1,'C');
+$pdf->Cell(0,5,'Province of Cavite',0,1,'C');
+$pdf->Cell(0,5,'City of Dasmariñas',0,1,'C');
+$pdf->SetFont('Arial','B',14);
+$pdf->Cell(0,10,'BARANGAY LANGKAAN II',0,1,'C');
+$pdf->Ln(10);
+$pdf->SetLineWidth(1);
+$pdf->Line(20, 45, 195, 45); // Line Separator
 $pdf->Ln(10);
 
-// --- BODY ---
+// --- DOCUMENT TITLE ---
+$pdf->SetFont('Arial','B',24);
+$pdf->Cell(0,10,'BARANGAY CLEARANCE',0,1,'C');
+$pdf->Ln(15);
 
-// TO WHOM IT MAY CONCERN (BOLD)
-$pdf->SetFont('Times','B',12);
-$pdf->Cell(0,7,'TO WHOM IT MAY CONCERN:',0,1);
-$pdf->Ln(5);
+// --- BODY CONTENT ---
+$pdf->SetFont('Arial','',12);
+$text = "TO WHOM IT MAY CONCERN:\n\n" .
+        "This is to certify that " . $residentName . ", " . $age . " years old, " . 
+        strtolower($civilStatus) . ", is a bonafide resident of " . $address . ".\n\n" .
+        "This certifies further that the above-named person has NO DEROGATORY RECORD on file in this Barangay as of this date.\n\n" .
+        "This certification is issued upon the request of the interested party for the purpose of: " . 
+        strtoupper($purpose) . ".\n\n" .
+        "Issued this " . $dateIssued . " at Barangay Langkaan II, Dasmariñas City, Cavite.";
 
-// Switch back to normal
-$pdf->SetFont('Times','',12);
+// MultiCell para mag-wrap ang text
+$pdf->SetRightMargin(25);
+$pdf->SetLeftMargin(25);
+$pdf->MultiCell(0, 8, $text);
 
-// Paragraph with 8mm indent
-$pdf->Cell(8);
-$pdf->Write(7,"This is to certify that ");
+// --- SIGNATORY AREA ---
+$pdf->Ln(40);
+$pdf->SetRightMargin(10);
+$pdf->SetLeftMargin(10);
 
-// Name (BOLD + UNDERLINE)
-$pdf->SetFont('Times','BU',12);
-$pdf->Write(7, "___" . $name . "___");
+$pdf->Cell(100); // Move to right side
+$pdf->SetFont('Arial','B',12);
+$pdf->Cell(0, 5, $officialSignatory, 0, 1, 'C');
+$pdf->Cell(100); // Reset position
+$pdf->SetFont('Arial','',10);
+$pdf->Cell(0, 5, 'Punong Barangay', 0, 1, 'C');
 
-// Continue sentence
-$pdf->SetFont('Times','',12);
-$pdf->Write(7,", legal age, single/");
-$pdf->Write(7, $civil_status);
+// --- FOOTER / OR NUMBER ---
+$pdf->SetY(-40);
+$pdf->SetFont('Arial','',10);
+$pdf->Cell(0,5,'O.R. No: _________________',0,1,'L');
+$pdf->Cell(0,5,'Amount Paid: P ' . number_format($data['amount'] ?? 0, 2),0,1,'L');
+$pdf->Cell(0,5,'Date Issued: ' . date('Y-m-d'),0,1,'L');
 
-$pdf->Write(7,", and residence at ");
-
-$pdf->SetFont('Times','BU',12);
-$pdf->Write(7, $purok);
-
-$pdf->SetFont('Times','',12);
-$pdf->Write(7," of Barangay Gusa, Cagayan de Oro has no derogatory record filed in our Barangay. \n\n");
-
-// Continue
-$pdf->SetFont('Times','',12);
-$pdf->Cell(8);
-$pdf->Write(7," The above-named individual who is a bonafide resident in this Barangay has person of Good Moral Character \n\n");
-
-$pdf->SetFont('Times','',12);
-$pdf->Cell(8);
-$pdf->Write(7," This certification is hereby issued upon request of the subject person in connection with his/her requirement purposes. \n\n");
-
-// Indented second part
-$pdf->SetFont('Times','',12);
-$pdf->Cell(8);
-$pdf->Write(7,"Given this ");
-
-// DATE (BU)
-$pdf->SetFont('Times','BU',12);
-$pdf->Write(7, $issueDay);
-
-$pdf->SetFont('Times','',12);
-$pdf->Write(7," day of ");
-
-// MONTH & YEAR (BU)
-$pdf->SetFont('Times','BU',12);
-$pdf->Write(7, $issueMonthYear);
-
-$pdf->SetFont('Times','',12);
-$pdf->Write(7,", at the Office of the Punong Barangay.");
-
-$pdf->Ln(20);
-
-// Output PDF
-$pdf->Output('I', 'Certificate_of_Residency_' . str_replace(' ', '_', $name) . '.pdf');
-exit;
+$pdf->Output();
 ?>
