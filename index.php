@@ -23,7 +23,7 @@ try {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <title>BMS - Brgy. Langkaan II</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="icon" type="image/png" href="assets/img/Langkaan 2 Logo-modified.png">
     <link rel="stylesheet" href="css/style.css?v=6" /> 
@@ -90,7 +90,7 @@ try {
                 <div class="col-md-4 d-flex">
                     <div class="card home-announce-card p-3 d-flex flex-column h-100 w-100 shadow-sm border-0">
                         <?php 
-                            $imgSource = !empty($item->image) ? "uploads/announcements/" . $item->image : "assets/img/announcement_placeholder.png";
+                            $imgSource = !empty($item->image) ? "uploads/announcements/" . $item->image : "assets/img";
                         ?>
                         <img src="<?= $imgSource ?>" class="mb-3 w-100 home-announce-img rounded" style="height: 200px; object-fit: cover;" alt="Announcement Image" />
 
@@ -141,7 +141,7 @@ try {
 
 <div id="toast" class="toast"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/bootstrap.bundle.min.js"></script>
 
 <script>
     // Get the button

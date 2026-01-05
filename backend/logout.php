@@ -22,6 +22,6 @@ $_SESSION['toast'] = "You have successfully logged out.";
 $_SESSION['toast_type'] = "success";
 
 // 4. Redirect sa Login
-header("Location: ../login.php");
+header("Location: ../index.php");
 exit();
 ?>

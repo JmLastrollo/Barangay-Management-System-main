@@ -26,10 +26,8 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>BMS - Archived Announcements</title>
     <link rel="icon" type="image/png" href="../../assets/img/Langkaan 2 Logo-modified.png">
-    
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    
     <link rel="stylesheet" href="../../css/admin.css?v=<?= time(); ?>" />
     <link rel="stylesheet" href="../../css/sidebar.css?v=<?= time(); ?>" />
     <link rel="stylesheet" href="../../css/toast.css?v=<?= time(); ?>">
@@ -154,7 +152,7 @@ try {
 
 <div id="toast" class="toast"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/bootstrap.bundle.min.js"></script>
 
 <script> const initialData = <?= json_encode($announcements) ?>; </script>
 

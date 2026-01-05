@@ -33,8 +33,7 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>BMS - Archived Issuance</title>
     <link rel="icon" type="image/png" href="../../assets/img/Langkaan 2 Logo-modified.png">
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     
     <link rel="stylesheet" href="../../css/admin.css?v=<?= time(); ?>">
@@ -183,7 +182,7 @@ try {
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
     <script src="../../assets/js/admin/admin_issuance_archive.js?v=<?= time(); ?>"></script>
 
 </body>

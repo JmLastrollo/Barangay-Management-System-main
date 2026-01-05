@@ -3,7 +3,6 @@ session_start();
 require_once 'backend/db_connect.php';
 
 try {
-    // FIX: Changed 'id' to 'official_id' and 'active' to 'Active'
     $sql = "SELECT * FROM barangay_officials WHERE status = 'Active' ORDER BY official_id ASC";
     $stmt = $conn->prepare($sql);
     $stmt->execute();
@@ -18,31 +17,29 @@ try {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <title>BMS - Officials</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="icon" type="image/png" href="assets/img/BMS.png">
     <link rel="stylesheet" href="css/style.css?v=7" />
 
     <style>
-        /* Pinapalitan nito ang default na bilog na style */
         .official-img-wrapper {
-            width: 100% !important;         /* Sakupin ang buong width ng card padding */
-            max-width: 100% !important;     /* Tanggalin ang limit sa lapad */
-            height: 350px !important;       /* Taasan ang height para maging Portrait/Half-body */
-            border-radius: 8px !important;  /* Gawing rounded rectangle imbis na bilog */
+            width: 100% !important;    
+            max-width: 100% !important; 
+            height: 350px !important;     
+            border-radius: 8px !important; 
             overflow: hidden;
             margin-bottom: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Optional: konting shadow para umangat */
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
         }
 
         .official-img {
             width: 100% !important;
             height: 100% !important;
-            object-fit: cover !important;       /* Siguraduhing napupuno ang box nang hindi nai-stretch */
-            object-position: top center !important; /* FOCUS SA TAAS: Para laging kita ang mukha/ulo */
+            object-fit: cover !important;       
+            object-position: top center !important; 
         }
 
-        /* Optional: Ayusin ang card height */
         .official-card {
             border: none;
             box-shadow: 0 2px 15px rgba(0,0,0,0.05);
@@ -107,24 +104,19 @@ try {
     <i class="bi bi-arrow-up"></i>
 </button>
 <?php include('includes/footer.php'); ?>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/bootstrap.bundle.min.js"></script>
 <script>
-    // Get the button
     let mybutton = document.getElementById("backToTop");
 
-    // Listen to scroll event
     window.onscroll = function() { scrollFunction() };
 
     function scrollFunction() {
-        // Show button if scrolled down 300px
         if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
             mybutton.style.display = "block";
         } else {
             mybutton.style.display = "none";
         }
     }
-
-    // Scroll to top when clicked
     function topFunction() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
