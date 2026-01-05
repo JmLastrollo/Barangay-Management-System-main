@@ -12,12 +12,12 @@ require_once '../../backend/db_connect.php';
 // 2. Fetch Active Requests
 try {
     $sql = "SELECT i.*, 
-                   CONCAT(rp.first_name, ' ', rp.last_name) as current_resident_name,
-                   p.amount, 
-                   p.payment_method, 
-                   p.reference_no, 
-                   p.payment_status 
-            FROM issuance i
+               CONCAT(rp.first_name, ' ', rp.last_name) as current_resident_name,
+               p.amount, 
+               p.payment_method, 
+               p.reference_no, 
+               p.payment_status 
+            FROM issuance i ...
             LEFT JOIN resident_profiles rp ON i.resident_id = rp.resident_id
             LEFT JOIN payments p ON i.issuance_id = p.issuance_id
             WHERE i.status != 'Archived'
