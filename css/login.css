@@ -9,21 +9,15 @@ body {
     align-items: center;
     justify-content: center;
     margin: 0;
-    
-    /* BACKGROUND IMAGE SETUP */
-    /* Palitan ang 'Barangay_langkaan 2 full view.jpg' ng tamang file name at extension (.jpg, .png) */
     background-image: url('../assets/img/Barangay_langkaan 2 full view.jpg'); 
-    background-size: cover;       /* Para sakop buong screen */
-    background-position: center;  /* Para gitna ang image */
-    background-repeat: no-repeat; /* Para hindi mag-ulit */
-    background-attachment: fixed; /* Para steady lang pag nag-scroll */
-    
-    /* BLUR EFFECT & DARK OVERLAY (Para lutang ang login box) */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+
     position: relative;
     z-index: 1;
 }
-
-/* Pseudo-element para sa Blur/Darkening */
 body::before {
     content: "";
     position: absolute;
@@ -31,9 +25,9 @@ body::before {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.4); /* Dark overlay (40% opacity) para mabasa ang text */
-    backdrop-filter: blur(5px);           /* Ito ang magpapalabunog (Blur effect) */
-    z-index: -1;                          /* Nasa likod ng login form */
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(5px);       
+    z-index: -1;                        
 }
 
 /* 2. Main Container */
@@ -61,14 +55,12 @@ body::before {
 /* ================================================== */
 .left-panel {
     flex: 1;
-    /* FIX: Pinagsama ang Pattern at Blue Gradient */
     background-color: #1565C0; /* Fallback color */
     background: 
-        radial-gradient(rgba(255,255,255,0.15) 1px, transparent 1px), /* Dots Pattern (Top Layer) */
-        linear-gradient(135deg, #0D47A1 0%, #1565C0 100%); /* Blue Gradient (Bottom Layer) */
+        radial-gradient(rgba(255,255,255,0.15) 1px, transparent 1px),
+        linear-gradient(135deg, #0D47A1 0%, #1565C0 100%);
     background-size: 20px 20px, 100% 100%;
     background-repeat: repeat, no-repeat;
-    
     color: white;
     padding: 50px;
     display: flex;
@@ -84,14 +76,13 @@ body::before {
 }
 
 .left-panel .logo-header img {
-    /* ADJUSTED: Mas malaki na ang logo */
     width: 100px;
     height: 100px;
     margin-right: 20px;
     border-radius: 50%;
     background: white;
     padding: 4px;
-    border: 4px solid #FFD54F; /* Yellow Accent */
+    border: 4px solid #FFD54F;
     box-shadow: 0 6px 15px rgba(0,0,0,0.2);
     object-fit: contain;
 }
@@ -110,7 +101,7 @@ body::before {
     font-size: 0.9rem;
     margin: 0;
     opacity: 1;
-    color: #FFD54F; /* Yellow Text */
+    color: #FFD54F; 
     font-weight: 700;
     letter-spacing: 1px;
 }

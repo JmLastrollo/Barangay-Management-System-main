@@ -1,35 +1,70 @@
 <?php
+// Kunin ang current page name
 $current_page = basename($_SERVER['PHP_SELF']);
-$issuance_pages = ['resident_rqs_service.php', 'issuance_table.php'];
-$is_issuance_active = in_array($current_page, $issuance_pages);
 
-if (!isset($resident) && isset($_SESSION['user_id'])) {
-    require_once '../../backend/db_connect.php';
-    $uid = $_SESSION['user_id'];
-    $stmtSide = $conn->prepare("SELECT first_name, last_name, image FROM resident_profiles WHERE user_id = :uid");
-    $stmtSide->execute([':uid' => $uid]);
-    $resSide = $stmtSide->fetch(PDO::FETCH_ASSOC);
-    $sideName = $resSide ? $resSide['first_name'] . " " . $resSide['last_name'] : "Resident";
+// Define Pages for Logic
+$issuance_pages = ['resident_rqs_service.php', 'issuance_table.php'];
+$health_pages   = ['resident_health_appointment.php', 'resident_health_history.php'];
+$blotter_pages  = ['resident_file_complaint.php', 'resident_blotter_history.php'];
+
+// Check Active Status
+$is_issuance_active = in_array($current_page, $issuance_pages);
+$is_health_active   = in_array($current_page, $health_pages);
+$is_blotter_active  = in_array($current_page, $blotter_pages);
+
+// GET RESIDENT INFO (Profile & Name)
+if (isset($_SESSION['user_id'])) {
+    if (!isset($resident)) {
+        require_once '../../backend/db_connect.php';
+        $uid = $_SESSION['user_id'];
+        $stmtSide = $conn->prepare("SELECT first_name, last_name, image FROM resident_profiles WHERE user_id = :uid");
+        $stmtSide->execute([':uid' => $uid]);
+        $resSide = $stmtSide->fetch(PDO::FETCH_ASSOC);
+    } else {
+        $resSide = $resident;
+    }
+
+    $sideName = ($resSide) ? $resSide['first_name'] . " " . $resSide['last_name'] : "Resident";
     $sideImg = ($resSide && !empty($resSide['image'])) 
         ? "../../uploads/residents/" . $resSide['image'] 
         : "../../assets/img/profile.jpg";
 } else {
-    $sideName = isset($fullName) ? $fullName : "Resident";
-    $sideImg = isset($profileImg) ? $profileImg : "../../assets/img/profile.jpg";
+    $sideName = "Guest Resident";
+    $sideImg = "../../assets/img/profile.jpg";
 }
 ?>
 
+<style>
+    @media (max-width: 992px) {
+        .header {
+            /* Magdagdag ng space sa kaliwa para sa menu button */
+            padding-left: 70px !important; 
+        }
+    }
+</style>
+
+<button class="btn text-white d-lg-none position-fixed top-0 start-0 mt-3 ms-3" 
+        style="z-index: 1050; font-size: 1.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.5);" 
+        onclick="toggleSidebar()">
+    <i class="bi bi-list"></i>
+</button>
+
 <nav id="sidebar">
-    <div class="sidebar-header">
+    
+    <div class="sidebar-header position-relative">
         <div class="admin-profile-img">
-            <img src="<?= $sideImg ?>" alt="User Image">
+            <img src="<?= htmlspecialchars($sideImg) ?>" alt="User Image" style="object-fit: cover;">
         </div>
         <div class="profile-info">
-            <h6 class="mb-0 fw-bold text-white text-truncate" style="max-width: 140px;">
+            <h6 class="mb-0 fw-bold text-white text-truncate" style="max-width: 150px;" title="<?= htmlspecialchars($sideName) ?>">
                 <?= htmlspecialchars($sideName) ?>
             </h6>
-            <span class="text-white-50 small">Resident</span>
+            <span class="text-white-50 small">Resident Account</span>
         </div>
+        
+        <button class="btn btn-sm text-white d-lg-none position-absolute top-50 end-0 translate-middle-y me-2" onclick="toggleSidebar()">
+            <i class="bi bi-x-lg fs-5"></i>
+        </button>
     </div>
 
     <div class="sidebar-sticky">
@@ -74,16 +109,16 @@ if (!isset($resident) && isset($_SESSION['user_id'])) {
             </li>
             
             <li class="nav-item">
-                <a class="nav-link d-flex justify-content-between align-items-center <?= ($current_page == 'resident_health_appointment.php' || $current_page == 'resident_health_history.php') ? 'active' : 'collapsed' ?>" 
+                <a class="nav-link d-flex justify-content-between align-items-center <?= $is_health_active ? 'active' : 'collapsed' ?>" 
                    data-bs-toggle="collapse" 
                    href="#healthSubmenu" 
                    role="button"
-                   aria-expanded="false"
+                   aria-expanded="<?= $is_health_active ? 'true' : 'false' ?>"
                    aria-controls="healthSubmenu">
                     <div><i class="bi bi-heart-pulse-fill me-2"></i> Health Center</div>
                     <i class="bi bi-chevron-down small"></i>
                 </a>
-                <div class="collapse <?= ($current_page == 'resident_health_appointment.php' || $current_page == 'resident_health_history.php') ? 'show' : '' ?>" id="healthSubmenu" data-bs-parent="#accordionSidebar">
+                <div class="collapse <?= $is_health_active ? 'show' : '' ?>" id="healthSubmenu" data-bs-parent="#accordionSidebar">
                     <ul class="nav flex-column ms-3 submenu">
                         <li>
                             <a class="nav-link small <?= $current_page == 'resident_health_appointment.php' ? 'active' : '' ?>" href="resident_health_appointment.php">
@@ -93,6 +128,32 @@ if (!isset($resident) && isset($_SESSION['user_id'])) {
                         <li>
                             <a class="nav-link small <?= $current_page == 'resident_health_history.php' ? 'active' : '' ?>" href="resident_health_history.php">
                                 My Appointments
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link d-flex justify-content-between align-items-center <?= $is_blotter_active ? 'active' : 'collapsed' ?>" 
+                   data-bs-toggle="collapse" 
+                   href="#blotterSubmenu" 
+                   role="button"
+                   aria-expanded="<?= $is_blotter_active ? 'true' : 'false' ?>"
+                   aria-controls="blotterSubmenu">
+                    <div><i class="bi bi-shield-exclamation me-2"></i> Blotter & Complaints</div>
+                    <i class="bi bi-chevron-down small"></i>
+                </a>
+                <div class="collapse <?= $is_blotter_active ? 'show' : '' ?>" id="blotterSubmenu" data-bs-parent="#accordionSidebar">
+                    <ul class="nav flex-column ms-3 submenu">
+                        <li>
+                            <a class="nav-link small <?= $current_page == 'resident_file_complaint.php' ? 'active' : '' ?>" href="resident_file_complaint.php">
+                                File a Complaint
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link small <?= $current_page == 'resident_blotter_history.php' ? 'active' : '' ?>" href="resident_blotter_history.php">
+                                My Reports
                             </a>
                         </li>
                     </ul>
@@ -115,6 +176,8 @@ if (!isset($resident) && isset($_SESSION['user_id'])) {
     </div>
 </nav>
 
+<div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
 <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -132,3 +195,13 @@ if (!isset($resident) && isset($_SESSION['user_id'])) {
         </div>
     </div>
 </div>
+
+<script>
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.querySelector('.sidebar-overlay');
+        
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+    }
+</script>

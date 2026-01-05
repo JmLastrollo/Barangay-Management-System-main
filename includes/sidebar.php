@@ -1,19 +1,21 @@
 <?php
-// Kunin ang current page name para sa active state
+// Kunin ang current page name
 $current_page = basename($_SERVER['PHP_SELF']);
 
-// Define Pages per Group (Active Logic)
+// 1. DEFINE PAGE GROUPS (Para alam ng sidebar kung kailan magbubukas ang dropdown)
 $staff_pages    = ['staff_list.php', 'staff_history.php', 'staff_add.php']; 
 $account_pages  = ['resident_list.php', 'resident_history.php', 'resident_archive.php'];
-$issuance_pages = ['admin_issuance.php', 'admin_issuance_archive.php', 'admin_issuance_print.php'];
-$records_pages  = ['admin_rec_blotter.php', 'admin_rec_complaints.php', 'admin_rec_residents.php'];
-$archive_pages  = ['admin_announcement_archive.php', 'admin_officials_archive.php', 'admin_rec_blotter_archive.php', 'admin_rec_complaints_archive.php'];
+$issuance_pages = ['admin_issuance.php', 'admin_issuance_approved.php', 'admin_issuance_archive.php', 'admin_issuance_print.php'];
+$records_pages  = ['records_management.php', 'admin_rec_blotter.php', 'admin_rec_complaints.php', 'admin_rec_residents.php'];
+$health_pages   = ['health_dashboard.php', 'patient_records.php'];
+$archive_pages  = ['archives.php', 'admin_announcement_archive.php', 'admin_officials_archive.php', 'admin_rec_blotter_archive.php', 'admin_rec_complaints_archive.php'];
 
-// Check Active Groups
+// 2. CHECK ACTIVE STATUS
 $is_staff_active    = in_array($current_page, $staff_pages);
 $is_account_active  = in_array($current_page, $account_pages);
 $is_issuance_active = in_array($current_page, $issuance_pages);
 $is_records_active  = in_array($current_page, $records_pages);
+$is_health_active   = in_array($current_page, $health_pages);
 $is_archive_active  = in_array($current_page, $archive_pages);
 ?>
 
@@ -79,7 +81,7 @@ $is_archive_active  = in_array($current_page, $archive_pages);
                 </a>
                 <div class="collapse <?= $is_account_active ? 'show' : '' ?>" id="accountSubmenu" data-bs-parent="#accordionSidebar">
                     <ul class="nav flex-column ms-3 submenu">
-                        <li><a class="nav-link small <?= $current_page == 'resident_list.php' ? 'active' : '' ?>" href="resident_list.php">Resident List</a></li>
+                        <li><a class="nav-link small <?= $current_page == 'resident_list.php' ? 'active' : '' ?>" href="resident_list.php">Resident Accounts</a></li>
                         <li><a class="nav-link small <?= $current_page == 'resident_history.php' ? 'active' : '' ?>" href="resident_history.php">History Session</a></li>
                     </ul>
                 </div>
@@ -104,7 +106,7 @@ $is_archive_active  = in_array($current_page, $archive_pages);
                 <div class="collapse <?= $is_issuance_active ? 'show' : '' ?>" id="issuanceSubmenu" data-bs-parent="#accordionSidebar">
                     <ul class="nav flex-column ms-3 submenu">
                         <li><a class="nav-link small <?= $current_page == 'admin_issuance.php' ? 'active' : '' ?>" href="admin_issuance.php">Docs. Requests</a></li>
-                        <li><a class="nav-link small <?= $current_page == 'admin_issuance_archive.php' ? 'active' : '' ?>" href="admin_issuance_archive.php">Archived Issuance</a></li>
+                        <li><a class="nav-link small <?= $current_page == 'admin_issuance_approved.php' ? 'active' : '' ?>" href="admin_issuance_approved.php">Approved / History</a></li>
                     </ul>
                 </div>
             </li>
@@ -126,6 +128,30 @@ $is_archive_active  = in_array($current_page, $archive_pages);
                         <li><a class="nav-link small <?= $current_page == 'admin_rec_complaints.php' ? 'active' : '' ?>" href="admin_rec_complaints.php">Complaints</a></li>
                     </ul>
                 </div>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link d-flex justify-content-between align-items-center <?= $is_health_active ? 'active' : 'collapsed' ?>" 
+                   data-bs-toggle="collapse" 
+                   href="#healthSubmenu"
+                   role="button"
+                   aria-expanded="<?= $is_health_active ? 'true' : 'false' ?>"
+                   aria-controls="healthSubmenu">
+                    <div><i class="bi bi-heart-pulse-fill me-2"></i> Health Center</div>
+                    <i class="bi bi-chevron-down small"></i>
+                </a>
+                <div class="collapse <?= $is_health_active ? 'show' : '' ?>" id="healthSubmenu" data-bs-parent="#accordionSidebar">
+                    <ul class="nav flex-column ms-3 submenu">
+                        <li><a class="nav-link small <?= $current_page == 'health_dashboard.php' ? 'active' : '' ?>" href="health_dashboard.php">Dashboard</a></li>
+                        <li><a class="nav-link small <?= $current_page == 'patient_records.php' ? 'active' : '' ?>" href="patient_records.php">Patient Records</a></li>
+                    </ul>
+                </div>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link <?= $current_page == 'finance_management.php' ? 'active' : '' ?>" href="finance_management.php">
+                    <i class="bi bi-cash-coin me-2"></i> Finance
+                </a>
             </li>
 
             <li class="nav-item">

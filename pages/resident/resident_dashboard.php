@@ -49,11 +49,12 @@ $announcements = $stmtAnnounce->fetchAll(PDO::FETCH_ASSOC);
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Resident Dashboard - BMS</title>
     <link rel="icon" type="image/png" href="../../assets/img/Langkaan 2 Logo-modified.png">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <link href="../../css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../../css/sidebar.css">
     <link rel="stylesheet" href="../../css/resident.css"> 
-</head>
+    <link rel="stylesheet" href="../../css/toast.css"> </head>
 <body>
 
     <?php include '../../includes/resident_sidebar.php'; ?>
@@ -112,6 +113,7 @@ $announcements = $stmtAnnounce->fetchAll(PDO::FETCH_ASSOC);
             </div>
 
             <div class="row g-4">
+                
                 <div class="col-lg-8">
                     <h5 class="fw-bold text-secondary mb-3"><i class="bi bi-grid-fill me-2"></i>Quick Services</h5>
                     <div class="row g-3 mb-4">
@@ -134,7 +136,7 @@ $announcements = $stmtAnnounce->fetchAll(PDO::FETCH_ASSOC);
                             </a>
                         </div>
                         <div class="col-md-6">
-                            <a href="#" class="action-card h-100 flex-row text-start p-3">
+                            <a href="resident_file_complaint.php" class="action-card h-100 flex-row text-start p-3">
                                 <div class="action-icon mb-0 me-3 fs-3"><i class="bi bi-shield-exclamation"></i></div>
                                 <div>
                                     <div class="action-title">File a Complaint</div>
@@ -222,6 +224,35 @@ $announcements = $stmtAnnounce->fetchAll(PDO::FETCH_ASSOC);
 
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="liveToast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body" id="toastMessage"></div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../assets/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Check for Login Welcome Session
+        <?php if(isset($_SESSION['login_welcome'])): ?>
+            const toastEl = document.getElementById('liveToast');
+            const toastBody = document.getElementById('toastMessage');
+            
+            // Set message and color (Green for Success)
+            toastBody.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i> Welcome back, <strong><?= htmlspecialchars($resident['first_name']) ?></strong>!';
+            toastEl.classList.add('bg-success'); 
+            
+            // Show Toast
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
+            
+            // Unset session variable so it won't show again on refresh
+            <?php unset($_SESSION['login_welcome']); ?>
+        <?php endif; ?>
+    </script>
+
 </body>
 </html>

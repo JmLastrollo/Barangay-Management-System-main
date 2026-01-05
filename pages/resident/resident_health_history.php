@@ -40,14 +40,6 @@ try {
     <link rel="stylesheet" href="../../css/resident.css"> 
     <link rel="stylesheet" href="../../css/toast.css"> 
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-    
-    <style>
-        .status-badge { font-size: 0.75rem; font-weight: 700; padding: 5px 12px; border-radius: 20px; text-transform: uppercase; }
-        .status-Pending { background: #fff3cd; color: #856404; }
-        .status-Confirmed { background: #cce5ff; color: #004085; }
-        .status-Completed { background: #d4edda; color: #155724; }
-        .status-Cancelled { background: #f8d7da; color: #721c24; }
-    </style>
 </head>
 <body>
 

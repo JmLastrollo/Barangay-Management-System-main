@@ -12,8 +12,12 @@
     background: #ffffff;
     box-shadow: 2px 0 15px rgba(0,0,0,0.05);
     z-index: 1000;
-    overflow-y: auto; 
     transition: all 0.3s;
+
+    /* --- LAYOUT FIX (Para sa Fixed Header) --- */
+    display: flex;           /* Gawing Flexbox */
+    flex-direction: column;  /* Stack Header + Menu vertical */
+    overflow: hidden;        /* Pigilan ang scroll sa container mismo */
 }
 
 /* Sidebar Header (Profile) */
@@ -24,6 +28,9 @@
     align-items: center;
     gap: 15px;
     border-bottom: 4px solid #FFD54F;
+    
+    /* --- FIX (Para hindi gumalaw ang header) --- */
+    flex-shrink: 0; 
 }
 
 .admin-profile-img img {
@@ -48,7 +55,22 @@
     color: #e3f2fd;
 }
 
-/* --- NAVIGATION LINKS --- */
+/* --- SCROLLABLE MENU WRAPPER (Bagong Add) --- */
+.sidebar-sticky {
+    flex-grow: 1;            /* Sakupin ang natitirang space */
+    overflow-y: auto;        /* Dito lang magkakaroon ng scrollbar */
+    overflow-x: hidden;
+    padding-bottom: 20px;
+}
+
+/* Optional: Scrollbar Design para malinis tignan */
+.sidebar-sticky::-webkit-scrollbar { width: 5px; }
+.sidebar-sticky::-webkit-scrollbar-track { background: transparent; }
+.sidebar-sticky::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+.sidebar-sticky::-webkit-scrollbar-thumb:hover { background: #aaa; }
+
+
+/* --- NAVIGATION LINKS (Walang ginalaw dito) --- */
 .nav-link {
     color: #444;
     font-weight: 600;
@@ -127,4 +149,40 @@
     color: #1565C0;
     font-weight: 700;
     border-left: 4px solid #1565C0; /* Blue border indicator sa child */
+}
+
+/* ================================================== */
+/* MOBILE RESPONSIVENESS (ADD-ON)                     */
+/* ================================================== */
+
+/* --- TABLET & MOBILE VIEW (Below 992px) --- */
+@media (max-width: 992px) {
+    
+    /* 1. Hide Sidebar by Default */
+    #sidebar {
+        margin-left: -240px; /* Itago sa kaliwa */
+    }
+
+    /* 2. Show Sidebar (Kapag may class na 'active') */
+    #sidebar.active {
+        margin-left: 0; /* Ibalik sa screen */
+        box-shadow: 5px 0 15px rgba(0,0,0,0.3); /* Strong shadow */
+    }
+
+    /* 3. Overlay / Backdrop (Madilim na background pag bukas ang menu) */
+    .sidebar-overlay {
+        display: none; /* Hidden by default */
+        position: fixed;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+        z-index: 999; /* Nasa likod ng sidebar (1000) pero nasa harap ng content */
+        top: 0;
+        left: 0;
+        cursor: pointer;
+    }
+
+    .sidebar-overlay.active {
+        display: block; /* Show overlay */
+    }
 }

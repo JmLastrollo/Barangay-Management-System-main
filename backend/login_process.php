@@ -1,21 +1,13 @@
 <?php
 session_start();
 require_once 'db_connect.php'; 
-require_once 'log_audit.php'; // Siguraduhin na nandito ito
+require_once 'log_audit.php'; 
 
 // --- CONFIGURATION: PATHS ---
 $loginPage          = '../login.php';
 $adminDashboard     = '../pages/admin/admin_dashboard.php';
-$staffDashboard     = '../pages/staff/staff_dashboard.php'; 
+$staffDashboard     = '../pages/admin/admin_dashboard.php'; // Or separate staff dashboard
 $residentDashboard  = '../pages/resident/resident_dashboard.php';
-
-// Function para sa Error Message
-function redirectWithError($message, $location) {
-    $_SESSION['toast'] = $message;
-    $_SESSION['toast_type'] = 'danger'; // FIX: Ginawang 'danger' para maging pula (Red)
-    header("Location: $location");
-    exit();
-}
 
 // Check Request Method
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -26,7 +18,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // 2. Basic Validation
     if (empty($email) || empty($password)) {
-        redirectWithError("Please fill in all fields.", $loginPage);
+        $_SESSION['toast'] = ['msg' => 'Please fill in all fields.', 'type' => 'error'];
+        header("Location: $loginPage");
+        exit();
     }
 
     try {
@@ -39,30 +33,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($user) {
             // Check 1: Active ba ang account?
             if ($user['status'] !== 'Active') {
-                redirectWithError("Your account is Inactive or Archived. Please contact the Admin.", $loginPage);
+                $_SESSION['toast'] = ['msg' => 'Your account is Inactive or Archived. Please contact Admin.', 'type' => 'error'];
+                header("Location: $loginPage");
+                exit();
             }
 
             // Check 2: Tama ba ang password?
             if (password_verify($password, $user['password'])) {
                 
                 // --- SUCCESS LOGIN ---
-                
-                // Security: Regenerate Session ID
                 session_regenerate_id(true);
 
                 // Set Session Variables
                 $_SESSION['user_id'] = $user['user_id'];
                 $_SESSION['role']    = $user['role'];
                 $_SESSION['email']   = $user['email']; 
-                
-                // Kunin ang pangalan
                 $_SESSION['username'] = explode('@', $user['email'])[0]; 
                 $_SESSION['login_welcome'] = true;      
 
-                // ---------------------------------------------------------
-                // RECORD SA HISTORY LOGS
-                // ---------------------------------------------------------
-                logActivity($conn, $user['user_id'], "Logged in to the system");
+                // Record Log
+                if (function_exists('logActivity')) {
+                    logActivity($conn, $user['user_id'], "Logged in to the system");
+                }
 
                 // 5. Role Redirection
                 $role = $user['role'];
@@ -70,30 +62,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 if ($role === 'Admin') {
                     header("Location: $adminDashboard");
                 } elseif ($role === 'Staff') {
-                    // FIX: Ginamit na natin ang $staffDashboard variable
                     header("Location: $staffDashboard"); 
                 } elseif ($role === 'Resident') {
                     header("Location: $residentDashboard");
                 } else {
-                    // Unknown Role
                     session_unset();
                     session_destroy();
-                    redirectWithError("Access Denied: Invalid User Role.", $loginPage);
+                    $_SESSION['toast'] = ['msg' => 'Access Denied: Invalid User Role.', 'type' => 'error'];
+                    header("Location: $loginPage");
                 }
                 exit();
 
             } else {
                 // Password Mismatch
-                redirectWithError("Incorrect Password.", $loginPage);
+                $_SESSION['toast'] = ['msg' => 'Incorrect password. Please try again.', 'type' => 'error'];
+                header("Location: $loginPage");
+                exit();
             }
 
         } else {
             // Email not found
-            redirectWithError("Email address not found.", $loginPage);
+            $_SESSION['toast'] = ['msg' => 'Email address not found.', 'type' => 'error'];
+            header("Location: $loginPage");
+            exit();
         }
 
     } catch (PDOException $e) {
-        redirectWithError("System Error: " . $e->getMessage(), $loginPage);
+        $_SESSION['toast'] = ['msg' => 'System Error: ' . $e->getMessage(), 'type' => 'error'];
+        header("Location: $loginPage");
+        exit();
     }
 } else {
     // Kapag in-access ang file nang direkta

@@ -1,8 +1,6 @@
 /* ================================================== */
 /* RESIDENT DASHBOARD - FULL UPDATED STYLES           */
 /* ================================================== */
-
-/* --- GLOBAL RESET --- */
 * {
     box-sizing: border-box;
 }
@@ -12,20 +10,16 @@ body {
     font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     margin: 0;
     padding: 0;
-    overflow-x: hidden; /* Prevent horizontal scroll */
+    overflow-x: hidden;
 }
 
 /* --- MAIN LAYOUT --- */
 #main-content {
-    margin-left: 240px; /* Sidebar width */
+    margin-left: 240px; 
     width: calc(100% - 240px);
     display: flex;
     flex-direction: column;
-    
-    /* PADDING for Fixed Header */
     padding-top: 90px; 
-    
-    /* HEIGHT FIX: Calculates exact height to fill screen without overflow/white space */
     min-height: 100vh;
 }
 
@@ -33,12 +27,10 @@ body {
 .header {
     position: fixed;
     top: 0;
-    left: 240px; /* Starts after sidebar */
+    left: 240px; 
     right: 0;
     height: 90px;
     z-index: 1000;
-    
-    /* Background Design */
     background-image: linear-gradient(rgba(13, 71, 161, 0.85), rgba(21, 101, 192, 0.75)), url('../assets/img/barangay langkaan post.jpg');
     background-repeat: no-repeat;
     background-position: center center;
@@ -100,8 +92,17 @@ body {
     justify-content: space-between;
 }
 
-.welcome-banner h2 { font-weight: 700; margin: 0; font-size: 1.5rem; color: #333; }
-.welcome-banner p { margin: 5px 0 0; color: #666; font-size: 0.95rem; }
+.welcome-banner h2 { 
+    font-weight: 700; 
+    margin: 0; 
+    font-size: 1.5rem; 
+    color: #333; 
+}
+.welcome-banner p { 
+    margin: 5px 0 0; 
+    color: #666; 
+    font-size: 0.95rem; 
+}
 
 /* --- STATS CARDS (Key Metrics) --- */
 .stat-card {
@@ -115,22 +116,56 @@ body {
     border-left: 4px solid transparent;
     transition: transform 0.2s;
 }
-.stat-card:hover { transform: translateY(-3px); }
+.stat-card:hover { 
+    transform: translateY(-3px); 
+}
 
-.stat-card.blue { border-left-color: #0d6efd; }
-.stat-card.orange { border-left-color: #fd7e14; }
-.stat-card.green { border-left-color: #198754; }
+.stat-card.blue { 
+    border-left-color: #0d6efd; 
+}
+.stat-card.orange { 
+    border-left-color: #fd7e14; 
+}
+.stat-card.green { 
+    border-left-color: #198754; 
+
+}
 
 .stat-icon-bg {
-    width: 50px; height: 50px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
+    width: 50px; 
+    height: 50px; 
+    border-radius: 50%;
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-size: 1.5rem;
 }
-.bg-blue-light { background: #e7f1ff; color: #0d6efd; }
-.bg-orange-light { background: #ffe5d0; color: #fd7e14; }
-.bg-green-light { background: #d1e7dd; color: #198754; }
+.bg-blue-light { 
+    background: #e7f1ff; 
+    color: #0d6efd; 
+}
+.bg-orange-light { 
+    background: #ffe5d0; 
+    color: #fd7e14; 
+}
+.bg-green-light { 
+    background: #d1e7dd; 
+    color: #198754; 
+}
 
-.stat-info h3 { font-weight: 800; margin: 0; font-size: 1.8rem; color: #333; }
-.stat-info p { margin: 0; color: #666; font-size: 0.85rem; text-transform: uppercase; font-weight: 700; }
+.stat-info h3 { 
+    font-weight: 800; 
+    margin: 0; 
+    font-size: 1.8rem; 
+    color: #333; 
+}
+.stat-info p { 
+    margin: 0; 
+    color: #666; 
+    font-size: 0.85rem; 
+    text-transform: uppercase; 
+    font-weight: 700; 
+}
 
 /* --- ACTION CARDS (Quick Services) --- */
 .action-card {
@@ -153,38 +188,81 @@ body {
     box-shadow: 0 8px 15px rgba(0,0,0,0.05);
     border-color: #b3e5fc;
 }
-.action-icon { font-size: 1.8rem; color: #1565C0; margin-bottom: 10px; }
-.action-title { font-weight: 700; color: #333; font-size: 0.95rem; }
-.action-desc { color: #777; font-size: 0.75rem; line-height: 1.3; }
+.action-icon { 
+    font-size: 1.8rem; 
+    color: #1565C0; 
+    margin-bottom: 10px; 
+}
+.action-title { 
+    font-weight: 700; 
+    color: #333; 
+    font-size: 0.95rem; 
+}
+.action-desc { 
+    color: #777; 
+    font-size: 0.75rem; 
+    line-height: 1.3; 
+}
 
-/* --- RECENT ACTIVITY LIST (Fix for White Space) --- */
+/* --- RECENT ACTIVITY LIST--- */
 .activity-box {
     background: #fff;
     border-radius: 12px;
     padding: 20px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-    
-    /* IMPORTANT FIX: Height auto prevents it from stretching unnecessarily */
     height: auto !important; 
 }
 
 .activity-item {
-    display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0;
+    display: flex; 
+    align-items: center; 
+    padding: 12px 0; 
+    border-bottom: 1px solid #f0f0f0;
 }
-.activity-item:last-child { border-bottom: none; }
+.activity-item:last-child { 
+    border-bottom: none; 
+}
 
 .act-icon {
-    width: 40px; height: 40px; background: #f8f9fa; border-radius: 8px;
-    display: flex; align-items: center; justify-content: center; margin-right: 15px; color: #555;
+    
+    width: 40px; 
+    height: 40px; 
+    background: #f8f9fa; 
+    border-radius: 8px;
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    margin-right: 15px; 
+    color: #555;
 }
-.act-details h6 { margin: 0; font-weight: 700; font-size: 0.95rem; color: #333; }
-.act-details small { color: #888; font-size: 0.8rem; }
+.act-details h6 { 
+    margin: 0; 
+    font-weight: 700; 
+    font-size: 0.95rem; 
+    color: #333; 
+}
+.act-details small { 
+    color: #888; 
+    font-size: 0.8rem; 
+}
 
 /* Status Dots */
-.status-dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
-.dot-pending { background-color: #ffc107; }
-.dot-approved { background-color: #198754; }
-.dot-rejected { background-color: #dc3545; }
+.status-dot { 
+    height: 10px; 
+    width: 10px; 
+    border-radius: 50%; 
+    display: inline-block; 
+    margin-right: 5px; 
+}
+.dot-pending { 
+    background-color: #ffc107; 
+}
+.dot-approved { 
+    background-color: #198754; 
+}
+.dot-rejected { 
+    background-color: #dc3545; 
+}
 
 /* --- FOOTER STYLE --- */
 .footer {
@@ -341,4 +419,289 @@ body {
 .recent-details span {
     font-size: 0.75rem;
     color: #888;
+}
+
+/* --- PROFILE IMAGE & UPLOAD --- */
+.profile-img-preview {
+    width: 130px; 
+    height: 130px;
+    border-radius: 50%; 
+    object-fit: cover;
+    border: 4px solid #fff; 
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+        
+.upload-btn-wrapper { 
+    position: relative; 
+    overflow: hidden; 
+    display: inline-block; 
+}
+        
+.upload-btn-wrapper input[type=file] {
+    font-size: 100px; 
+    position: absolute; 
+    left: 0; 
+    top: 0; 
+    opacity: 0; 
+    cursor: pointer;
+}
+        
+.form-control:disabled, .form-select:disabled {
+    background-color: #f8f9fa; 
+    border-color: #e9ecef; 
+    color: #6c757d; 
+    cursor: not-allowed;  
+}
+        /* Read Only style */
+.form-control[readonly] {
+    background-color: #e9ecef; 
+    cursor: not-allowed; 
+    opacity: 0.8;
+}
+        
+.password-requirements ul { 
+    list-style: none; 
+    padding-left: 0; 
+    font-size: 0.8rem; 
+    color: #6c757d; 
+}
+        
+.password-requirements li i { 
+    margin-right: 5px; 
+    font-size: 0.9rem; 
+}
+        
+.valid { 
+    color: #198754 !important; 
+}
+        
+.invalid { 
+    color: #dc3545 !important; 
+}
+        
+.section-title { 
+    font-size: 0.85rem; 
+    font-weight: 700; 
+    color: #0d6efd; 
+    margin-top: 20px; 
+    margin-bottom: 10px; 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px; 
+}
+
+/* ================================================== */
+/* HEALTH HISTORY PAGE STYLES                         */
+/* ================================================== */
+
+/* --- APPOINTMENT STATUS BADGES --- */
+.status-badge { 
+    font-size: 0.75rem; 
+    font-weight: 700; 
+    padding: 5px 12px; 
+    border-radius: 20px; 
+    text-transform: uppercase; 
+    display: inline-block;
+}
+
+/* Status Colors */
+.status-Pending { 
+    background: #fff3cd; 
+    color: #856404; /* Yellow/Orange text */
+}
+
+.status-Confirmed { 
+    background: #cce5ff; 
+    color: #004085; /* Blue text */
+}
+
+.status-Completed { 
+    background: #d4edda; 
+    color: #155724; /* Green text */
+}
+
+.status-Cancelled { 
+    background: #f8d7da; 
+    color: #721c24; /* Red text */
+}
+
+/* ================================================== */
+/* MOBILE RESPONSIVENESS (ADD-ON)                     */
+/* ================================================== */
+
+/* --- TABLET & MOBILE VIEW (Below 992px) --- */
+@media (max-width: 992px) {
+    /* Layout Adjustments (Override Sidebar gap) */
+    #sidebar {
+        margin-left: -240px; /* Hide Sidebar by default */
+    }
+    #main-content {
+        margin-left: 0;
+        width: 100%;
+        padding-top: 80px; /* Adjust slightly for mobile header */
+    }
+    .header {
+        left: 0;
+        width: 100%;
+        
+        /* UPDATED: Added padding-left 70px to avoid overlap with menu button */
+        padding: 0 20px 0 70px !important;
+        
+        height: 80px;
+    }
+    
+    /* Content Padding */
+    .content {
+        padding: 20px;
+    }
+}
+
+/* --- SMARTPHONE VIEW (Below 576px) --- */
+@media (max-width: 576px) {
+    
+    /* Header Adjustments for Small Screens */
+    .header {
+        height: 70px; /* Mas maliit na header para sa phone */
+        padding: 0 15px 0 60px !important; /* Keep left padding for button */
+    }
+    .header-title {
+        font-size: 18px; /* Paliitin ang font ng Title */
+    }
+    .header-logos img {
+        height: 40px; /* Paliitin ang logo */
+    }
+    #main-content {
+        padding-top: 70px; /* Match header height */
+    }
+
+    /* Content & Cards */
+    .content {
+        padding: 15px; /* Mas manipis na padding sa gilid */
+    }
+    .welcome-banner {
+        flex-direction: column; /* Gawing vertical ang welcome message */
+        text-align: center;
+        padding: 15px;
+    }
+    .welcome-banner h2 {
+        font-size: 1.2rem;
+    }
+    
+    /* Statistics Cards */
+    .stat-card {
+        padding: 15px;
+        margin-bottom: 15px; /* Space between stacked cards */
+    }
+    .stat-info h3 {
+        font-size: 1.5rem;
+    }
+    
+    /* Profile Page Mobile Tweaks */
+    .profile-img-preview {
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 15px auto; /* Center image automatically */
+        display: block;
+    }
+    
+    /* Center the Upload Button wrapper on mobile */
+    .card .mb-3.position-relative.d-inline-block {
+        display: table !important; /* Hack to center inline-block */
+        margin: 0 auto 15px auto;
+    }
+
+    /* Form Inputs Spacing */
+    .form-group, .col-md-4, .col-md-6, .col-md-8, .col-lg-4, .col-lg-8 {
+        margin-bottom: 15px;
+    }
+
+    /* Table Responsiveness (Health History) */
+    .table-responsive {
+        border: 1px solid #eee;
+        border-radius: 8px;
+    }
+    
+    /* Status Badge Size */
+    .status-badge {
+        font-size: 0.65rem;
+        padding: 4px 8px;
+    }
+
+    /* News/Announcement Cards */
+    .news-img-container {
+        height: 180px; /* Reduce image height */
+    }
+    .news-body {
+        padding: 15px;
+    }
+    .news-title {
+        font-size: 1rem;
+    }
+    
+    /* Detail View */
+    .meta-info {
+        flex-direction: column; /* Stack meta info (Date, Author) */
+        gap: 10px;
+    }
+}
+
+/* ================================================== */
+/* FOOTER MOBILE      */
+/* ================================================== */
+
+@media (max-width: 768px) {
+
+    .footer .row {
+        display: flex !important;
+        flex-direction: column !important; 
+        align-items: center !important;
+        text-align: center !important;
+    }
+
+    .footer div[class*="col-"] {
+        width: 100% !important;
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        text-align: center !important;
+        margin-bottom: 10px !important;
+        padding: 0 !important;
+    }
+
+    .footer .text-end, 
+    .footer .text-start,
+    .footer .text-right, 
+    .footer .text-left {
+        text-align: center !important;
+    }
+    
+    .footer a {
+        display: inline-block;
+        margin: 0 5px;
+    }
+}
+
+/* ================================================== */
+/* TOAST NOTIFICATION MOBILE FIX                      */
+/* ================================================== */
+
+@media (max-width: 576px) {
+    .toast-container {
+        right: auto !important; 
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        bottom: 20px !important; 
+        width: 90% !important;
+        max-width: 400px;
+        padding: 0 !important;
+    }
+
+    .toast {
+        width: 100% !important; 
+        font-size: 0.9rem;  
+        margin-bottom: 10px;   
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    }
+
+    .toast .btn-close {
+        padding: 0.5rem;
+    }
 }

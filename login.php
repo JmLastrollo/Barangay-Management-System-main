@@ -115,16 +115,28 @@ if (isset($_SESSION['user_id'])) {
     // UPDATED Toast Function
     function showToast(message, type = 'success') {
         const toast = document.getElementById('toast');
-        toast.innerHTML = `<div class="toast-body">${message}</div>`; // Changed to innerHTML to wrap content
         
-        // Reset classes
-        toast.className = 'toast'; 
-        toast.classList.add(type); // 'success' or 'error' (css usually defines .error or .danger)
+        let iconHtml = '';
+        let bgColor = '';
 
-        // Show animation
-        setTimeout(() => {
-            toast.classList.add('show');
-        }, 100);
+        if (type === 'success') {
+            iconHtml = '<i class="bi bi-check-circle-fill me-2"></i>';
+            bgColor = '#198754'; // Green
+        } else if (type === 'error' || type === 'danger') {
+            iconHtml = '<i class="bi bi-exclamation-triangle-fill me-2"></i>';
+            bgColor = '#dc3545'; // Red
+        } else {
+            iconHtml = '<i class="bi bi-info-circle-fill me-2"></i>';
+            bgColor = '#0d6efd'; // Blue
+        }
+
+        toast.style.backgroundColor = bgColor;
+        toast.innerHTML = `<div class="d-flex align-items-center text-white">${iconHtml}<span>${message}</span></div>`;
+        
+        // Force reset and show
+        toast.className = 'toast'; 
+        void toast.offsetWidth; // Trigger reflow
+        toast.classList.add('show');
 
         // Hide after 3 seconds
         setTimeout(() => {
@@ -136,16 +148,23 @@ if (isset($_SESSION['user_id'])) {
 <?php if (isset($_SESSION['toast'])): ?>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Correctly accessing the array structure set in register.php
-        showToast(
-            "<?= htmlspecialchars($_SESSION['toast']['msg']) ?>", 
-            "<?= htmlspecialchars($_SESSION['toast']['type']) ?>"
-        );
+        <?php 
+            // Handle both array format and simple string format for flexibility
+            if (is_array($_SESSION['toast'])) {
+                $msg = $_SESSION['toast']['msg'];
+                $type = $_SESSION['toast']['type'];
+            } else {
+                $msg = $_SESSION['toast'];
+                $type = $_SESSION['toast_type'] ?? 'info';
+            }
+        ?>
+        showToast("<?= htmlspecialchars($msg) ?>", "<?= htmlspecialchars($type) ?>");
     });
 </script>
 <?php 
     // Clean up session
     unset($_SESSION['toast']); 
+    unset($_SESSION['toast_type']);
 endif; 
 ?>
 
