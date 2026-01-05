@@ -1,47 +1,30 @@
 <?php
-// Kunin ang current page para sa active state
+// Kunin ang current page name para sa active state
 $current_page = basename($_SERVER['PHP_SELF']);
 
-// Issuance Group (Dropdown logic)
-$issuance_pages = ['resident_rqs_service.php', 'issuance_table.php'];
+// Define Pages per Group (Active Logic)
+$staff_pages    = ['staff_list.php', 'staff_history.php', 'staff_add.php']; 
+$account_pages  = ['resident_list.php', 'resident_history.php', 'resident_archive.php'];
+$issuance_pages = ['admin_issuance.php', 'admin_issuance_archive.php', 'admin_issuance_print.php'];
+$records_pages  = ['admin_rec_blotter.php', 'admin_rec_complaints.php', 'admin_rec_residents.php'];
+$archive_pages  = ['admin_announcement_archive.php', 'admin_officials_archive.php', 'admin_rec_blotter_archive.php', 'admin_rec_complaints_archive.php'];
+
+// Check Active Groups
+$is_staff_active    = in_array($current_page, $staff_pages);
+$is_account_active  = in_array($current_page, $account_pages);
 $is_issuance_active = in_array($current_page, $issuance_pages);
-
-// GET RESIDENT INFO
-// Check kung meron nang data galing sa dashboard ($resident variable)
-// Kung wala, kunin natin gamit ang session user_id
-if (!isset($resident) && isset($_SESSION['user_id'])) {
-    require_once '../../backend/db_connect.php';
-    $uid = $_SESSION['user_id'];
-    
-    // Kukunin ang Pangalan at Image
-    $stmtSide = $conn->prepare("SELECT first_name, last_name, image FROM resident_profiles WHERE user_id = :uid");
-    $stmtSide->execute([':uid' => $uid]);
-    $resSide = $stmtSide->fetch(PDO::FETCH_ASSOC);
-
-    if ($resSide) {
-        $sideName = $resSide['first_name'] . " " . $resSide['last_name'];
-        $sideImg = !empty($resSide['image']) ? "../../uploads/residents/" . $resSide['image'] : "../../assets/img/profile.jpg";
-    } else {
-        $sideName = "Resident";
-        $sideImg = "../../assets/img/profile.jpg";
-    }
-} else {
-    // Kung galing sa dashboard na may $resident data na
-    $sideName = isset($fullName) ? $fullName : "Resident";
-    $sideImg = isset($profileImg) ? $profileImg : "../../assets/img/profile.jpg";
-}
+$is_records_active  = in_array($current_page, $records_pages);
+$is_archive_active  = in_array($current_page, $archive_pages);
 ?>
 
 <nav id="sidebar">
     <div class="sidebar-header">
         <div class="admin-profile-img">
-            <img src="<?= $sideImg ?>" alt="User Image" style="object-fit: cover;">
+            <img src="../../assets/img/profile.jpg" alt="Admin" style="object-fit: cover;">
         </div>
         <div class="profile-info">
-            <h6 class="mb-0 fw-bold text-white text-truncate" style="max-width: 140px;">
-                <?= htmlspecialchars($sideName) ?>
-            </h6>
-            <span class="text-white-50 small">Resident</span>
+            <h6 class="mb-0 fw-bold text-white">Administrator</h6>
+            <span class="text-white-50 small">Brgy. Langkaan II</span>
         </div>
     </div>
 
@@ -49,46 +32,124 @@ if (!isset($resident) && isset($_SESSION['user_id'])) {
         <ul class="nav flex-column" id="accordionSidebar">
             
             <li class="nav-item">
-                <a class="nav-link <?= $current_page == 'resident_dashboard.php' ? 'active' : '' ?>" href="resident_dashboard.php">
+                <a class="nav-link <?= $current_page == 'admin_dashboard.php' ? 'active' : '' ?>" href="admin_dashboard.php">
                     <i class="bi bi-speedometer2 me-2"></i> Dashboard
                 </a>
             </li>
 
             <li class="nav-item">
-                <a class="nav-link <?= ($current_page == 'resident_announcements.php' || $current_page == 'resident_view_announcement.php') ? 'active' : '' ?>" href="resident_announcements.php">
-                    <i class="bi bi-megaphone-fill me-2"></i> Announcements
+                <a class="nav-link <?= $current_page == 'admin_announcement.php' ? 'active' : '' ?>" href="admin_announcement.php">
+                    <i class="bi bi-megaphone-fill me-2"></i> Announcement
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link <?= $current_page == 'account_approval.php' ? 'active' : '' ?>" href="account_approval.php">
+                    <i class="bi bi-person-check-fill me-2"></i> Account Approval
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link d-flex justify-content-between align-items-center <?= $is_staff_active ? 'active' : 'collapsed' ?>" 
+                   data-bs-toggle="collapse" 
+                   href="#staffSubmenu" 
+                   role="button"
+                   aria-expanded="<?= $is_staff_active ? 'true' : 'false' ?>"
+                   aria-controls="staffSubmenu">
+                    <div><i class="bi bi-person-badge-fill me-2"></i> Staff Management</div>
+                    <i class="bi bi-chevron-down small"></i>
+                </a>
+                <div class="collapse <?= $is_staff_active ? 'show' : '' ?>" id="staffSubmenu" data-bs-parent="#accordionSidebar">
+                    <ul class="nav flex-column ms-3 submenu">
+                        <li><a class="nav-link small <?= $current_page == 'staff_list.php' ? 'active' : '' ?>" href="staff_list.php">Staff List</a></li>
+                        <li><a class="nav-link small <?= $current_page == 'staff_history.php' ? 'active' : '' ?>" href="staff_history.php">History Session</a></li>
+                    </ul>
+                </div>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link d-flex justify-content-between align-items-center <?= $is_account_active ? 'active' : 'collapsed' ?>" 
+                   data-bs-toggle="collapse" 
+                   href="#accountSubmenu"
+                   role="button"
+                   aria-expanded="<?= $is_account_active ? 'true' : 'false' ?>"
+                   aria-controls="accountSubmenu">
+                    <div><i class="bi bi-people-fill me-2"></i> Acc. Management</div>
+                    <i class="bi bi-chevron-down small"></i>
+                </a>
+                <div class="collapse <?= $is_account_active ? 'show' : '' ?>" id="accountSubmenu" data-bs-parent="#accordionSidebar">
+                    <ul class="nav flex-column ms-3 submenu">
+                        <li><a class="nav-link small <?= $current_page == 'resident_list.php' ? 'active' : '' ?>" href="resident_list.php">Resident List</a></li>
+                        <li><a class="nav-link small <?= $current_page == 'resident_history.php' ? 'active' : '' ?>" href="resident_history.php">History Session</a></li>
+                    </ul>
+                </div>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link <?= $current_page == 'admin_officials.php' ? 'active' : '' ?>" href="admin_officials.php">
+                    <i class="bi bi-people-fill me-2"></i> Officials
                 </a>
             </li>
 
             <li class="nav-item">
                 <a class="nav-link d-flex justify-content-between align-items-center <?= $is_issuance_active ? 'active' : 'collapsed' ?>" 
                    data-bs-toggle="collapse" 
-                   href="#serviceSubmenu" 
+                   href="#issuanceSubmenu"
                    role="button"
                    aria-expanded="<?= $is_issuance_active ? 'true' : 'false' ?>"
-                   aria-controls="serviceSubmenu">
-                    <div><i class="bi bi-file-earmark-text-fill me-2"></i> Services</div>
+                   aria-controls="issuanceSubmenu">
+                    <div><i class="bi bi-file-earmark-text-fill me-2"></i> Issuance</div>
                     <i class="bi bi-chevron-down small"></i>
                 </a>
-                <div class="collapse <?= $is_issuance_active ? 'show' : '' ?>" id="serviceSubmenu" data-bs-parent="#accordionSidebar">
+                <div class="collapse <?= $is_issuance_active ? 'show' : '' ?>" id="issuanceSubmenu" data-bs-parent="#accordionSidebar">
                     <ul class="nav flex-column ms-3 submenu">
-                        <li>
-                            <a class="nav-link small <?= $current_page == 'resident_rqs_service.php' ? 'active' : '' ?>" href="resident_rqs_service.php">
-                                Request Document
-                            </a>
-                        </li>
-                        <li>
-                            <a class="nav-link small <?= $current_page == 'issuance_table.php' ? 'active' : '' ?>" href="issuance_table.php">
-                                My Transactions
-                            </a>
-                        </li>
+                        <li><a class="nav-link small <?= $current_page == 'admin_issuance.php' ? 'active' : '' ?>" href="admin_issuance.php">Docs. Requests</a></li>
+                        <li><a class="nav-link small <?= $current_page == 'admin_issuance_archive.php' ? 'active' : '' ?>" href="admin_issuance_archive.php">Archived Issuance</a></li>
                     </ul>
                 </div>
             </li>
 
             <li class="nav-item">
-                <a class="nav-link <?= $current_page == 'profile_edit.php' ? 'active' : '' ?>" href="profile_edit.php">
-                    <i class="bi bi-person-circle me-2"></i> My Profile
+                <a class="nav-link d-flex justify-content-between align-items-center <?= $is_records_active ? 'active' : 'collapsed' ?>" 
+                   data-bs-toggle="collapse" 
+                   href="#recordsSubmenu"
+                   role="button"
+                   aria-expanded="<?= $is_records_active ? 'true' : 'false' ?>"
+                   aria-controls="recordsSubmenu">
+                    <div><i class="bi bi-folder-fill me-2"></i> Records</div>
+                    <i class="bi bi-chevron-down small"></i>
+                </a>
+                <div class="collapse <?= $is_records_active ? 'show' : '' ?>" id="recordsSubmenu" data-bs-parent="#accordionSidebar">
+                    <ul class="nav flex-column ms-3 submenu">
+                        <li><a class="nav-link small <?= $current_page == 'admin_rec_residents.php' ? 'active' : '' ?>" href="admin_rec_residents.php">Residents</a></li>
+                        <li><a class="nav-link small <?= $current_page == 'admin_rec_blotter.php' ? 'active' : '' ?>" href="admin_rec_blotter.php">Blotter</a></li>
+                        <li><a class="nav-link small <?= $current_page == 'admin_rec_complaints.php' ? 'active' : '' ?>" href="admin_rec_complaints.php">Complaints</a></li>
+                    </ul>
+                </div>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link d-flex justify-content-between align-items-center <?= $is_archive_active ? 'active' : 'collapsed' ?>" 
+                   data-bs-toggle="collapse" 
+                   href="#archiveSubmenu"
+                   role="button"
+                   aria-expanded="<?= $is_archive_active ? 'true' : 'false' ?>"
+                   aria-controls="archiveSubmenu">
+                    <div><i class="bi bi-archive-fill me-2"></i> Archives</div>
+                    <i class="bi bi-chevron-down small"></i>
+                </a>
+                <div class="collapse <?= $is_archive_active ? 'show' : '' ?>" id="archiveSubmenu" data-bs-parent="#accordionSidebar">
+                    <ul class="nav flex-column ms-3 submenu">
+                        <li><a class="nav-link small <?= $current_page == 'admin_announcement_archive.php' ? 'active' : '' ?>" href="admin_announcement_archive.php">Announcements</a></li>
+                        <li><a class="nav-link small <?= $current_page == 'resident_archive.php' ? 'active' : '' ?>" href="resident_archive.php">Residents</a></li>
+                        <li><a class="nav-link small <?= $current_page == 'admin_officials_archive.php' ? 'active' : '' ?>" href="admin_officials_archive.php">Officials</a></li>
+                    </ul>
+                </div>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link <?= $current_page == 'admin_backup.php' ? 'active' : '' ?>" href="admin_backup.php">
+                    <i class="bi bi-database-fill-gear me-2"></i> Backup & Restore
                 </a>
             </li>
 
@@ -110,7 +171,7 @@ if (!isset($resident) && isset($_SESSION['user_id'])) {
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                Are you sure you want to log out from your account?
+                Are you sure you want to log out from the system?
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
