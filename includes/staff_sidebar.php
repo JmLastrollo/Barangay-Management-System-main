@@ -3,12 +3,14 @@
 $current_page = basename($_SERVER['PHP_SELF']);
 
 // 1. DEFINE PAGE GROUPS (Staff Version)
+// Note: Siguraduhin na ang mga filenames dito ay match sa mga files na ginawa mo
 $account_pages  = ['staff_resident_list.php', 'staff_resident_view.php'];
 $issuance_pages = ['staff_issuance.php', 'staff_issuance_approved.php', 'staff_issuance_print.php'];
 $records_pages  = ['staff_rec_blotter.php', 'staff_rec_complaints.php', 'staff_rec_residents.php'];
 $health_pages   = ['staff_health_dashboard.php', 'staff_patient_records.php'];
 
 // 2. CHECK ACTIVE STATUS
+// Ito ang logic para malaman kung bubuksan ba ang dropdown
 $is_account_active  = in_array($current_page, $account_pages);
 $is_issuance_active = in_array($current_page, $issuance_pages);
 $is_records_active  = in_array($current_page, $records_pages);
@@ -18,7 +20,10 @@ $is_health_active   = in_array($current_page, $health_pages);
 <nav id="sidebar">
     <div class="sidebar-header">
         <div class="admin-profile-img">
-            <img src="../../assets/img/profile-staff.jpg" alt="Staff" style="object-fit: cover;" onerror="this.src='../../assets/img/default-user.png'">
+            <img src="../../assets/img/" 
+                 alt="Staff" 
+                 style="object-fit: cover;" 
+                 onerror="this.onerror=null; this.src='../../assets/img/profile.jpg';">
         </div>
         <div class="profile-info">
             <h6 class="mb-0 fw-bold text-white">Barangay Staff</h6>
@@ -102,6 +107,7 @@ $is_health_active   = in_array($current_page, $health_pages);
                     <ul class="nav flex-column ms-3 submenu">
                         <li><a class="nav-link small <?= $current_page == 'staff_rec_blotter.php' ? 'active' : '' ?>" href="staff_rec_blotter.php">Blotter</a></li>
                         <li><a class="nav-link small <?= $current_page == 'staff_rec_complaints.php' ? 'active' : '' ?>" href="staff_rec_complaints.php">Complaints</a></li>
+                        <li><a class="nav-link small <?= $current_page == 'staff_rec_residents.php' ? 'active' : '' ?>" href="staff_rec_residents.php">Resident Records</a></li>
                     </ul>
                 </div>
             </li>

@@ -6,7 +6,7 @@ require_once 'log_audit.php';
 // --- CONFIGURATION: PATHS ---
 $loginPage          = '../login.php';
 $adminDashboard     = '../pages/admin/admin_dashboard.php';
-$staffDashboard     = '../pages/admin/admin_dashboard.php'; // Or separate staff dashboard
+$staffDashboard     = '../pages/staff/staff_dashboard.php';
 $residentDashboard  = '../pages/resident/resident_dashboard.php';
 
 // Check Request Method

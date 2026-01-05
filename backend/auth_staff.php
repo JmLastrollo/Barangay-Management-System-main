@@ -5,23 +5,22 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: ../../login.php"); 
+    header("Location: ../../login.php");
     exit();
 }
 
-if ($_SESSION['role'] !== 'Resident') {
+if ($_SESSION['role'] !== 'Staff') {
     
     if ($_SESSION['role'] === 'Admin') {
         header("Location: ../admin/admin_dashboard.php");
         exit();
     }
     
-    if ($_SESSION['role'] === 'Staff') {
-        header("Location: ../staff/staff_dashboard.php");
+    if ($_SESSION['role'] === 'Resident') {
+        header("Location: ../resident/resident_dashboard.php");
         exit();
     }
 
-    $_SESSION['toast'] = ["msg" => "Unauthorized Access.", "type" => "error"];
     header("Location: ../../backend/logout.php");
     exit();
 }

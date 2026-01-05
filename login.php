@@ -1,16 +1,17 @@
 <?php 
 session_start(); 
 
-// --- UNIFIED SESSION CHECK ---
-if (isset($_SESSION['user_id'])) {
-    if (isset($_SESSION['role'])) {
-        if (in_array($_SESSION['role'], ['Admin', 'Staff'])) {
-            header("Location: pages/admin/admin_dashboard.php");
-            exit();
-        } elseif ($_SESSION['role'] === 'Resident') {
-            header("Location: pages/resident/resident_dashboard.php");
-            exit();
-        }
+if (isset($_SESSION['user_id']) && isset($_SESSION['role'])) {
+    
+    if ($_SESSION['role'] === 'Admin') {
+        header("Location: pages/admin/admin_dashboard.php");
+        exit();
+    } elseif ($_SESSION['role'] === 'Staff') {
+        header("Location: pages/staff/staff_dashboard.php");
+        exit();
+    } elseif ($_SESSION['role'] === 'Resident') {
+        header("Location: pages/resident/resident_dashboard.php");
+        exit();
     }
 }
 ?>

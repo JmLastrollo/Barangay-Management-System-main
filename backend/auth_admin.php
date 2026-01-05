@@ -1,20 +1,26 @@
 <?php
-session_start();
-
-// If no session → redirect to admin login
-if (!isset($_SESSION['email']) || !isset($_SESSION['role'])) {
-    header("Location: /Barangay-Management-System/admin_login.php");
-    exit;
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 
-// If wrong role → redirect to main index
-if ($_SESSION['role'] !== 'Barangay Staff') {
-    $_SESSION['toast'] = [
-        "msg" => "You are not authorized to access that page.",
-        "type" => "error"
-    ];
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../../login.php");
+    exit();
+}
 
-    header("Location: /Barangay-Management-System/index.php");
-    exit;
+if ($_SESSION['role'] !== 'Admin') {
+    if ($_SESSION['role'] === 'Staff') {
+        header("Location: ../staff/staff_dashboard.php");
+        exit();
+    }
+    
+    if ($_SESSION['role'] === 'Resident') {
+        header("Location: ../resident/resident_dashboard.php");
+        exit();
+    }
+
+    $_SESSION['toast'] = ["msg" => "Access Denied: Admins Only.", "type" => "error"];
+    header("Location: ../../index.php");
+    exit();
 }
 ?>
