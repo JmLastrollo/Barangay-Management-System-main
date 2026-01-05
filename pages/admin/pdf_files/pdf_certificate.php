@@ -6,22 +6,15 @@ class CertificatePDF extends FPDF
 {
     function Header()
     {
-        // Left Logo (Barangay Langkaan)
         $logoLeft = '../../../assets/img/Langkaan 2 Logo-modified.png';
-        if (file_exists($logoLeft)) {
-            $this->Image($logoLeft, 10, 10, 40);
-        }
-
-        // Right Logo (City of Dasmariñas)
         $logoRight = '../../../assets/img/dasma logo-modified.png';
-        if (file_exists($logoRight)) {
-            $this->Image($logoRight, 165, 10, 40);
-        }
 
-        // Header Text in black
+        if (file_exists($logoLeft)) $this->Image($logoLeft, 10, 10, 40);
+        if (file_exists($logoRight)) $this->Image($logoRight, 160, 10, 40);
+
         $this->SetFont('Arial', 'B', 14);
         $this->SetTextColor(0, 0, 0);
-        $this->SetXY(0, 20);
+        $this->SetXY(0, 18);
         $this->Cell(0, 7, 'Republic of the Philippines', 0, 1, 'C');
         $this->Cell(0, 7, 'PROVINCE OF CAVITE', 0, 1, 'C');
         $this->Cell(0, 7, 'OFFICE OF THE SANGGUNIANG BARANGAY LANGKAAN-II', 0, 1, 'C');
@@ -31,7 +24,6 @@ class CertificatePDF extends FPDF
         $this->Cell(0, 6, 'Tel. No-B. (046) 487 – 4071 / (046) 230 – 8048', 0, 1, 'C');
         $this->Cell(0, 6, 'Email: barangaylangkaanii@gmail.com', 0, 1, 'C');
 
-        // Line under header text
         $this->Ln(8);
         $this->SetLineWidth(0.6);
         $this->Line(10, $this->GetY(), 200, $this->GetY());
@@ -40,41 +32,51 @@ class CertificatePDF extends FPDF
 
     function LeftSidebar($officials)
     {
-        $startX = 10;
-        $startY = $this->GetY();
-        $width = 55;
-        $height = 230;
+        $x = 10; 
+        $y = $this->GetY(); 
+        $width = 55; 
+        $maxHeight = 185;
 
-        $logoPath = '../../../assets/img/bagong_pilipinas.png'; // Bacong Pilipinas logo
+        $logoPath = '../../../assets/img/bagong_pilipinas.jpg';
 
         $this->SetDrawColor(0, 0, 0);
-        $this->Rect($startX - 2, $startY - 2, $width + 4, $height);
+        $this->Rect($x - 2, $y - 2, $width + 4, $maxHeight);
 
-        if (file_exists($logoPath)) {
-            $this->Image($logoPath, $startX + 7, $startY + 5, $width - 14);
-        }
+        if (file_exists($logoPath)) $this->Image($logoPath, $x + 7, $y + 5, $width - 14);
 
-        $this->SetY($startY + 60);
-        $this->SetLeftMargin($startX + 2);
-        $this->SetRightMargin(210 - $startX - $width);
+        $this->SetY($y + 50);
+        $this->SetLeftMargin($x + 2);
+        $this->SetRightMargin(210 - $x - $width);
         $this->SetFont('Arial', 'B', 9);
 
+        $usedHeight = 0;
         foreach ($officials as $official) {
+            if ($usedHeight > $maxHeight - 50) break;
+
             if (stripos($official['title'], 'KAGAWAD') !== false) {
-                $this->SetTextColor(188, 0, 38); // red
+                $this->SetTextColor(188, 0, 38);
             } elseif (stripos($official['title'], 'Punong Barangay') !== false) {
-                $this->SetTextColor(0, 102, 204); // blue
+                $this->SetTextColor(0, 102, 204);
             } else {
-                $this->SetTextColor(0, 0, 128); // navy
+                $this->SetTextColor(0, 0, 128);
             }
-            $this->Cell(0, 5, $official['name'], 0, 1, 'L');
+
+            $name = iconv('UTF-8', 'windows-1252//IGNORE', $official['name']);
+            $title = iconv('UTF-8', 'windows-1252//IGNORE', $official['title']);
+
+            $lineHeightName = 5;
+            $lineHeightTitle = 4;
+
+            $this->Cell(0, $lineHeightName, $name, 0, 1, 'L');
             $this->SetFont('Arial', 'I', 7);
-            $this->Cell(0, 4, $official['title'], 0, 1, 'L');
+            $this->Cell(0, $lineHeightTitle, $title, 0, 1, 'L');
             $this->Ln(1);
             $this->SetFont('Arial', 'B', 9);
-        }
-        $this->SetTextColor(0, 0, 0);
 
+            $usedHeight += $lineHeightName + $lineHeightTitle + 1;
+        }
+
+        $this->SetTextColor(0, 0, 0);
         $this->SetLeftMargin(75);
         $this->SetRightMargin(10);
     }
@@ -82,35 +84,46 @@ class CertificatePDF extends FPDF
     function Watermark($sealPath)
     {
         if (file_exists($sealPath)) {
-            // Position watermark large and faded behind main text
-            $this->Image($sealPath, 58, 90, 95, 0, 'PNG');
+            $this->Image($sealPath, 65, 85, 80, 0, 'PNG'); // smaller and shifted up watermark
         }
     }
 
     function CertificateBody($residentName, $age, $address, $purpose, $dateIssue)
     {
+        $this->SetLeftMargin(75);
+        $this->SetRightMargin(10);
         $this->SetY(75);
+
         $this->SetFont('Arial', 'B', 16);
-        $this->Cell(0, 12, 'CERTIFICATION/CLEARANCE', 0, 1, 'C');
+        $this->Cell(0, 10, 'CERTIFICATION/CLEARANCE', 0, 1, 'C');
 
         $this->Ln(5);
-        $this->SetFont('Arial', 'I', 13);
-        $this->Cell(0, 9, 'TO WHOM IT MAY CONCERN:', 0, 1, 'L');
 
-        $this->Ln(4);
+        $this->SetFont('Arial', 'I', 14);
+        $this->Cell(0, 8, 'TO WHOM IT MAY CONCERN:', 0, 1, 'L');
+
+        $this->Ln(6);
         $this->SetFont('Arial', '', 12);
 
-        $text1 = "This is to certify that " . strtoupper($residentName) . ", of age " . $age . ", is a resident of Barangay Langkaan-II City of Dasmariñas, Province of Cavite, and known to be of good moral character.";
-        $text2 = "This certifies further that as per records filed in this office, " . strtoupper($residentName) . " has NO derogatory records as of this date issue.";
-        $text3 = "This certification is hereby issued upon the request of the above mentioned person in connection to his/her application for:";
-        $text4 = str_repeat("_", 80);
-        $text5 = "Issue this ___" . date('jS', strtotime($dateIssue)) . "___ day of ___" . date('F', strtotime($dateIssue)) . "___, " . date('Y', strtotime($dateIssue)) . "___ at Barangay hall Langkaan II, City of Dasmariñas, Cavite.";
-
         $maxWidth = 120;
+
+        $text1 = "This is to certify that " . $residentName . ", of age " . $age .
+            ", is a resident of " . $address . ", known to be of good moral character.";
+
+        $text2 = "This certifies further that as per records filed in this office, " . $residentName .
+            " has no derogatory records as of this date issue.";
+
+        $text3 = "This certification is hereby issued upon the request of the above mentioned person in connection with his/her application for:";
+
+        $text4 = str_repeat("_", 70);
+
+        $text5 = "Issued this ___" . date('jS', strtotime($dateIssue)) . "___ day of ___" . date('F', strtotime($dateIssue)) .
+            "___, " . date('Y', strtotime($dateIssue)) . "___ at Barangay Hall Langkaan II, City of Dasmariñas, Cavite.";
+
         $this->MultiCell($maxWidth, 7, $text1, 0, 'J');
-        $this->Ln(7);
+        $this->Ln(6);
         $this->MultiCell($maxWidth, 7, $text2, 0, 'J');
-        $this->Ln(7);
+        $this->Ln(6);
         $this->MultiCell($maxWidth, 7, $text3, 0, 'J');
         $this->MultiCell($maxWidth, 7, $text4, 0, 'L');
         $this->Ln(7);
@@ -120,51 +133,53 @@ class CertificatePDF extends FPDF
     function SignatureSection($signatory)
     {
         $x = 130;
-        $y = 210;
+        $y = 198; 
+
         $this->SetXY($x, $y);
         $this->SetFont('Arial', 'B', 11);
         $this->Cell(75, 6, strtoupper($signatory), 0, 1, 'C');
-        $this->SetFont('Arial', 'I', 9);
-        $this->Cell(75, 6, '• Punong Barangay •', 0, 1, 'C');
 
-        $this->Line($x + 10, $y + 26, $x + 65, $y + 26);
-        $this->SetXY($x, $y + 28);
+        $this->SetFont('Arial', 'I', 9);
+        $this->Cell(75, 5, '• Punong Barangay •', 0, 1, 'C');
+
+        $this->Line($x + 10, $y + 22, $x + 65, $y + 22);
+
+        $this->SetXY($x, $y + 24);
         $this->Cell(75, 5, 'Signature', 0, 1, 'C');
 
-        $boxSize = 40;
-        $space = 15;
+        $boxSize = 35;  // smaller boxes for thumb marks
+        $space = 12;
 
-        // Left Thumb Mark Box
-        $this->Rect($x, $y + 38, $boxSize, $boxSize);
-        $this->SetXY($x, $y + 38 + $boxSize + 5);
-        $this->SetFont('Arial', '', 9);
+        $this->Rect($x, $y + 32, $boxSize, $boxSize);
+        $this->SetXY($x, $y + 32 + $boxSize + 3);
+        $this->SetFont('Arial', '', 8);
         $this->Cell($boxSize, 5, 'Thumb Mark (Left)', 0, 0, 'C');
 
-        // Right Thumb Mark Box
-        $this->Rect($x + $boxSize + $space, $y + 38, $boxSize, $boxSize);
-        $this->SetXY($x + $boxSize + $space, $y + 38 + $boxSize + 5);
+        $this->Rect($x + $boxSize + $space, $y + 32, $boxSize, $boxSize);
+        $this->SetXY($x + $boxSize + $space, $y + 32 + $boxSize + 3);
         $this->Cell($boxSize, 5, 'Thumb Mark (Right)', 0, 0, 'C');
     }
 
-    function SecurityNotice()
+    function Footer()
     {
-        $this->SetY(-30);
-        $this->SetFont('Arial', 'I', 8);
+        $this->SetY(-20);
+        $this->SetFont('Arial', 'I', 7);
         $this->SetTextColor(255, 0, 0);
-        $this->MultiCell(0, 5, 'Not valid without official dry seal for security purposes.', 0, 'L');
+        $this->Cell(0, 5, 'Not valid without official dry seal for security purposes.', 0, 0, 'C');
         $this->SetTextColor(0, 0, 0);
     }
 }
 
-// === Fetch issuance id from URL and validate ===
-if(!isset($_GET['id']) || !is_numeric($_GET['id'])) {
-    die('Issuance ID missing or invalid.');
+// === Begin script ===
+
+if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
+    die("Invalid issuance ID.");
 }
 $issuanceId = intval($_GET['id']);
 
-// === Fetch issuance, resident, and payment data ===
 try {
-    $sql = "SELECT i.*, rp.first_name, rp.middle_name, rp.last_name, rp.age, rp.address, p.reference_no
+    $sql = "SELECT i.*, 
+                   rp.first_name, rp.middle_name, rp.last_name, rp.age, rp.address, p.reference_no
             FROM issuance i
             LEFT JOIN resident_profiles rp ON i.resident_id = rp.resident_id
             LEFT JOIN payments p ON i.issuance_id = p.issuance_id
@@ -172,13 +187,12 @@ try {
     $stmt = $conn->prepare($sql);
     $stmt->execute([':id' => $issuanceId]);
     $record = $stmt->fetch(PDO::FETCH_ASSOC);
-    
-    if(!$record) die("No record found for issuance ID = $issuanceId");
-} catch(PDOException $e) {
+    if (!$record) die("Record not found.");
+} catch (PDOException $e) {
     die("Database error: " . htmlspecialchars($e->getMessage()));
 }
 
-// === Prepare data for PDF ===
+// Prepare resident name with optional middle initial
 $mi = !empty($record['middle_name']) ? strtoupper(substr($record['middle_name'], 0, 1)) . '.' : '';
 $residentName = strtoupper(trim($record['first_name'] . ' ' . $mi . ' ' . $record['last_name']));
 $age = $record['age'] ?? 'N/A';
@@ -187,7 +201,6 @@ $purpose = $record['purpose'] ?? 'N/A';
 $dateIssue = $record['request_date'] ?? date('Y-m-d');
 $signatory = "Hon. David John Paulo C. Laudato";
 
-// Officials list on sidebar
 $officials = [
     ['name' => 'Hon. David John Paulo C. Laudato', 'title' => '• Punong Barangay •'],
     ['name' => 'Hon. Enrico S. Sango', 'title' => 'Committee on Appropriations'],
@@ -202,19 +215,15 @@ $officials = [
     ['name' => 'Luchi L. Antonio', 'title' => 'Barangay Treasurer'],
 ];
 
-// === Generate PDF ===
 $pdf = new CertificatePDF('P', 'mm', 'A4');
 $pdf->AddPage();
 
 $pdf->LeftSidebar($officials);
 
-$watermarkPath = '../../../assets/img/barangay_seal_transparent.png';
-$pdf->Watermark($watermarkPath);
+$pdf->Watermark('../../../assets/img/barangay_seal_transparent.png');
 
 $pdf->CertificateBody($residentName, $age, $address, $purpose, $dateIssue);
 
 $pdf->SignatureSection($signatory);
-
-$pdf->SecurityNotice();
 
 $pdf->Output();
