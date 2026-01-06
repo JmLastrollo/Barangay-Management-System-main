@@ -2,11 +2,14 @@
 // Kunin ang current page name
 $current_page = basename($_SERVER['PHP_SELF']);
 
-// 1. DEFINE PAGE GROUPS (Para alam ng sidebar kung kailan magbubukas ang dropdown)
+// 1. DEFINE PAGE GROUPS
 $staff_pages    = ['staff_list.php', 'staff_history.php', 'staff_add.php']; 
 $account_pages  = ['resident_list.php', 'resident_history.php', 'resident_archive.php'];
 $issuance_pages = ['admin_issuance.php', 'admin_issuance_approved.php', 'admin_issuance_archive.php', 'admin_issuance_print.php'];
-$records_pages  = ['records_management.php', 'admin_rec_blotter.php', 'admin_rec_complaints.php', 'admin_rec_residents.php'];
+
+// Updated: Blotter Group (Replaces Records)
+$blotter_pages  = ['admin_rec_blotter.php', 'admin_rec_complaints.php', 'admin_rec_blotter_archive.php', 'admin_rec_complaints_archive.php'];
+
 $health_pages   = ['health_dashboard.php', 'patient_records.php'];
 $archive_pages  = ['archives.php', 'admin_announcement_archive.php', 'admin_officials_archive.php', 'admin_rec_blotter_archive.php', 'admin_rec_complaints_archive.php'];
 
@@ -14,19 +17,40 @@ $archive_pages  = ['archives.php', 'admin_announcement_archive.php', 'admin_offi
 $is_staff_active    = in_array($current_page, $staff_pages);
 $is_account_active  = in_array($current_page, $account_pages);
 $is_issuance_active = in_array($current_page, $issuance_pages);
-$is_records_active  = in_array($current_page, $records_pages);
+$is_blotter_active  = in_array($current_page, $blotter_pages); // New active check
 $is_health_active   = in_array($current_page, $health_pages);
 $is_archive_active  = in_array($current_page, $archive_pages);
+
+// GET ADMIN INFO
+if (isset($_SESSION['user_id'])) {
+    if (!isset($admin_user)) {
+        require_once '../../backend/db_connect.php';
+        $uid = $_SESSION['user_id'];
+        $stmtSide = $conn->prepare("SELECT first_name, last_name, position FROM users WHERE user_id = :uid");
+        $stmtSide->execute([':uid' => $uid]);
+        $resSide = $stmtSide->fetch(PDO::FETCH_ASSOC);
+    } else {
+        $resSide = $admin_user;
+    }
+
+    $sideName = ($resSide) ? $resSide['first_name'] . " " . $resSide['last_name'] : "Admin";
+    $sidePos  = ($resSide) ? $resSide['position'] : "Administrator";
+    $sideImg  = "../../assets/img/profile.jpg"; 
+} else {
+    $sideName = "Admin User";
+    $sidePos  = "System Admin";
+    $sideImg  = "../../assets/img/profile.jpg";
+}
 ?>
 
 <nav id="sidebar">
     <div class="sidebar-header">
         <div class="admin-profile-img">
-            <img src="../../assets/img/profile.jpg" alt="Admin" style="object-fit: cover;">
+            <img src="<?= htmlspecialchars($sideImg) ?>" alt="Admin" style="object-fit: cover;">
         </div>
         <div class="profile-info">
-            <h6 class="mb-0 fw-bold text-white">Administrator</h6>
-            <span class="text-white-50 small">Brgy. Langkaan II</span>
+            <h6 class="mb-0 fw-bold text-white"><?= htmlspecialchars($sideName) ?></h6>
+            <span class="text-white-50 small"><?= htmlspecialchars($sidePos) ?></span>
         </div>
     </div>
 
@@ -112,20 +136,27 @@ $is_archive_active  = in_array($current_page, $archive_pages);
             </li>
 
             <li class="nav-item">
-                <a class="nav-link d-flex justify-content-between align-items-center <?= $is_records_active ? 'active' : 'collapsed' ?>" 
+                <a class="nav-link d-flex justify-content-between align-items-center <?= $is_blotter_active ? 'active' : 'collapsed' ?>" 
                    data-bs-toggle="collapse" 
-                   href="#recordsSubmenu"
+                   href="#blotterSubmenu" 
                    role="button"
-                   aria-expanded="<?= $is_records_active ? 'true' : 'false' ?>"
-                   aria-controls="recordsSubmenu">
-                    <div><i class="bi bi-folder-fill me-2"></i> Records</div>
+                   aria-expanded="<?= $is_blotter_active ? 'true' : 'false' ?>"
+                   aria-controls="blotterSubmenu">
+                    <div><i class="bi bi-shield-exclamation me-2"></i> Blotter & Complaints</div>
                     <i class="bi bi-chevron-down small"></i>
                 </a>
-                <div class="collapse <?= $is_records_active ? 'show' : '' ?>" id="recordsSubmenu" data-bs-parent="#accordionSidebar">
+                <div class="collapse <?= $is_blotter_active ? 'show' : '' ?>" id="blotterSubmenu" data-bs-parent="#accordionSidebar">
                     <ul class="nav flex-column ms-3 submenu">
-                        <li><a class="nav-link small <?= $current_page == 'admin_rec_residents.php' ? 'active' : '' ?>" href="admin_rec_residents.php">Residents</a></li>
-                        <li><a class="nav-link small <?= $current_page == 'admin_rec_blotter.php' ? 'active' : '' ?>" href="admin_rec_blotter.php">Blotter</a></li>
-                        <li><a class="nav-link small <?= $current_page == 'admin_rec_complaints.php' ? 'active' : '' ?>" href="admin_rec_complaints.php">Complaints</a></li>
+                        <li>
+                            <a class="nav-link small <?= $current_page == 'admin_rec_complaints.php' ? 'active' : '' ?>" href="admin_rec_complaints.php">
+                                Complaints
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link small <?= $current_page == 'admin_rec_blotter.php' ? 'active' : '' ?>" href="admin_rec_blotter.php">
+                                Blotter Records
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </li>
@@ -152,25 +183,6 @@ $is_archive_active  = in_array($current_page, $archive_pages);
                 <a class="nav-link <?= $current_page == 'finance_management.php' ? 'active' : '' ?>" href="finance_management.php">
                     <i class="bi bi-cash-coin me-2"></i> Finance
                 </a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link d-flex justify-content-between align-items-center <?= $is_archive_active ? 'active' : 'collapsed' ?>" 
-                   data-bs-toggle="collapse" 
-                   href="#archiveSubmenu"
-                   role="button"
-                   aria-expanded="<?= $is_archive_active ? 'true' : 'false' ?>"
-                   aria-controls="archiveSubmenu">
-                    <div><i class="bi bi-archive-fill me-2"></i> Archives</div>
-                    <i class="bi bi-chevron-down small"></i>
-                </a>
-                <div class="collapse <?= $is_archive_active ? 'show' : '' ?>" id="archiveSubmenu" data-bs-parent="#accordionSidebar">
-                    <ul class="nav flex-column ms-3 submenu">
-                        <li><a class="nav-link small <?= $current_page == 'admin_announcement_archive.php' ? 'active' : '' ?>" href="admin_announcement_archive.php">Announcements</a></li>
-                        <li><a class="nav-link small <?= $current_page == 'resident_archive.php' ? 'active' : '' ?>" href="resident_archive.php">Residents</a></li>
-                        <li><a class="nav-link small <?= $current_page == 'admin_officials_archive.php' ? 'active' : '' ?>" href="admin_officials_archive.php">Officials</a></li>
-                    </ul>
-                </div>
             </li>
 
             <li class="nav-item">

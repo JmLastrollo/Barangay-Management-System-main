@@ -6,7 +6,7 @@ require_once '../../backend/db_connect.php';
 $user_id = $_SESSION['user_id'];
 
 // Get Resident Info
-$stmt = $conn->prepare("SELECT resident_id, first_name, last_name FROM resident_profiles WHERE user_id = :uid");
+$stmt = $conn->prepare("SELECT resident_id, first_name, last_name, contact_no, email FROM resident_profiles WHERE user_id = :uid");
 $stmt->execute([':uid' => $user_id]);
 $resident = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -17,7 +17,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_complaint'])) {
     
     $resident_id = $resident['resident_id'];
     $complainant = $resident['first_name'] . ' ' . $resident['last_name'];
-    $respondent = trim($_POST['respondent_name']);
+    
+    // Logic: Kung naka-check ang "Unknown", ang value ay "Unidentified Person"
+    if (isset($_POST['is_unknown']) && $_POST['is_unknown'] == '1') {
+        $respondent = "Unidentified Person";
+    } else {
+        $respondent = trim($_POST['respondent_name']);
+        if (empty($respondent)) { $respondent = "Unidentified Person"; } // Fallback
+    }
+
     $type = $_POST['complaint_type'];
     $date = $_POST['incident_date'];
     $place = trim($_POST['incident_place']);
@@ -61,7 +69,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_complaint'])) {
     <link rel="stylesheet" href="../../css/resident.css"> 
     <link rel="stylesheet" href="../../css/toast.css"> 
 </head>
-<body>
+<body class="bg-light">
 
     <?php include '../../includes/resident_sidebar.php'; ?>
 
@@ -75,67 +83,90 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_complaint'])) {
             </div>
         </div>
 
-        <div class="content pb-4">
+        <div class="content pb-5">
             
-            <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center mb-4">
-                <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
-                <div>
-                    <strong>Disclaimer:</strong> Filing a false complaint is punishable by law. Please ensure all details are accurate.
+            <div class="container">
+                <div class="alert alert-primary border-0 shadow-sm rounded-3 d-flex align-items-center mb-4 p-3">
+                    <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+                    <div>
+                        <strong>Important:</strong> Filing a complaint is a serious matter. Please ensure all details are accurate. False reports may be subject to legal consequences.
+                    </div>
                 </div>
-            </div>
 
-            <div class="row justify-content-center">
-                <div class="col-lg-8">
-                    <div class="card border-0 shadow-sm rounded-4">
-                        <div class="card-body p-5">
-                            
-                            <h4 class="fw-bold text-dark mb-4"><i class="bi bi-pencil-square text-danger me-2"></i>Complaint Form</h4>
-                            
-                            <form action="" method="POST">
+                <div class="row justify-content-center">
+                    <div class="col-lg-9">
+                        <div class="card border-0 shadow rounded-4">
+                            <div class="card-header bg-white border-bottom p-4">
+                                <h4 class="fw-bold text-dark m-0"><i class="bi bi-file-text-fill text-danger me-2"></i>Incident Report Form</h4>
+                            </div>
+                            <div class="card-body p-4 p-md-5">
                                 
-                                <div class="mb-4">
-                                    <label class="fw-bold text-muted small text-uppercase">Respondent's Name (Sino ang nirereklamo?)</label>
-                                    <input type="text" name="respondent_name" class="form-control form-control-lg" placeholder="Enter name of person involved" required>
-                                </div>
+                                <form action="" method="POST">
+                                    
+                                    <h6 class="text-uppercase text-muted fw-bold mb-3 small">I. Respondent Details (Sino ang inirereklamo?)</h6>
+                                    <div class="mb-4 bg-light p-3 rounded-3 border">
+                                        <label class="form-label fw-bold text-dark">Name of Respondent / Suspect</label>
+                                        
+                                        <div class="input-group mb-2">
+                                            <span class="input-group-text"><i class="bi bi-person-x-fill"></i></span>
+                                            <input type="text" name="respondent_name" id="respondentInput" class="form-control form-control-lg" placeholder="Enter full name (if known)" required>
+                                        </div>
 
-                                <div class="row g-3 mb-4">
-                                    <div class="col-md-6">
-                                        <label class="fw-bold text-muted small text-uppercase">Type of Complaint</label>
-                                        <select name="complaint_type" class="form-select form-select-lg" required>
-                                            <option value="" disabled selected>Select Type...</option>
-                                            <option value="Noise Complaint">Noise Complaint</option>
-                                            <option value="Neighborhood Dispute">Neighborhood Dispute</option>
-                                            <option value="Property Damage">Property Damage</option>
-                                            <option value="Harassment">Harassment</option>
-                                            <option value="Theft">Theft</option>
-                                            <option value="Others">Others</option>
-                                        </select>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="is_unknown" value="1" id="unknownCheck">
+                                            <label class="form-check-label text-muted" for="unknownCheck">
+                                                I don't know the name / The suspect is unidentified (e.g., for Theft/Vandalism)
+                                            </label>
+                                        </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="fw-bold text-muted small text-uppercase">Date of Incident</label>
-                                        <input type="date" name="incident_date" class="form-control form-control-lg" required>
+
+                                    <h6 class="text-uppercase text-muted fw-bold mb-3 small mt-4">II. Incident Details (Ano, Kailan, at Saan?)</h6>
+                                    
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Nature of Complaint</label>
+                                            <select name="complaint_type" class="form-select form-select-lg" required>
+                                                <option value="" disabled selected>Select Incident Type...</option>
+                                                <option value="Theft">Theft / Robbery (Nakawan)</option>
+                                                <option value="Physical Injury">Physical Injury (Pananakit)</option>
+                                                <option value="Property Damage">Property Damage (Paninira)</option>
+                                                <option value="Noise Complaint">Noise Complaint (Ingay)</option>
+                                                <option value="Neighborhood Dispute">Neighborhood Dispute (Away Kapitbahay)</option>
+                                                <option value="Harassment">Harassment / Threats</option>
+                                                <option value="Others">Others</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Date of Incident</label>
+                                            <input type="date" name="incident_date" class="form-control form-control-lg" required>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div class="mb-4">
-                                    <label class="fw-bold text-muted small text-uppercase">Place of Incident</label>
-                                    <input type="text" name="incident_place" class="form-control" placeholder="Specific location in Brgy. Langkaan II" required>
-                                </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Place of Incident</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-geo-alt-fill"></i></span>
+                                            <input type="text" name="incident_place" class="form-control form-control-lg" placeholder="Specific location (e.g. Near the Basketball Court, Block 5...)" required>
+                                        </div>
+                                    </div>
 
-                                <div class="mb-4">
-                                    <label class="fw-bold text-muted small text-uppercase">Narrative Details</label>
-                                    <textarea name="details" class="form-control" rows="5" placeholder="Please describe what happened..." required></textarea>
-                                </div>
+                                    <h6 class="text-uppercase text-muted fw-bold mb-3 small mt-4">III. Narrative (Salaysay)</h6>
+                                    <div class="mb-4">
+                                        <label class="form-label fw-bold">Detailed Description of Events</label>
+                                        <textarea name="details" class="form-control" rows="6" placeholder="Please describe exactly what happened. Include specific times, actions, and any witnesses if available." required></textarea>
+                                        <div class="form-text">Be as specific as possible. This will serve as your initial statement.</div>
+                                    </div>
 
-                                <div class="d-grid gap-2 mt-5">
-                                    <button type="submit" name="submit_complaint" class="btn btn-danger btn-lg rounded-pill fw-bold">
-                                        Submit Complaint
-                                    </button>
-                                    <a href="resident_dashboard.php" class="btn btn-light rounded-pill text-muted">Cancel</a>
-                                </div>
+                                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-5 pt-3 border-top">
+                                        <a href="resident_dashboard.php" class="btn btn-light btn-lg px-4 rounded-pill">Cancel</a>
+                                        <button type="submit" name="submit_complaint" class="btn btn-danger btn-lg px-5 rounded-pill fw-bold shadow-sm">
+                                            <i class="bi bi-send-fill me-2"></i> Submit Report
+                                        </button>
+                                    </div>
 
-                            </form>
+                                </form>
 
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -155,7 +186,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_complaint'])) {
     </div>
 
     <script src="../../assets/js/bootstrap.bundle.min.js"></script>
+    
     <script>
+        // --- LOGIC FOR UNKNOWN RESPONDENT ---
+        const unknownCheck = document.getElementById('unknownCheck');
+        const respondentInput = document.getElementById('respondentInput');
+
+        unknownCheck.addEventListener('change', function() {
+            if (this.checked) {
+                respondentInput.value = ""; // Clear input
+                respondentInput.disabled = true; // Disable input
+                respondentInput.placeholder = "Marked as Unidentified";
+                respondentInput.required = false; // Remove required attribute
+            } else {
+                respondentInput.disabled = false; // Enable input
+                respondentInput.placeholder = "Enter full name (if known)";
+                respondentInput.required = true; // Add required attribute back
+            }
+        });
+
+        // --- TOAST NOTIFICATION ---
         <?php if(isset($_SESSION['toast'])): ?>
             const toastEl = document.getElementById('liveToast');
             document.getElementById('toastMessage').innerText = "<?= $_SESSION['toast']['msg'] ?>";

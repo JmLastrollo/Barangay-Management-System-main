@@ -1,25 +1,32 @@
 <?php
+session_start();
 require_once 'db_connect.php';
-header('Content-Type: application/json');
+
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['Admin', 'Staff'])) {
+    header("Location: ../index.php");
+    exit();
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
-        $id = $_POST['issuance_id'];
+        $id = $_POST['id'] ?? $_POST['announcement_id'];
         
-        // Delete related payments first (Foreign Key constraint)
-        $stmt = $conn->prepare("DELETE FROM payments WHERE issuance_id = :id");
+        $stmt = $conn->prepare("DELETE FROM announcements WHERE announcement_id = :id");
         $stmt->execute([':id' => $id]);
+        
+        // FIX: Scoped Session Key
+        $_SESSION['toast_announcement'] = ['msg' => 'Announcement deleted permanently.', 'type' => 'success']; // Using 'success' for green toast, or 'error'/custom class for red
 
-        // Delete issuance record
-        $stmt = $conn->prepare("DELETE FROM issuance WHERE issuance_id = :id");
-        $stmt->execute([':id' => $id]);
-        
-        // Redirect pabalik sa archive page
-        header("Location: ../pages/admin/admin_issuance_archive.php");
+        if ($_SESSION['role'] === 'Staff') {
+            header("Location: ../pages/staff/staff_announcement_archive.php");
+        } else {
+            header("Location: ../pages/admin/admin_announcement_archive.php");
+        }
         exit();
 
     } catch (PDOException $e) {
-        echo "Error: " . $e->getMessage();
+        $_SESSION['toast_announcement'] = ['msg' => 'Error: ' . $e->getMessage(), 'type' => 'error'];
+        header("Location: ../pages/staff/staff_announcement.php");
     }
 }
 ?>

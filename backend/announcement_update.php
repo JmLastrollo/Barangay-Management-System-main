@@ -1,11 +1,18 @@
 <?php
+session_start();
 require_once "db_connect.php";
 
-// Check if Request is POST
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
+    $redirectPath = ($_SESSION['role'] === 'Staff') 
+        ? "../pages/staff/staff_announcement.php" 
+        : "../pages/admin/admin_announcement.php";
+
+    $archivePath = ($_SESSION['role'] === 'Staff')
+        ? "../pages/staff/staff_announcement_archive.php"
+        : "../pages/admin/admin_announcement_archive.php";
+
     // 1. STATUS UPDATE (Archive/Restore)
-    // Check kung may ID at STATUS pero WALANG TITLE (ibig sabihin status update lang to)
     if (isset($_POST['id']) && isset($_POST['status']) && !isset($_POST['title'])) {
         $id = $_POST['id'];
         $status = $_POST['status'];
@@ -15,16 +22,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt = $conn->prepare($sql);
             $stmt->execute([':status' => $status, ':id' => $id]);
             
-            // Redirect based on status
+            // FIX: Scoped Session Key
+            $actionWord = ($status == 'active') ? 'restored' : 'archived';
+            $_SESSION['toast_announcement'] = ['msg' => "Announcement $actionWord successfully!", 'type' => 'success'];
+
             if($status == 'active') {
-                // RESTORE ACTION:
-                // Binago ko ito from '?restored=true' to '?success=restored'
-                // para basahin ito ng JavaScript sa Archive page.
-                header("Location: ../pages/admin/admin_announcement_archive.php?success=restored");
+                header("Location: " . $archivePath);
             } else {
-                // ARCHIVE ACTION:
-                // Ito okay lang na 'archived=true' kasi yun ang nasa Main Page JS mo.
-                header("Location: ../pages/admin/admin_announcement.php?archived=true");
+                header("Location: " . $redirectPath);
             }
             exit();
 
@@ -33,7 +38,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
-    // 2. FULL EDIT (Form Submit)
+    // 2. FULL EDIT
     if (isset($_POST['id']) && isset($_POST['title'])) {
         $id = $_POST['id'];
         $title = $_POST['title'];
@@ -42,21 +47,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $date = $_POST['date'];
         $time = $_POST['time'];
 
-        // Handle Image Upload
         $imageQuery = "";
         $params = [
-            ':title' => $title,
-            ':details' => $details,
-            ':location' => $location,
-            ':date' => $date,
-            ':time' => $time,
-            ':id' => $id
+            ':title' => $title, ':details' => $details, ':location' => $location,
+            ':date' => $date, ':time' => $time, ':id' => $id
         ];
 
         if (!empty($_FILES["photo"]["name"])) {
             $filename = time() . "_" . basename($_FILES["photo"]["name"]);
             $target = "../uploads/announcements/" . $filename;
-            
             if (move_uploaded_file($_FILES["photo"]["tmp_name"], $target)) {
                 $imageQuery = ", image = :image";
                 $params[':image'] = $filename;
@@ -65,18 +64,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         try {
             $sql = "UPDATE announcements 
-                    SET title = :title, 
-                        details = :details, 
-                        location = :location, 
-                        date = :date, 
-                        time = :time 
-                        $imageQuery
+                    SET title = :title, details = :details, location = :location, 
+                        date = :date, time = :time $imageQuery
                     WHERE announcement_id = :id";
-
             $stmt = $conn->prepare($sql);
             $stmt->execute($params);
 
-            header("Location: ../pages/admin/admin_announcement.php?success=updated");
+            // FIX: Scoped Session Key
+            $_SESSION['toast_announcement'] = ['msg' => 'Announcement updated successfully!', 'type' => 'success'];
+            header("Location: " . $redirectPath);
             exit(); 
 
         } catch (PDOException $e) {

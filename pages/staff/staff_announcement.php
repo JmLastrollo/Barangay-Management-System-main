@@ -15,7 +15,7 @@ require_once '../../backend/db_connect.php';
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>BMS - Admin Announcement</title>
+    <title>BMS - Staff Announcement</title>
     <link rel="icon" type="image/png" href="../../assets/img/Langkaan 2 Logo-modified.png">
     <link href="../../css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -26,10 +26,9 @@ require_once '../../backend/db_connect.php';
 
 <body>
 
-    <?php include '../../includes/sidebar.php'; ?>
+    <?php include '../../includes/staff_sidebar.php'; ?>
 
     <div id="main-content">
-        
         <div class="header">
             <h1 class="header-title"><span class="green">ANNOUNCEMENT</span></h1>
             <div class="header-logos">
@@ -40,26 +39,23 @@ require_once '../../backend/db_connect.php';
 
         <div class="content">
             <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
-                
                 <div class="d-flex align-items-center gap-2">
                     <div class="search-box">
-                        <input type="text" id="searchInput" placeholder="Search for Title..." class="form-control" aria-label="Search announcements" autocomplete="off">
-                        <button type="button" aria-label="Search"><i class="bi bi-search"></i></button>
+                        <input type="text" id="searchInput" placeholder="Search for Title..." class="form-control" autocomplete="off">
+                        <button type="button"><i class="bi bi-search"></i></button>
                     </div>
-                    
-                    <select id="sortSelect" class="form-select" style="width: auto; height: 45px; border-radius: 25px; cursor: pointer;" aria-label="Sort announcements">
+                    <select id="sortSelect" class="form-select" style="width: auto; height: 45px; border-radius: 25px;">
                         <option value="newest">Date: Newest First</option>
                         <option value="oldest">Date: Oldest First</option>
                         <option value="title_asc">Title: A-Z</option>
                         <option value="title_desc">Title: Z-A</option>
                     </select>
                 </div>
-
                 <div class="mt-2 mt-md-0">
                     <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addModal">
                         <i class="bi bi-plus-circle"></i> Add New
                     </button>
-                    <a href="admin_announcement_archive.php" class="btn btn-secondary">
+                    <a href="staff_announcement_archive.php" class="btn btn-secondary">
                         <i class="bi bi-archive"></i> Archives
                     </a>
                 </div>
@@ -85,7 +81,7 @@ require_once '../../backend/db_connect.php';
         </div>
     </div>
 
-    <div class="modal fade" id="addModal" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="addModal" tabindex="-1">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
@@ -96,7 +92,7 @@ require_once '../../backend/db_connect.php';
                     <form action="../../backend/announcement_add.php" method="POST" enctype="multipart/form-data">
                         <div class="mb-3 text-center">
                              <div class="d-inline-block position-relative">
-                                <img id="add-preview" src="../../assets/img" style="max-height: 150px; width: 100%; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; display: none;">
+                                <img id="add-preview" src="../../assets/img" style="max-height: 150px; width: 100%; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; display:none;">
                              </div>
                              <div class="mt-2">
                                 <label for="add-photo" class="btn btn-sm btn-outline-primary"><i class="bi bi-upload"></i> Upload Photo</label>
@@ -105,15 +101,15 @@ require_once '../../backend/db_connect.php';
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Title</label>
-                            <input type="text" name="title" class="form-control" required placeholder="Ex. General Assembly">
+                            <input type="text" name="title" class="form-control" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Details</label>
-                            <textarea name="details" class="form-control" rows="4" required placeholder="Enter details..."></textarea>
+                            <textarea name="details" class="form-control" rows="4" required></textarea>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Location</label>
-                            <input type="text" name="location" class="form-control" required placeholder="Ex. Barangay Hall">
+                            <input type="text" name="location" class="form-control" required>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -135,7 +131,7 @@ require_once '../../backend/db_connect.php';
         </div>
     </div>
 
-    <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="editModal" tabindex="-1">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
@@ -239,7 +235,7 @@ require_once '../../backend/db_connect.php';
     <div id="toast" class="toast"></div>
 
     <script src="../../assets/js/bootstrap.bundle.min.js"></script>
-    <script src="../../assets/js/admin/admin_announcement.js"></script>
+    <script src="../../assets/js/staff/staff_announcement.js"></script>
 
     <?php if (isset($_SESSION['toast_announcement'])): ?>
     <script>

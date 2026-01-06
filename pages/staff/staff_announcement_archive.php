@@ -34,10 +34,9 @@ try {
 </head>
 <body>
 
-<?php include '../../includes/sidebar.php'; ?>
+<?php include '../../includes/staff_sidebar.php'; ?>
 
 <div id="main-content">
-    
     <div class="header">
         <h1 class="header-title">ARCHIVED <span class="green">ANNOUNCEMENTS</span></h1>
         <div class="header-logos">
@@ -61,7 +60,7 @@ try {
             </div>
             
             <div class="mt-2 mt-md-0">
-                <a href="admin_announcement.php" class="btn btn-secondary">
+                <a href="staff_announcement.php" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> Back to List
                 </a>
             </div>
@@ -147,9 +146,10 @@ try {
 
 <script src="../../assets/js/bootstrap.bundle.min.js"></script>
 <script> const initialData = <?= json_encode($announcements) ?>; </script>
-<script src="../../assets/js/admin/admin_announcement_archive.js?v=<?= time(); ?>"></script>
+<script src="../../assets/js/staff/staff_announcement_archive.js?v=<?= time(); ?>"></script>
 
 <script>
+    // Simple inline toast function fallback if JS file doesn't have it
     function showArchiveToast(msg, type) {
         const t = document.getElementById("toast");
         if(t) {
@@ -163,6 +163,7 @@ try {
 <?php if (isset($_SESSION['toast_announcement'])): ?>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Use showToast if defined in JS file, else fallback
         if (typeof showToast === 'function') {
             showToast("<?= htmlspecialchars($_SESSION['toast_announcement']['msg']) ?>", "<?= htmlspecialchars($_SESSION['toast_announcement']['type'] ?? 'success') ?>");
         } else {

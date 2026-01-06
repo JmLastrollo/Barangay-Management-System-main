@@ -1,44 +1,30 @@
 <?php
-require_once 'config.php';
+session_start();
+require_once 'db_connect.php';
+require_once 'log_audit.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['complaint_id'])) {
+    
+    $id = $_POST['complaint_id'];
 
-    // If complaint_id exists → Update (archive/restore)
-    if (isset($_POST['complaint_id'])) {
+    if (isset($_POST['action']) && $_POST['action'] == 'archive') {
+        try {
+            $stmt = $conn->prepare("UPDATE complaints SET status = 'Archived' WHERE complaint_id = ?");
+            $stmt->execute([$id]);
+            
+            if(isset($_SESSION['user_id'])) {
+                logActivity($conn, $_SESSION['user_id'], "Archived Complaint #$id");
+            }
 
-        $id = new MongoDB\BSON\ObjectId($_POST['complaint_id']);
-        $status = $_POST['status'];
-
-        $contactsCollection->updateOne(
-            ['_id' => $id],
-            ['$set' => ['status' => $status]]
-        );
-
-        // redirect based on status
-        if ($status === "archived") {
-            header("Location: ../pages/admin/admin_rec_complaints_archive.php?archived=1");
-        } else {
-            header("Location: ../pages/admin/admin_rec_complaints.php?restored=1");
+            // TOAST
+            $_SESSION['toast'] = ['msg' => 'Complaint moved to archive.', 'type' => 'warning'];
+            header("Location: ../pages/admin/admin_rec_complaints.php");
+            exit();
+        } catch (PDOException $e) {
+            $_SESSION['toast'] = ['msg' => 'Error: ' . $e->getMessage(), 'type' => 'error'];
+            header("Location: ../pages/admin/admin_rec_complaints.php");
+            exit();
         }
-        exit;
     }
-
-    // Otherwise → INSERT new complaint
-    $fullname = trim($_POST['fullname']);
-    $email = trim($_POST['email']);
-    $subject = trim($_POST['subject']);
-    $message = trim($_POST['message']);
-
-    $contactsCollection->insertOne([
-        'fullname' => $fullname,
-        'email' => $email,
-        'subject' => $subject,
-        'message' => $message,
-        'date' => new MongoDB\BSON\UTCDateTime(),
-        'status' => "active",
-    ]);
-
-    header("Location: ../contact.php?success=1");
-    exit;
 }
 ?>
