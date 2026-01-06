@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 06, 2026 at 03:28 AM
+-- Generation Time: Jan 06, 2026 at 04:05 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -195,7 +195,7 @@ CREATE TABLE `health_appointments` (
 --
 
 INSERT INTO `health_appointments` (`appointment_id`, `resident_id`, `service_type`, `appointment_date`, `appointment_time`, `reason`, `status`, `created_at`) VALUES
-(1, 3, 'Blood Pressure Monitoring', '2026-01-14', 'Morning (8:00 AM - 12:00 PM)', 'sadasdasd', 'Pending', '2026-01-05 14:21:17');
+(1, 3, 'Blood Pressure Monitoring', '2026-01-14', 'Morning (8:00 AM - 12:00 PM)', 'sadasdasd', 'Completed', '2026-01-05 14:21:17');
 
 -- --------------------------------------------------------
 
@@ -213,6 +213,13 @@ CREATE TABLE `health_records` (
   `date_visit` date NOT NULL,
   `attended_by` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `health_records`
+--
+
+INSERT INTO `health_records` (`record_id`, `resident_name`, `age`, `concern`, `diagnosis`, `treatment`, `date_visit`, `attended_by`) VALUES
+(1, 'John Mark Lastrollo', 21, 'sadasdasd', 'fxgsdf', 'fgsdfg', '2026-01-06', 'Admin/Staff');
 
 -- --------------------------------------------------------
 
@@ -356,7 +363,13 @@ INSERT INTO `history_logs` (`log_id`, `user_id`, `action`, `timestamp`) VALUES
 (122, 6, 'Logged out from the system', '2026-01-06 10:23:42'),
 (123, 1, 'Logged in to the system', '2026-01-06 10:23:52'),
 (124, 1, 'Filed Complaint #1 to Official Blotter', '2026-01-06 10:24:00'),
-(125, 1, 'Updated blotter case #1 status to Hearing', '2026-01-06 10:24:10');
+(125, 1, 'Updated blotter case #1 status to Hearing', '2026-01-06 10:24:10'),
+(126, 1, 'Logged out from the system', '2026-01-06 10:31:28'),
+(127, 6, 'Logged in to the system', '2026-01-06 10:31:44'),
+(128, 6, 'Logged out from the system', '2026-01-06 10:35:33'),
+(129, 1, 'Logged in to the system', '2026-01-06 10:35:44'),
+(130, 1, 'Approved Health Appointment #1', '2026-01-06 10:39:36'),
+(131, 1, 'Completed consultation for John Mark Lastrollo', '2026-01-06 10:48:34');
 
 -- --------------------------------------------------------
 
@@ -630,13 +643,13 @@ ALTER TABLE `health_appointments`
 -- AUTO_INCREMENT for table `health_records`
 --
 ALTER TABLE `health_records`
-  MODIFY `record_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `record_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `history_logs`
 --
 ALTER TABLE `history_logs`
-  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=126;
+  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=132;
 
 --
 -- AUTO_INCREMENT for table `issuance`
