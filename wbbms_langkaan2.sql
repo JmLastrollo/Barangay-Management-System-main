@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 06, 2026 at 04:05 AM
+-- Generation Time: Jan 06, 2026 at 01:46 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -53,7 +53,8 @@ INSERT INTO `announcements` (`announcement_id`, `title`, `details`, `image`, `da
 (9, 'Distribusyon ng Senior Citizen Pension', 'Pagbibigay ng monthly pension para sa mga rehistradong senior.', '', '2023-11-18', '13:00:00', 'Multi-purpose Hall', 'Active'),
 (10, 'Voters Registration Assistance', 'Tulong para sa mga magpaparehistro sa COMELEC.', '', '2024-01-08', '08:00:00', 'Barangay Hall', 'Active'),
 (11, 'Womens Month Celebration', 'Zumba at Seminar para sa mga kababaihan.', '', '2024-03-08', '15:00:00', 'Barangay Plaza', 'Active'),
-(12, 'Flores de Mayo 2024', 'Sagala at prusisyon para sa kapistahan\r\n', '1767632692_Resident Dashboard.png', '2024-05-25', '17:00:00', 'Main Roadd', 'Active');
+(12, 'Flores de Mayo 2024', 'Sagala at prusisyon para sa kapistahan\r\n', '1767632692_Resident Dashboard.png', '2024-05-25', '17:00:00', 'Main Roadd', 'Active'),
+(13, 'sdas', 'asdasd', '', '2026-01-09', '18:20:00', 'asdasd', 'Active');
 
 -- --------------------------------------------------------
 
@@ -157,6 +158,14 @@ CREATE TABLE `complaint_conversations` (
   `message` text NOT NULL,
   `created_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `complaint_conversations`
+--
+
+INSERT INTO `complaint_conversations` (`id`, `complaint_id`, `sender_role`, `sender_name`, `message`, `created_at`) VALUES
+(1, 2, 'Admin', 'Juan Paolo Melad', 'sadxasada', '2026-01-06 17:38:32'),
+(2, 2, 'Resident', 'John Mark Lastrollo', 'dadsadsadsadsaddsaas', '2026-01-06 17:39:13');
 
 -- --------------------------------------------------------
 
@@ -369,7 +378,27 @@ INSERT INTO `history_logs` (`log_id`, `user_id`, `action`, `timestamp`) VALUES
 (128, 6, 'Logged out from the system', '2026-01-06 10:35:33'),
 (129, 1, 'Logged in to the system', '2026-01-06 10:35:44'),
 (130, 1, 'Approved Health Appointment #1', '2026-01-06 10:39:36'),
-(131, 1, 'Completed consultation for John Mark Lastrollo', '2026-01-06 10:48:34');
+(131, 1, 'Completed consultation for John Mark Lastrollo', '2026-01-06 10:48:34'),
+(132, 1, 'Logged in to the system', '2026-01-06 17:17:04'),
+(133, 1, 'Logged out from the system', '2026-01-06 17:38:45'),
+(134, 6, 'Logged in to the system', '2026-01-06 17:39:01'),
+(135, 6, 'Logged out from the system', '2026-01-06 17:39:24'),
+(136, 1, 'Logged in to the system', '2026-01-06 17:40:02'),
+(137, 1, 'Logged out from the system', '2026-01-06 17:40:53'),
+(138, 6, 'Logged in to the system', '2026-01-06 17:41:01'),
+(139, 6, 'Logged out from the system', '2026-01-06 17:42:55'),
+(140, 1, 'Logged in to the system', '2026-01-06 17:43:03'),
+(141, 1, 'Logged out from the system', '2026-01-06 18:41:26'),
+(142, 6, 'Logged in to the system', '2026-01-06 18:42:01'),
+(143, 6, 'Logged out from the system', '2026-01-06 18:43:08'),
+(144, 1, 'Logged in to the system', '2026-01-06 18:51:31'),
+(145, 1, 'Logged out from the system', '2026-01-06 19:14:08'),
+(146, 6, 'Logged in to the system', '2026-01-06 19:14:16'),
+(147, 6, 'Logged out from the system', '2026-01-06 19:19:35'),
+(148, 1, 'Logged in to the system', '2026-01-06 19:19:58'),
+(149, 1, 'Logged out from the system', '2026-01-06 20:20:52'),
+(150, 1, 'Logged in to the system', '2026-01-06 20:23:34'),
+(151, 1, 'Logged in to the system', '2026-01-06 20:28:41');
 
 -- --------------------------------------------------------
 
@@ -384,7 +413,9 @@ CREATE TABLE `issuance` (
   `document_type` varchar(100) NOT NULL,
   `purpose` text NOT NULL,
   `price` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `print_attempts` int(11) DEFAULT 0,
   `status` varchar(50) DEFAULT 'Pending',
+  `approved_date` datetime DEFAULT NULL,
   `payment_status` varchar(50) DEFAULT 'Unpaid',
   `request_date` datetime DEFAULT current_timestamp(),
   `date_released` datetime DEFAULT NULL,
@@ -400,14 +431,14 @@ CREATE TABLE `issuance` (
 -- Dumping data for table `issuance`
 --
 
-INSERT INTO `issuance` (`issuance_id`, `resident_id`, `request_control_no`, `document_type`, `purpose`, `price`, `status`, `payment_status`, `request_date`, `date_released`, `business_name`, `business_location`, `processed_by`, `print_token`, `print_expiry`, `download_count`) VALUES
-(1, 3, 'REQ-0001', 'Barangay Clearance', 'Employment purposes', 50.00, 'Pending', 'Unpaid', '2026-01-05 10:32:39', NULL, NULL, NULL, NULL, NULL, NULL, 0),
-(2, 3, 'REQ-20260105-9612', 'Barangay Clearance', 'for enrollment', 50.00, 'Pending', 'Unpaid', '2026-01-05 18:54:34', NULL, NULL, NULL, NULL, NULL, NULL, 0),
-(3, 3, 'REQ-20260105-F505', 'Barangay Clearance', 'for apply job', 50.00, 'Pending', 'For Verification', '2026-01-05 18:55:23', NULL, NULL, NULL, NULL, NULL, NULL, 0),
-(4, 3, 'REQ-20260105-B09F', 'Certificate of Residency', 'sdas', 50.00, 'Pending', 'Unpaid', '2026-01-05 18:56:49', NULL, NULL, NULL, NULL, NULL, NULL, 0),
-(5, 3, 'REQ-20260105-D117', 'Certificate of Residency', 'dad', 50.00, 'Pending', 'Unpaid', '2026-01-05 18:59:11', NULL, NULL, NULL, NULL, NULL, NULL, 0),
-(6, 3, 'REQ-20260105-9140', 'Barangay Clearance', 'dsada', 50.00, 'Pending', 'Unpaid', '2026-01-05 18:59:59', NULL, NULL, NULL, NULL, NULL, NULL, 0),
-(7, 3, 'REQ-20260105-AF52', 'Barangay Clearance', 'dsada', 50.00, 'Pending', 'For Verification', '2026-01-05 19:02:58', NULL, NULL, NULL, NULL, NULL, NULL, 0);
+INSERT INTO `issuance` (`issuance_id`, `resident_id`, `request_control_no`, `document_type`, `purpose`, `price`, `print_attempts`, `status`, `approved_date`, `payment_status`, `request_date`, `date_released`, `business_name`, `business_location`, `processed_by`, `print_token`, `print_expiry`, `download_count`) VALUES
+(1, 3, 'REQ-0001', 'Barangay Clearance', 'Employment purposes', 50.00, 0, 'Pending', NULL, 'Unpaid', '2026-01-05 10:32:39', NULL, NULL, NULL, NULL, NULL, NULL, 0),
+(2, 3, 'REQ-20260105-9612', 'Barangay Clearance', 'for enrollment', 50.00, 0, 'Pending', NULL, 'Unpaid', '2026-01-05 18:54:34', NULL, NULL, NULL, NULL, NULL, NULL, 0),
+(3, 3, 'REQ-20260105-F505', 'Barangay Clearance', 'for apply job', 50.00, 0, 'Pending', NULL, 'For Verification', '2026-01-05 18:55:23', NULL, NULL, NULL, NULL, NULL, NULL, 0),
+(4, 3, 'REQ-20260105-B09F', 'Certificate of Residency', 'sdas', 50.00, 0, 'Pending', NULL, 'Unpaid', '2026-01-05 18:56:49', NULL, NULL, NULL, NULL, NULL, NULL, 0),
+(5, 3, 'REQ-20260105-D117', 'Certificate of Residency', 'dad', 50.00, 0, 'Pending', NULL, 'Unpaid', '2026-01-05 18:59:11', NULL, NULL, NULL, NULL, NULL, NULL, 0),
+(6, 3, 'REQ-20260105-9140', 'Barangay Clearance', 'dsada', 50.00, 0, 'Pending', NULL, 'Unpaid', '2026-01-05 18:59:59', NULL, NULL, NULL, NULL, NULL, NULL, 0),
+(7, 3, 'REQ-20260105-AF52', 'Barangay Clearance', 'dsada', 50.00, 0, 'Pending', NULL, 'For Verification', '2026-01-05 19:02:58', NULL, NULL, NULL, NULL, NULL, NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -601,7 +632,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `announcements`
 --
 ALTER TABLE `announcements`
-  MODIFY `announcement_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `announcement_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `barangay_officials`
@@ -625,7 +656,7 @@ ALTER TABLE `complaints`
 -- AUTO_INCREMENT for table `complaint_conversations`
 --
 ALTER TABLE `complaint_conversations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `financial_records`
@@ -649,7 +680,7 @@ ALTER TABLE `health_records`
 -- AUTO_INCREMENT for table `history_logs`
 --
 ALTER TABLE `history_logs`
-  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=132;
+  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=152;
 
 --
 -- AUTO_INCREMENT for table `issuance`
