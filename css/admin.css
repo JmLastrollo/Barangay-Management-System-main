@@ -416,7 +416,7 @@ body.modal-open {
     overflow: hidden;
     transition: transform 0.3s ease;
     background-color: #fff;
-    margin-top: 40px; /* Spacing from top */
+    margin-top: 5px; /* Spacing from top */
 }
 
 .backup-card:hover {
@@ -435,7 +435,7 @@ body.modal-open {
 .backup-icon-wrapper {
     background: #e9f7ef;
     width: 100px;
-    height: 100px;
+    height: 50px;
     border-radius: 50%;
     display: flex;
     align-items: center;
