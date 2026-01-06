@@ -44,6 +44,7 @@ body {
     
     flex-shrink: 0; /* IMPORTANT: Prevent header from shrinking */
     z-index: 10;
+    transition: all 0.3s ease;
 }
 
 .header-title { 
@@ -246,8 +247,7 @@ body {
 .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
 .calendar-day { padding: 10px 0; font-size: 14px; border-radius: 6px; }
 
-/* --- DITO ANG PAGBABAGO PARA SA HIGHLIGHT --- */
-/* Pinalitan ang .today ng .calendar-day.active */
+/* Highlight */
 .calendar-day.active { 
     background: #FFD54F; 
     color: #0D47A1; 
@@ -276,17 +276,6 @@ body {
 }
 .timeline-event strong { color: #1565C0; display: block; margin-bottom: 3px; font-size: 14px; }
 .timeline-event small { display: block; color: #666; font-size: 12px; }
-
-/* Responsive */
-@media (max-width: 1400px) { 
-    .issuances-grid { grid-template-columns: repeat(2, 1fr); } 
-}
-
-@media (max-width: 992px) {
-    #sidebar { margin-left: -240px; } 
-    #main-content { margin-left: 0; width: 100%; }
-    .top-info { flex-direction: column; }
-}
 
 /* ================================================== */
 /* RESIDENT LIST & MODAL STYLES (NEW)                 */
@@ -460,3 +449,124 @@ body.modal-open {
     transform: scale(1.05);
     box-shadow: 0 4px 10px rgba(25, 135, 84, 0.3);
 }
+
+/* ================================================== */
+/* MOBILE RESPONSIVE FIXES (UPDATED)                  */
+/* ================================================== */
+
+/* Sidebar Overlay - Para sa dilim na background pag open ng menu sa mobile */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999; /* Below sidebar (1000) but above content */
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+@media (max-width: 992px) {
+    /* 1. Sidebar Logic */
+    #sidebar {
+        margin-left: -240px; /* Hide by default */
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        z-index: 1000;
+        transition: margin-left 0.3s ease;
+        /* Sidebar styling should be in sidebar.css, but this controls visibility */
+    }
+
+    #sidebar.active {
+        margin-left: 0; /* Show when active */
+    }
+
+    /* 2. Main Content Reset */
+    #main-content {
+        margin-left: 0; 
+        width: 100%;
+    }
+
+    /* 3. Header Adjustments */
+    .header {
+        padding-left: 60px !important; /* Space for Hamburger Button */
+        padding-right: 15px;
+        height: 70px; /* Smaller Height */
+        background-position: center left;
+    }
+    
+    .header-title {
+        font-size: 18px; /* Smaller Title */
+        line-height: 1.2;
+    }
+
+    .header-logos img {
+        height: 40px; /* Smaller Logos */
+    }
+    
+    .header-logos {
+        gap: 8px;
+    }
+
+    /* 4. Content Area Adjustments */
+    .content {
+        padding: 15px;
+    }
+
+    /* Search Bar & Buttons Stacking */
+    .content > .d-flex {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 15px;
+    }
+
+    .search-box {
+        width: 100%;
+    }
+    
+    .action-buttons {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .action-buttons .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* 5. Dashboard Grid Adjustments */
+    .top-info {
+        flex-direction: column;
+    }
+
+    .stats-boxes {
+        flex-direction: column; /* Stack stats vertical */
+        gap: 15px;
+    }
+
+    .issuances-grid {
+        grid-template-columns: repeat(2, 1fr); /* 2 Columns on Tablet */
+    }
+}
+
+@media (max-width: 576px) {
+    /* Extra Small Screens */
+    .issuances-grid {
+        grid-template-columns: 1fr; /* 1 Column on Phone */
+    }
+    
+    .header-title {
+        font-size: 16px;
+    }
+}
+

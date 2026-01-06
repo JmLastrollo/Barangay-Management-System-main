@@ -50,15 +50,17 @@ try {
         </div>
 
         <div class="content">
-            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                 <div class="search-box">
                     <input type="text" id="searchInput" placeholder="Search staff name..." class="form-control" autocomplete="off">
                     <button type="button"><i class="bi bi-search"></i></button>
                 </div>
                 
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStaffModal">
-                    <i class="bi bi-person-plus-fill me-2"></i> Add New Staff
-                </button>
+                <div class="d-flex justify-content-end justify-content-lg-end"> 
+                    <button class="btn btn-primary d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#addStaffModal">
+                        <i class="bi bi-person-plus-fill"></i> Add New Staff
+                    </button>
+                </div>
             </div>
 
             <div class="table-responsive shadow-sm rounded">

@@ -102,7 +102,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_request'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Request Document - BMS</title>
     <link rel="icon" type="image/png" href="../../assets/img/Langkaan 2 Logo-modified.png">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../../css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../../css/sidebar.css">
     <link rel="stylesheet" href="../../css/resident.css"> 
@@ -222,7 +222,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_request'])) {
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/bootstrap.bundle.min.js"></script>
     
     <script>
         // --- TOAST NOTIFICATION SCRIPT (For Error cases on this page) ---

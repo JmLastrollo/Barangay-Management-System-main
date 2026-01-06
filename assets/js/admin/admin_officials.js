@@ -48,50 +48,66 @@ function checkUrlParams() {
     }
 }
 
-// --- 2. VIEW OFFICIAL ---
+// --- 2. VIEW OFFICIAL (FIXED) ---
 window.viewOfficial = function (data) {
+    // Set Text Data
     setText('v_name', data.full_name);
     setText('v_position', data.position);
     setText('v_term_start', formatDate(data.term_start));
     setText('v_term_end', (data.term_end && data.term_end !== '0000-00-00') ? formatDate(data.term_end) : 'Present');
 
+    // Set Status Badge
     const badge = document.getElementById('v_status_badge');
     if (badge) {
         badge.innerText = data.status;
         if (data.status === 'Active') {
-            badge.className = 'status-badge-custom';
+            badge.className = 'status-badge-custom badge bg-success px-3 py-2 rounded-pill';
         } else {
-            badge.className = 'status-badge-custom status-badge-inactive';
+            badge.className = 'status-badge-custom badge bg-secondary px-3 py-2 rounded-pill';
         }
     }
 
+    // --- IMAGE LOGIC FIXED ---
     const imgEl = document.getElementById('v_image');
-    const imgContainer = document.getElementById('v_image_container');
-    const defaultIcon = '../../assets/img/profile.jpg';
-    const initial = data.full_name.charAt(0).toUpperCase();
+    const initialsEl = document.getElementById('v_initials');
+    const container = document.getElementById('v_image_container');
 
-    if (imgEl && imgContainer) {
-        // Reset contents
-        imgContainer.innerHTML = ''; 
+    // 1. Reset muna natin lahat (Hide both, remove bg color)
+    if (imgEl) imgEl.style.display = 'none';
+    if (initialsEl) initialsEl.style.display = 'none';
+    if (container) container.style.backgroundColor = 'transparent'; // Alisin ang kulay pansamantala
 
-        if (data.image && data.image.trim() !== "") {
-            // Kung may image file
-            const img = document.createElement('img');
-            img.src = `../../uploads/officials/${data.image}`;
-            img.className = 'profile-img-view';
-            img.onerror = function() { this.src = defaultIcon; };
-            imgContainer.appendChild(img);
-        } else {
-            // Kung walang image, Initials lang
-            const div = document.createElement('div');
-            div.className = 'profile-initials';
-            div.innerText = initial;
-            imgContainer.appendChild(div);
+    // 2. Check kung may image ang official
+    if (data.image && data.image.trim() !== "") {
+        if (imgEl) {
+            // Lagyan ng timestamp para iwas cache issue ng browser
+            imgEl.src = `../../uploads/officials/${data.image}?t=${new Date().getTime()}`;
+            imgEl.style.display = 'block';
+
+            // Fallback: Kapag nasira ang image file, ipakita ang initials
+            imgEl.onerror = function() {
+                this.style.display = 'none';
+                showInitials(data.full_name, initialsEl, container);
+            };
         }
+    } else {
+        // Walang image -> Show Initials
+        showInitials(data.full_name, initialsEl, container);
     }
 
+    // Show Modal
     new bootstrap.Modal(document.getElementById('viewModal')).show();
 };
+
+// Helper function para sa Initials
+function showInitials(name, initialsEl, container) {
+    if (initialsEl && container) {
+        const letter = name ? name.charAt(0).toUpperCase() : '?';
+        initialsEl.innerText = letter;
+        initialsEl.style.display = 'block';
+        container.style.backgroundColor = '#6c757d'; // Gray background
+    }
+}
 
 // --- 3. EDIT OFFICIAL ---
 window.editOfficial = function (data) {

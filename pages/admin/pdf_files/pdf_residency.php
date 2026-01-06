@@ -1,152 +1,131 @@
 <?php
-require_once "../../../backend/auth_admin.php";  
-require_once "../../../backend/config.php";
-require_once "../../../backend/fpdf186/fpdf.php";
+require_once '../../../backend/db_connect.php';
+// Siguraduhin na tama ang path ng tcpdf.php
+require_once '../../../backend/tcpdf/tcpdf.php'; 
 
-class ResidencyPDF extends FPDF {
-    function Header(){
-        $leftLogo = __DIR__ . '/../../../assets/img/cdologo.png';
-        $rightLogo = __DIR__ . '/../../../assets/img/barangaygusalogo.png';
+// 1. GET DATA
+if (!isset($_GET['id'])) die("Error: ID missing.");
+$id = $_GET['id'];
 
-        if (file_exists($leftLogo)) $this->Image($leftLogo,10,8,28);
-        if (file_exists($rightLogo)) $this->Image($rightLogo,170,8,28);
+try {
+    $sql = "SELECT i.*, r.first_name, r.middle_name, r.last_name, r.civil_status, 
+                   r.purok, r.street, r.resident_since, p.amount, p.reference_no
+            FROM issuance i
+            JOIN resident_profiles r ON i.resident_id = r.resident_id
+            LEFT JOIN payments p ON i.issuance_id = p.issuance_id
+            WHERE i.issuance_id = :id";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute([':id' => $id]);
+    $data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$data) die("Record not found.");
+
+    // Format Data
+    $fullName = strtoupper($data['first_name'] . ' ' . $data['middle_name'] . ' ' . $data['last_name']);
+    $civilStatus = strtoupper($data['civil_status']);
+    $address = strtoupper("Block " . $data['purok'] . " Lot " . $data['street']);
+    
+    // Years Logic
+    $years = "____";
+    if(!empty($data['resident_since'])){
+        $diff = date("Y") - $data['resident_since'];
+        $years = ($diff < 1) ? "less than 1" : $diff;
+    }
+
+    $day = date('jS');
+    $monthYear = date('F Y');
+    $punongBarangay = "HON. ENRICO SANGO"; 
+
+} catch (PDOException $e) { die($e->getMessage()); }
+
+// 2. EXTEND TCPDF
+class MYPDF extends TCPDF {
+    public function Header() {
+        // Logo Path
+        $logoLeft = '../../../assets/img/Langkaan 2 Logo-modified.png';
+        $logoRight = '../../../assets/img/dasma logo-modified.png';
+
+        if(file_exists($logoLeft)) $this->Image($logoLeft, 15, 10, 25);
+        if(file_exists($logoRight)) $this->Image($logoRight, 170, 10, 25);
 
         $this->SetY(12);
-        $this->SetFont('Times','',10);
-        $this->Cell(0,5,'Republic of the Philippines',0,1,'C');
-        $this->Cell(0,5,'Province of Misamis Oriental',0,1,'C');
-        $this->Cell(0,5,'City of Cagayan de Oro',0,1,'C');
-
-        $this->SetFont('Times','B',12);
-        $this->Cell(0,6,'BARANGAY GUSA',0,1,'C');
-
+        $this->SetFont('helvetica', '', 10);
+        $this->Cell(0, 5, 'Republic of the Philippines', 0, 1, 'C');
+        $this->Cell(0, 5, 'Province of Cavite', 0, 1, 'C');
+        $this->Cell(0, 5, 'City of Dasmariñas', 0, 1, 'C');
+        $this->SetFont('helvetica', 'B', 12);
+        $this->Cell(0, 6, 'BARANGAY LANGKAAN II', 0, 1, 'C');
         $this->Ln(4);
-        $this->SetFont('Times','B',16);
-        $this->Cell(0,8,'OFFICE OF THE PUNONG BARANGAY',0,1,'C');
-        $this->Ln(6);
+        $this->SetLineWidth(0.5);
+        $this->Line(15, 42, 195, 42);
     }
 
-    function Footer(){
-        $this->SetY(-45);
-        $this->SetFont('Arial','',11);
-
-        $this->Cell(0,6,'',0,1);
-        $this->Cell(0,6,'______________________________',0,1,'R');
-        
-        $this->Cell(0,6,'Punong Barangay / Authorized Official',0,1,'R');
-
-        $this->Ln(5);
-        $this->SetFont('Arial','I',8);
-        $this->Cell(0,6,'This is a generated document from Barangay Management System',0,0,'C');
+    public function Footer() {
+        $this->SetY(-25);
+        $this->SetFont('helvetica', 'I', 8);
+        $this->Cell(0, 5, 'This is a system generated document.', 0, 1, 'C');
+        $this->Cell(0, 5, 'Page '.$this->getAliasNumPage().'/'.$this->getAliasNbPages(), 0, 0, 'R');
     }
 }
 
-$pdf = new ResidencyPDF('P','mm','A4');
+// 3. GENERATE PDF
+$pdf = new MYPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, 'LETTER', true, 'UTF-8', false);
+
+// Document Info
+$pdf->SetCreator('BMS');
+$pdf->SetAuthor('Barangay Langkaan II');
+$pdf->SetTitle('Certificate of Residency');
+$pdf->SetMargins(25, 50, 25); // Left, Top (para di matakpan header), Right
+$pdf->SetAutoPageBreak(TRUE, 25);
 $pdf->AddPage();
-$pdf->SetMargins(18, 10, 18);
-$pdf->SetFont('Times','',12);
 
-// Data
-$name = strtoupper(trim(
-    $residentArr['first_name'].' '.
-    ($residentArr['middle_name'] ?? '').' '.
-    ($residentArr['last_name'] ?? '')
-));
-
-$purok = $residentArr['purok'] ?? 'N/A';
-$years = 'N/A';
-if (!empty($residentArr['resident_since'])) {
-    $startYear = (int)$residentArr['resident_since'];
-    $currentYear = (int)date("Y");
-    $years = $currentYear - $startYear; 
-}
-
-$civil_status = strtolower($residentArr['civil_status'] ?? 'N/A');
-$issueDay = date('jS');
-$issueMonthYear = strtoupper(date('F Y'));
-
-$pdf->Ln(8);
-
-// Title
-$pdf->SetFont('Times','B',18);
-$pdf->Cell(0,8,'CERTIFICATE OF RESIDENCY',0,1,'C');
+// TITLE
+$pdf->SetFont('times', 'B', 24);
+$pdf->Cell(0, 10, 'CERTIFICATE OF RESIDENCY', 0, 1, 'C');
 $pdf->Ln(10);
 
-// --- BODY ---
+// BODY CONTENT (HTML)
+$pdf->SetFont('times', '', 12);
 
-// TO WHOM IT MAY CONCERN (BOLD)
-$pdf->SetFont('Times','B',12);
-$pdf->Cell(0,7,'TO WHOM IT MAY CONCERN:',0,1);
-$pdf->Ln(5);
+$html = '
+<p><strong>TO WHOM IT MAY CONCERN:</strong></p>
+<br><br>
+<p style="text-align:justify; line-height: 1.5;">
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This is to certify that <b><u>'.$fullName.'</u></b>, of legal age, '.$civilStatus.', Filipino citizen, is a <b>PERMANENT RESIDENT</b> of this Barangay.
+<br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Based on records of this office, he/she has been residing at '.$address.', Barangay Langkaan II, Dasmariñas City for <b>'.$years.' year(s)</b>.
+<br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This certification is issued upon the request of the above-named person for whatever legal purpose it may serve.
+<br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Issued this <b>'.$day.'</b> day of <b>'.$monthYear.'</b> at Barangay Langkaan II, Dasmariñas City, Cavite.
+</p>';
 
-// Switch back to normal
-$pdf->SetFont('Times','',12);
+$pdf->writeHTML($html, true, false, true, false, '');
 
-// Paragraph with 8mm indent
-$pdf->Cell(8);
-$pdf->Write(7,"This is to certify that ");
+// SIGNATORY
+$pdf->Ln(30);
+$pdf->SetFont('times', 'B', 12);
 
-// Name (BOLD + UNDERLINE)
-$pdf->SetFont('Times','BU',12);
-$pdf->Write(7, "___" . $name . "___");
+// Gamit ang Table sa loob ng writeHTML para sa signature layout
+$signatory = '
+<table border="0" style="width:100%">
+    <tr>
+        <td style="width:40%"></td>
+        <td style="width:60%; text-align:center;">
+            <b>'.$punongBarangay.'</b><br>
+            <span style="font-weight:normal; font-size:11px;">Punong Barangay</span>
+        </td>
+    </tr>
+</table>';
 
-// Continue sentence
-$pdf->SetFont('Times','',12);
-$pdf->Write(7,", legal age, single/");
-$pdf->Write(7, $civil_status);
+$pdf->writeHTML($signatory, true, false, false, false, '');
 
-$pdf->Write(7,", Filipino citizen whose specimen signature appears below, is a ");
+// FOOTER DETAILS (OR No.)
+$pdf->SetY(-40);
+$pdf->SetFont('times', '', 10);
+$pdf->Cell(0, 5, "O.R. No: " . ($data['reference_no'] ?? 'N/A'), 0, 1);
+$pdf->Cell(0, 5, "Amount Paid: " . number_format($data['amount'] ?? 0, 2), 0, 1);
+$pdf->Cell(0, 5, "Date Issued: " . date('Y-m-d'), 0, 1);
 
-$pdf->SetFont('Times','BU',12);
-$pdf->Write(7, "PERMANENT RESIDENCE");
-
-// Continue sentence
-$pdf->SetFont('Times','',12);
-$pdf->Write(7," of this barangay. \n\n");
-
-
-// Continue
-$pdf->SetFont('Times','',12);
-$pdf->Cell(8);
-$pdf->Write(7," Based on this office's records he/she has been residing at ");
-
-$pdf->SetFont('Times','BU',12);
-$pdf->Write(7, $purok);
-
-$pdf->SetFont('Times','',12);
-$pdf->Write(7," of Barangay Gusa, Cagayan de Oro for ");
-
-$pdf->SetFont('Times','BU',12);
-$pdf->Write(7, $years);
-$pdf->SetFont('Times','',12);
-$pdf->Write(7," years. \n\n");
-
-// Indented second part
-$pdf->SetFont('Times','',12);
-$pdf->Cell(8);
-$pdf->Write(7,"This certification is issued upon request of the above-named person for whatever legal purposes it may serve.\n\n");
-
-// Final line
-$pdf->Cell(8);
-$pdf->Write(7,"Issued this ");
-
-// DATE (BU)
-$pdf->SetFont('Times','BU',12);
-$pdf->Write(7, $issueDay);
-
-$pdf->SetFont('Times','',12);
-$pdf->Write(7," day of ");
-
-// MONTH & YEAR (BU)
-$pdf->SetFont('Times','BU',12);
-$pdf->Write(7, $issueMonthYear);
-
-$pdf->SetFont('Times','',12);
-$pdf->Write(7,", at the Office of the Punong Barangay.");
-
-$pdf->Ln(20);
-
-// Output PDF
-$pdf->Output('I', 'Certificate_of_Residency_' . str_replace(' ', '_', $name) . '.pdf');
-exit;
+$pdf->Output('Certificate_Residency.pdf', 'I');
 ?>

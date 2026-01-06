@@ -12,9 +12,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     try {
-        if ($status === 'Received') {
+        // 1. Kapag 'Ready for Pickup', set approved_date = NOW()
+        if ($status === 'Ready for Pickup') {
+            $sql = "UPDATE issuance SET status = :status, approved_date = NOW() WHERE issuance_id = :id";
+        } 
+        // 2. Kapag 'Received', set date_released = NOW()
+        elseif ($status === 'Received') {
             $sql = "UPDATE issuance SET status = :status, date_released = NOW() WHERE issuance_id = :id";
-        } else {
+        } 
+        // 3. Normal update para sa ibang status
+        else {
             $sql = "UPDATE issuance SET status = :status WHERE issuance_id = :id";
         }
 
@@ -31,5 +38,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     exit();
 }
-echo json_encode(['status' => 'error', 'message' => 'Invalid Request']);
 ?>

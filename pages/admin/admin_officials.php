@@ -263,8 +263,10 @@ try {
                     <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
                 </div>
                 
-                <div class="profile-img-container" id="v_image_container">
-                    <img id="v_image" src="" class="profile-img-view">
+                <div class="profile-img-container d-flex align-items-center justify-content-center" id="v_image_container" style="overflow: hidden;">
+                    <img id="v_image" src="" class="profile-img-view" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                    
+                    <span id="v_initials" class="fw-bold text-white" style="font-size: 3rem; display: none;"></span>
                 </div>
 
                 <div class="modal-body">

@@ -13,6 +13,7 @@ try {
     $resident_id = $resProfile['resident_id'];
 
     // Get Requests + Payment Details (JOIN)
+    // Note: Make sure 'approved_date' and 'print_attempts' are in your 'issuance' table
     $sql = "SELECT i.*, p.payment_method AS method, p.status AS pay_audit_status 
             FROM issuance i 
             LEFT JOIN payments p ON i.issuance_id = p.issuance_id 
@@ -44,8 +45,8 @@ try {
     <style>
         .status-badge { font-size: 0.75rem; font-weight: 700; padding: 5px 12px; border-radius: 20px; text-transform: uppercase; }
         .status-Pending { background: #fff3cd; color: #856404; }
-        .status-Approved { background: #cce5ff; color: #004085; }
-        .status-Released { background: #d4edda; color: #155724; }
+        .status-ReadyforPickup { background: #cce5ff; color: #004085; } /* Updated Class Name */
+        .status-Received { background: #d4edda; color: #155724; }
         .status-Rejected { background: #f8d7da; color: #721c24; }
 
         .pay-badge { font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 4px; }
@@ -89,21 +90,43 @@ try {
                                     <th>Price</th>
                                     <th>Payment Status</th>
                                     <th class="text-center">Req Status</th>
-                                </tr>
+                                    <th class="text-center">Action</th> </tr>
                             </thead>
                             <tbody>
                                 <?php if(empty($requests)): ?>
-                                    <tr><td colspan="5" class="text-center py-5 text-muted">No requests found.</td></tr>
+                                    <tr><td colspan="6" class="text-center py-5 text-muted">No requests found.</td></tr>
                                 <?php else: ?>
                                     <?php foreach ($requests as $req): 
-                                        $reqStatusClass = 'status-' . ($req['status'] ?? 'Pending');
-                                        
-                                        // Clean up Payment Status
-                                        $payStat = str_replace(' ', '', $req['payment_status'] ?? 'Unpaid');
-                                        $payStatusClass = 'pay-' . $payStat;
-                                        
-                                        $payMethod = $req['method'] ? $req['method'] : 'Cash / Pickup';
-                                        if ($req['price'] == 0) $payMethod = 'Free';
+                                        // 1. Prepare Variables
+                                        $status = $req['status'];
+                                        $payMethod = $req['method'] ?? 'Cash'; // galing sa query: p.payment_method AS method
+                                        $price = $req['price'];
+                                        $printAttempts = $req['print_attempts'] ?? 0;
+                                        $approvedDate = $req['approved_date'];
+
+                                        // 2. Check Expiration (48 hours)
+                                        $isExpired = false;
+                                        if ($approvedDate) {
+                                            $appTime = new DateTime($approvedDate);
+                                            $currTime = new DateTime();
+                                            $diff = $currTime->diff($appTime);
+                                            $hours = ($diff->days * 24) + $diff->h;
+                                            if ($hours > 48) $isExpired = true;
+                                        }
+
+                                        // 3. Determine if Print Button should show
+                                        // Show IF: Ready for Pickup AND (Online Payment OR Free) AND Not Expired AND Not Printed Yet
+                                        $showPrint = false;
+                                        if ($status === 'Ready for Pickup' && 
+                                            ($payMethod === 'Online Payment' || $price == 0) && 
+                                            !$isExpired && 
+                                            $printAttempts < 1) {
+                                            $showPrint = true;
+                                        }
+
+                                        // Styles
+                                        $statusClass = 'status-' . str_replace(' ', '', $status);
+                                        $payClass = 'pay-' . str_replace(' ', '', $req['payment_status'] ?? 'Unpaid');
                                     ?>
                                     <tr>
                                         <td class="fw-bold text-primary small">
@@ -111,19 +134,46 @@ try {
                                             <div class="small text-muted fw-normal"><?= date('M d, Y', strtotime($req['request_date'])) ?></div>
                                         </td>
                                         <td class="fw-bold"><?= htmlspecialchars($req['document_type']) ?></td>
-                                        <td>₱ <?= number_format($req['price'], 2) ?></td>
+                                        <td>₱ <?= number_format($price, 2) ?></td>
                                         
                                         <td>
                                             <div class="d-flex flex-column">
-                                                <span class="small fw-bold text-dark"><?= htmlspecialchars($payMethod) ?></span>
-                                                <span class="pay-badge <?= $payStatusClass ?> w-auto d-inline-block mt-1 text-center" style="max-width: 120px;">
-                                                    <?= htmlspecialchars($req['payment_status']) ?>
+                                                <span class="small fw-bold text-dark"><?= htmlspecialchars($req['method'] ?? 'Cash / Pickup') ?></span>
+                                                <span class="pay-badge <?= $payClass ?> w-auto d-inline-block mt-1 text-center">
+                                                    <?= htmlspecialchars($req['payment_status'] ?? 'Unpaid') ?>
                                                 </span>
                                             </div>
                                         </td>
 
                                         <td class="text-center">
-                                            <span class="status-badge <?= $reqStatusClass ?>"><?= htmlspecialchars($req['status']) ?></span>
+                                            <span class="status-badge <?= $statusClass ?>"><?= htmlspecialchars($status) ?></span>
+                                        </td>
+
+                                        <td class="text-center">
+                                            <?php if($showPrint): ?>
+                                                <a href="check_print_limit.php?id=<?= $req['issuance_id'] ?>" 
+                                                target="_blank" 
+                                                class="btn btn-primary btn-sm rounded-pill px-3"
+                                                onclick="return confirm('Reminder: You can only print/download this ONCE. The link expires in 48 hours. Ensure your printer is ready. Proceed?');">
+                                                <i class="bi bi-printer-fill"></i> Print
+                                                </a>
+                                                <div class="text-danger fw-bold mt-1" style="font-size:10px;">Valid: 48hrs</div>
+
+                                            <?php elseif($status === 'Ready for Pickup' && $payMethod === 'Cash' && $price > 0): ?>
+                                                <span class="badge bg-info text-dark border border-info">Pick up at Barangay</span>
+
+                                            <?php elseif($printAttempts >= 1 && $payMethod === 'Online Payment'): ?>
+                                                <span class="badge bg-secondary"><i class="bi bi-check-circle"></i> Printed</span>
+
+                                            <?php elseif($isExpired && $status === 'Ready for Pickup' && $payMethod === 'Online Payment'): ?>
+                                                <span class="badge bg-danger">Link Expired</span>
+
+                                            <?php elseif($status === 'Received'): ?>
+                                                <span class="text-success small fw-bold"><i class="bi bi-check-all"></i> Completed</span>
+
+                                            <?php else: ?>
+                                                <span class="text-muted small">-</span>
+                                            <?php endif; ?>
                                         </td>
                                     </tr>
                                     <?php endforeach; ?>
@@ -149,7 +199,7 @@ try {
         </div>
     </div>
     
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>

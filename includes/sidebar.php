@@ -5,11 +5,11 @@ $current_page = basename($_SERVER['PHP_SELF']);
 // 1. DEFINE PAGE GROUPS
 $staff_pages    = ['staff_list.php', 'staff_history.php', 'staff_add.php']; 
 $account_pages  = ['resident_list.php', 'resident_history.php', 'resident_archive.php'];
-$issuance_pages = ['admin_issuance.php', 'admin_issuance_approved.php', 'admin_issuance_archive.php', 'admin_issuance_print.php'];
 
-// Updated: Blotter Group (Replaces Records)
+// Updated: Issuance Group (Kasama pa rin ang archive/print para mag-highlight ang menu pag nasa pages na yun)
+$issuance_pages = ['admin_issuance.php', 'admin_issuance_archive.php', 'admin_issuance_print.php'];
+
 $blotter_pages  = ['admin_rec_blotter.php', 'admin_rec_complaints.php', 'admin_rec_blotter_archive.php', 'admin_rec_complaints_archive.php'];
-
 $health_pages   = ['health_dashboard.php', 'patient_records.php'];
 $archive_pages  = ['archives.php', 'admin_announcement_archive.php', 'admin_officials_archive.php', 'admin_rec_blotter_archive.php', 'admin_rec_complaints_archive.php'];
 
@@ -17,7 +17,7 @@ $archive_pages  = ['archives.php', 'admin_announcement_archive.php', 'admin_offi
 $is_staff_active    = in_array($current_page, $staff_pages);
 $is_account_active  = in_array($current_page, $account_pages);
 $is_issuance_active = in_array($current_page, $issuance_pages);
-$is_blotter_active  = in_array($current_page, $blotter_pages); // New active check
+$is_blotter_active  = in_array($current_page, $blotter_pages); 
 $is_health_active   = in_array($current_page, $health_pages);
 $is_archive_active  = in_array($current_page, $archive_pages);
 
@@ -43,8 +43,23 @@ if (isset($_SESSION['user_id'])) {
 }
 ?>
 
+<style>
+    @media (max-width: 992px) {
+        .header {
+            /* Magdagdag ng space sa kaliwa para sa menu button sa mobile view */
+            padding-left: 70px !important; 
+        }
+    }
+</style>
+
+<button class="btn text-white d-lg-none position-fixed top-0 start-0 mt-3 ms-3" 
+        style="z-index: 1050; font-size: 1.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.5);" 
+        onclick="toggleSidebar()">
+    <i class="bi bi-list"></i>
+</button>
+
 <nav id="sidebar">
-    <div class="sidebar-header">
+    <div class="sidebar-header position-relative">
         <div class="admin-profile-img">
             <img src="<?= htmlspecialchars($sideImg) ?>" alt="Admin" style="object-fit: cover;">
         </div>
@@ -52,6 +67,10 @@ if (isset($_SESSION['user_id'])) {
             <h6 class="mb-0 fw-bold text-white"><?= htmlspecialchars($sideName) ?></h6>
             <span class="text-white-50 small"><?= htmlspecialchars($sidePos) ?></span>
         </div>
+
+        <button class="btn btn-sm text-white d-lg-none position-absolute top-50 end-0 translate-middle-y me-2" onclick="toggleSidebar()">
+            <i class="bi bi-x-lg fs-5"></i>
+        </button>
     </div>
 
     <div class="sidebar-sticky">
@@ -118,21 +137,9 @@ if (isset($_SESSION['user_id'])) {
             </li>
 
             <li class="nav-item">
-                <a class="nav-link d-flex justify-content-between align-items-center <?= $is_issuance_active ? 'active' : 'collapsed' ?>" 
-                   data-bs-toggle="collapse" 
-                   href="#issuanceSubmenu"
-                   role="button"
-                   aria-expanded="<?= $is_issuance_active ? 'true' : 'false' ?>"
-                   aria-controls="issuanceSubmenu">
-                    <div><i class="bi bi-file-earmark-text-fill me-2"></i> Issuance</div>
-                    <i class="bi bi-chevron-down small"></i>
+                <a class="nav-link <?= $is_issuance_active ? 'active' : '' ?>" href="admin_issuance.php">
+                    <i class="bi bi-file-earmark-text-fill me-2"></i> Issuance
                 </a>
-                <div class="collapse <?= $is_issuance_active ? 'show' : '' ?>" id="issuanceSubmenu" data-bs-parent="#accordionSidebar">
-                    <ul class="nav flex-column ms-3 submenu">
-                        <li><a class="nav-link small <?= $current_page == 'admin_issuance.php' ? 'active' : '' ?>" href="admin_issuance.php">Docs. Requests</a></li>
-                        <li><a class="nav-link small <?= $current_page == 'admin_issuance_approved.php' ? 'active' : '' ?>" href="admin_issuance_approved.php">Approved / History</a></li>
-                    </ul>
-                </div>
             </li>
 
             <li class="nav-item">
@@ -201,6 +208,8 @@ if (isset($_SESSION['user_id'])) {
     </div>
 </nav>
 
+<div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
 <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -218,3 +227,15 @@ if (isset($_SESSION['user_id'])) {
         </div>
     </div>
 </div>
+
+<script>
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.querySelector('.sidebar-overlay');
+        
+        if(sidebar && overlay) {
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+    }
+</script>
