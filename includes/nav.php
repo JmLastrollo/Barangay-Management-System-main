@@ -19,7 +19,6 @@
                 <li class="nav-item"><a class="nav-link" href="index.php">Home</a></li>
                 <li class="nav-item"><a class="nav-link" href="announcement.php">Announcement</a></li>
                 <li class="nav-item"><a class="nav-link" href="officials.php">Officials</a></li>
-                <li class="nav-item"><a class="nav-link" href="issuance.php">Issuance</a></li>
                 <li class="nav-item"><a class="nav-link" href="contact.php">Contact</a></li>
                 <li class="nav-item"><a class="nav-link" href="calendar.php">Calendar</a></li>
                 
