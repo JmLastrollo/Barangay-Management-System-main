@@ -1,51 +1,32 @@
 <?php
 session_start();
-require_once "db_connect.php"; // Gamitin ang MySQL Connection
-require_once "log_audit.php";
+require_once 'db_connect.php';
+require_once 'log_audit.php';
 
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    // Kunin ang data galing sa form
-    $complainant = trim($_POST["complainant"]);
-    $respondent = trim($_POST["respondent"]);
-    $type = $_POST["incident_type"];
-    $location = trim($_POST["incident_location"]);
-    $date = $_POST["date"];
-    $details = trim($_POST["details"]);
-    $status = "Pending";
-    $status_archive = "Active";
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $complainant = $_POST['complainant'];
+    $respondent = $_POST['respondent'];
+    $type = $_POST['incident_type'];
+    $date = $_POST['date'];
+    $location = $_POST['incident_location'];
+    $details = $_POST['details'];
+    $recorded_by = $_SESSION['user_id'] ?? null;
 
     try {
-        // SQL Insert Command
-        $sql = "INSERT INTO blotter_records (complainant, respondent, incident_type, incident_location, incident_date, narrative, status, status_archive) 
-                VALUES (:comp, :resp, :type, :loc, :date, :narr, :stat, :arch)";
-        
-        $stmt = $conn->prepare($sql);
-        $stmt->execute([
-            ':comp' => $complainant,
-            ':resp' => $respondent,
-            ':type' => $type,
-            ':loc'  => $location,
-            ':date' => $date,
-            ':narr' => $details,
-            ':stat' => $status,
-            ':arch' => $status_archive
-        ]);
+        $stmt = $conn->prepare("INSERT INTO blotter_records (complainant, respondent, incident_type, incident_date, incident_location, narrative, status, status_archive, recorded_by) VALUES (?, ?, ?, ?, ?, ?, 'Pending', 'Active', ?)");
+        $stmt->execute([$complainant, $respondent, $type, $date, $location, $details, $recorded_by]);
 
-        // Audit Log
         if (isset($_SESSION['user_id'])) {
-            logActivity($conn, $_SESSION['user_id'], "Added new blotter case: $type ($complainant vs $respondent)");
+            logActivity($conn, $_SESSION['user_id'], "Added new blotter case: $type");
         }
 
-        // Set Toast Message
-        $_SESSION['toast'] = ['type' => 'success', 'msg' => 'Blotter case recorded successfully!'];
+        $_SESSION['toast'] = ['msg' => 'Blotter record added successfully!', 'type' => 'success'];
+        header("Location: ../pages/admin/admin_rec_blotter.php");
+        exit();
 
     } catch (PDOException $e) {
-        // Error Toast
-        $_SESSION['toast'] = ['type' => 'error', 'msg' => 'Failed to add record: ' . $e->getMessage()];
+        $_SESSION['toast'] = ['msg' => 'Error: ' . $e->getMessage(), 'type' => 'error'];
+        header("Location: ../pages/admin/admin_rec_blotter.php");
     }
-
-    // Redirect pabalik
-    header("Location: ../pages/admin/admin_rec_blotter.php");
-    exit();
 }
 ?>

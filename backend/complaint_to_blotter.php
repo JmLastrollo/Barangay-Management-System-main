@@ -1,23 +1,20 @@
 <?php
 session_start();
 require_once 'db_connect.php';
-require_once 'log_audit.php'; // Para sa history logs
+require_once 'log_audit.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['complaint_id'])) {
-    $complaint_id = $_POST['complaint_id'];
+    $id = $_POST['complaint_id'];
 
     try {
-        // 1. Kunin ang details ng Complaint
-        $stmtGet = $conn->prepare("SELECT * FROM complaints WHERE complaint_id = ?");
-        $stmtGet->execute([$complaint_id]);
-        $comp = $stmtGet->fetch(PDO::FETCH_ASSOC);
+        // 1. Get Complaint Data
+        $stmt = $conn->prepare("SELECT * FROM complaints WHERE complaint_id = ?");
+        $stmt->execute([$id]);
+        $comp = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($comp) {
-            // 2. I-insert ang data sa Blotter Records (Kopyahin ang data)
-            $sqlInsert = "INSERT INTO blotter_records 
-                (complainant, respondent, incident_type, incident_date, incident_location, narrative, status, status_archive) 
-                VALUES (?, ?, ?, ?, ?, ?, 'Pending', 'Active')";
-            
+            // 2. Insert to Blotter
+            $sqlInsert = "INSERT INTO blotter_records (complainant, respondent, incident_type, incident_date, incident_location, narrative, status, status_archive) VALUES (?, ?, ?, ?, ?, ?, 'Pending', 'Active')";
             $stmtInsert = $conn->prepare($sqlInsert);
             $stmtInsert->execute([
                 $comp['complainant_name'],
@@ -28,30 +25,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['complaint_id'])) {
                 $comp['details']
             ]);
 
-            // 3. I-update ang status ng Complaint para alam na na-process na
+            // 3. Update Complaint Status
             $stmtUpdate = $conn->prepare("UPDATE complaints SET status = 'Processed' WHERE complaint_id = ?");
-            $stmtUpdate->execute([$complaint_id]);
+            $stmtUpdate->execute([$id]);
 
-            // 4. Mag-log sa History
             if (isset($_SESSION['user_id'])) {
-                $action = "Converted Complaint #" . $complaint_id . " to Official Blotter Record";
-                logActivity($conn, $_SESSION['user_id'], $action);
+                logActivity($conn, $_SESSION['user_id'], "Filed Complaint #$id to Official Blotter");
             }
 
-            // Success Redirect
-            $_SESSION['toast'] = ['msg' => 'Complaint successfully filed to Blotter!', 'type' => 'success'];
-            header("Location: ../pages/admin/admin_rec_complaints.php");
-            exit();
+            $_SESSION['toast'] = ['msg' => 'Complaint successfully filed as Blotter Case!', 'type' => 'success'];
         } else {
-            throw new Exception("Complaint record not found.");
+            $_SESSION['toast'] = ['msg' => 'Complaint record not found.', 'type' => 'error'];
         }
-
     } catch (Exception $e) {
         $_SESSION['toast'] = ['msg' => 'Error: ' . $e->getMessage(), 'type' => 'error'];
-        header("Location: ../pages/admin/admin_rec_complaints.php");
-        exit();
     }
-} else {
     header("Location: ../pages/admin/admin_rec_complaints.php");
     exit();
 }

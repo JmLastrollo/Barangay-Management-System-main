@@ -282,7 +282,7 @@ $incidents = $stmt->fetchAll(PDO::FETCH_ASSOC);
             new bootstrap.Modal(document.getElementById('archiveModal')).show();
         }
 
-        // --- TOAST NOTIFICATION LOGIC ---
+        // --- TOAST NOTIFICATION LOGIC ADDED ---
         <?php if(isset($_SESSION['toast'])): ?>
             const toastEl = document.getElementById('liveToast');
             const toastMsg = document.getElementById('toastMessage');

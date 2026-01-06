@@ -280,6 +280,7 @@ $complaints = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <script src="../../assets/js/bootstrap.bundle.min.js"></script>
     <script>
+        // --- 1. VIEW MODAL ---
         function openViewModal(data) {
             document.getElementById('v_cname').innerText = data.complainant_name;
             document.getElementById('v_contact').innerText = data.contact_no ? 'Contact: ' + data.contact_no : 'Email: ' + data.email;
@@ -291,6 +292,7 @@ $complaints = $stmt->fetchAll(PDO::FETCH_ASSOC);
             new bootstrap.Modal(document.getElementById('viewModal')).show();
         }
 
+        // --- 2. CHAT MODAL LOGIC ---
         let currentComplaintId = null;
         let chatInterval = null;
 
@@ -372,17 +374,19 @@ $complaints = $stmt->fetchAll(PDO::FETCH_ASSOC);
             });
         });
 
+        // --- 3. FILE TO BLOTTER ---
         function openFileToBlotterModal(id) {
             document.getElementById('blotter_complaint_id').value = id;
             new bootstrap.Modal(document.getElementById('fileBlotterModal')).show();
         }
 
+        // --- 4. ARCHIVE ---
         function openArchiveModal(id) {
             document.getElementById('archive_id').value = id;
             new bootstrap.Modal(document.getElementById('archiveModal')).show();
         }
 
-        // --- TOAST NOTIFICATION LOGIC ---
+        // --- TOAST NOTIFICATION LOGIC ADDED ---
         <?php if(isset($_SESSION['toast'])): ?>
             const toastEl = document.getElementById('liveToast');
             const toastMsg = document.getElementById('toastMessage');
