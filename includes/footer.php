@@ -14,7 +14,7 @@
       <ul>
         <li><a href="index.php">About Barangay Langkaan II</a></li>
         <li><a href="officials.php">Officials</a></li>
-        <li><a href="announcements.php">Announcements</a></li>
+        <li><a href="announcement.php">Announcements</a></li>
         <li><a href="contact.php">Contact Us</a></li>
       </ul>
     </div>

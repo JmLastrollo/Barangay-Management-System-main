@@ -4,8 +4,11 @@ require_once 'db_connect.php';
 header('Content-Type: application/json');
 
 try {
-    // UPDATED TABLE NAME: resident_profiles
-    $sql = "SELECT * FROM resident_profiles WHERE status != 'Pending' ORDER BY last_name ASC";
+    
+    $sql = "SELECT * FROM resident_profiles 
+            WHERE status != 'Pending' 
+            AND user_id IS NOT NULL 
+            ORDER BY last_name ASC";
             
     $stmt = $conn->prepare($sql);
     $stmt->execute();

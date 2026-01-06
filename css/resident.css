@@ -523,7 +523,137 @@ body {
     background: #f8d7da; 
     color: #721c24; /* Red text */
 }
+/* ================================================== */
+/* PROFESSIONAL ISSUANCE STYLES                       */
+/* ================================================== */
 
+/* --- Card Styles --- */
+.card-professional {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    background: #fff;
+    transition: transform 0.2s;
+}
+
+.card-header-clean {
+    background: transparent;
+    border-bottom: 1px solid #f0f0f0;
+    padding: 20px 25px;
+}
+
+.card-title-modern {
+    font-weight: 700;
+    color: #2c3e50;
+    font-size: 1.25rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* --- Form Elements --- */
+.form-floating > .form-control,
+.form-floating > .form-select {
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.form-floating > .form-control:focus,
+.form-floating > .form-select:focus {
+    border-color: #198754; /* Barangay Green */
+    box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+}
+
+/* --- Price Display Box --- */
+.price-tag-box {
+    background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 10px rgba(32, 201, 151, 0.2);
+}
+
+.price-tag-box small {
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.9;
+    font-size: 0.8rem;
+}
+
+.price-tag-box h2 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin: 0;
+}
+
+/* --- Payment Section --- */
+.payment-card-option {
+    border: 2px solid #eee;
+    border-radius: 10px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.payment-card-option:hover {
+    border-color: #198754;
+    background-color: #f8fffb;
+}
+
+.payment-card-option.active {
+    border-color: #198754;
+    background-color: #f0fdf4;
+}
+
+/* --- File Upload --- */
+.file-upload-wrapper {
+    border: 2px dashed #cbd5e1;
+    border-radius: 10px;
+    padding: 30px;
+    text-align: center;
+    background: #f8fafc;
+    transition: border-color 0.3s;
+}
+
+.file-upload-wrapper:hover {
+    border-color: #198754;
+}
+
+/* --- Status Badges (Pill Shape) --- */
+.badge-status {
+    padding: 6px 12px;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+}
+
+.badge-pending { background-color: #fff3cd; color: #856404; }
+.badge-verified { background-color: #cff4fc; color: #055160; }
+.badge-ready { background-color: #d1e7dd; color: #0f5132; }
+.badge-rejected { background-color: #f8d7da; color: #842029; }
+
+/* --- Buttons --- */
+.btn-primary-modern {
+    background-color: #198754;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 25px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.btn-primary-modern:hover {
+    background-color: #157347;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(25, 135, 84, 0.3);
+}
 /* ================================================== */
 /* MOBILE RESPONSIVENESS (ADD-ON)                     */
 /* ================================================== */

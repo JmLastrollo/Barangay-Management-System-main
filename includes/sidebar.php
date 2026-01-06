@@ -6,12 +6,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
 $staff_pages    = ['staff_list.php', 'staff_history.php', 'staff_add.php']; 
 $account_pages  = ['resident_list.php', 'resident_history.php', 'resident_archive.php'];
 
-// Updated: Issuance Group (Kasama pa rin ang archive/print para mag-highlight ang menu pag nasa pages na yun)
-$issuance_pages = ['admin_issuance.php', 'admin_issuance_archive.php', 'admin_issuance_print.php'];
+// ADDED: Issuance Pages Group (Para gumana ang active status)
+$issuance_pages = ['manage_issuances.php', 'admin_issuance.php', 'admin_print.php', 'admin_issuance_archive.php'];
 
 $blotter_pages  = ['admin_rec_blotter.php', 'admin_rec_complaints.php', 'admin_rec_blotter_archive.php', 'admin_rec_complaints_archive.php'];
 $health_pages   = ['health_dashboard.php', 'patient_records.php'];
-$archive_pages  = ['archives.php', 'admin_announcement_archive.php', 'admin_officials_archive.php', 'admin_rec_blotter_archive.php', 'admin_rec_complaints_archive.php'];
+$archive_pages  = ['archives.php', 'admin_announcement_archive.php', 'admin_officials_archive.php'];
 
 // 2. CHECK ACTIVE STATUS
 $is_staff_active    = in_array($current_page, $staff_pages);
@@ -24,11 +24,21 @@ $is_archive_active  = in_array($current_page, $archive_pages);
 // GET ADMIN INFO
 if (isset($_SESSION['user_id'])) {
     if (!isset($admin_user)) {
-        require_once '../../backend/db_connect.php';
-        $uid = $_SESSION['user_id'];
-        $stmtSide = $conn->prepare("SELECT first_name, last_name, position FROM users WHERE user_id = :uid");
-        $stmtSide->execute([':uid' => $uid]);
-        $resSide = $stmtSide->fetch(PDO::FETCH_ASSOC);
+        // Fallback connection kung hindi pa naka-include
+        if (file_exists('../../backend/db_connect.php')) {
+            require_once '../../backend/db_connect.php';
+        } elseif (file_exists('../backend/db_connect.php')) {
+            require_once '../backend/db_connect.php';
+        }
+
+        if (isset($conn)) {
+            $uid = $_SESSION['user_id'];
+            $stmtSide = $conn->prepare("SELECT first_name, last_name, position FROM users WHERE user_id = :uid");
+            $stmtSide->execute([':uid' => $uid]);
+            $resSide = $stmtSide->fetch(PDO::FETCH_ASSOC);
+        } else {
+            $resSide = null;
+        }
     } else {
         $resSide = $admin_user;
     }
@@ -46,7 +56,6 @@ if (isset($_SESSION['user_id'])) {
 <style>
     @media (max-width: 992px) {
         .header {
-            /* Magdagdag ng space sa kaliwa para sa menu button sa mobile view */
             padding-left: 70px !important; 
         }
     }
@@ -137,7 +146,7 @@ if (isset($_SESSION['user_id'])) {
             </li>
 
             <li class="nav-item">
-                <a class="nav-link <?= $is_issuance_active ? 'active' : '' ?>" href="admin_issuance.php">
+                <a class="nav-link <?= $is_issuance_active ? 'active' : '' ?>" href="manage_issuances.php">
                     <i class="bi bi-file-earmark-text-fill me-2"></i> Issuance
                 </a>
             </li>
@@ -171,7 +180,7 @@ if (isset($_SESSION['user_id'])) {
             <li class="nav-item">
                 <a class="nav-link d-flex justify-content-between align-items-center <?= $is_health_active ? 'active' : 'collapsed' ?>" 
                    data-bs-toggle="collapse" 
-                   href="#healthSubmenu"
+                   href="#healthSubmenu" 
                    role="button"
                    aria-expanded="<?= $is_health_active ? 'true' : 'false' ?>"
                    aria-controls="healthSubmenu">

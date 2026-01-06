@@ -2,8 +2,8 @@
 // Kunin ang current page name
 $current_page = basename($_SERVER['PHP_SELF']);
 
-// Define Pages for Logic
-$issuance_pages = ['resident_rqs_service.php', 'issuance_table.php'];
+// --- FIXED PAGE GROUPS ---
+$issuance_pages = ['request_document.php', 'my_requests.php', 'resident_issuance.php']; 
 $health_pages   = ['resident_health_appointment.php', 'resident_health_history.php'];
 $blotter_pages  = ['resident_file_complaint.php', 'resident_blotter_history.php'];
 
@@ -14,20 +14,40 @@ $is_blotter_active  = in_array($current_page, $blotter_pages);
 
 // GET RESIDENT INFO (Profile & Name)
 if (isset($_SESSION['user_id'])) {
+    // Check if $resident is already set from parent page to avoid double query
     if (!isset($resident)) {
-        require_once '../../backend/db_connect.php';
-        $uid = $_SESSION['user_id'];
-        $stmtSide = $conn->prepare("SELECT first_name, last_name, image FROM resident_profiles WHERE user_id = :uid");
-        $stmtSide->execute([':uid' => $uid]);
-        $resSide = $stmtSide->fetch(PDO::FETCH_ASSOC);
+        // Fallback connection if not included
+        if (file_exists('../../backend/db_connect.php')) {
+            require_once '../../backend/db_connect.php';
+        } elseif (file_exists('../backend/db_connect.php')) {
+            require_once '../backend/db_connect.php';
+        }
+        
+        if (isset($conn)) {
+            $uid = $_SESSION['user_id'];
+            $stmtSide = $conn->prepare("SELECT * FROM resident_profiles WHERE user_id = :uid");
+            $stmtSide->execute([':uid' => $uid]);
+            $resSide = $stmtSide->fetch(PDO::FETCH_ASSOC);
+        } else {
+            $resSide = null;
+        }
     } else {
         $resSide = $resident;
     }
 
-    $sideName = ($resSide) ? $resSide['first_name'] . " " . $resSide['last_name'] : "Resident";
-    $sideImg = ($resSide && !empty($resSide['image'])) 
-        ? "../../uploads/residents/" . $resSide['image'] 
-        : "../../assets/img/profile.jpg";
+    if ($resSide) {
+        // Check First Name (handle different column naming conventions)
+        $fname = $resSide['firstname'] ?? $resSide['first_name'] ?? $resSide['fname'] ?? 'Resident';
+        $lname = $resSide['lastname'] ?? $resSide['last_name'] ?? $resSide['lname'] ?? '';
+        $sideName = trim($fname . " " . $lname);
+        
+        // Image logic
+        $img_name = $resSide['image'] ?? '';
+        $sideImg = (!empty($img_name)) ? "../../uploads/residents/" . $img_name : "../../assets/img/profile.jpg";
+    } else {
+        $sideName = "Resident";
+        $sideImg = "../../assets/img/profile.jpg";
+    }
 } else {
     $sideName = "Guest Resident";
     $sideImg = "../../assets/img/profile.jpg";
@@ -35,9 +55,9 @@ if (isset($_SESSION['user_id'])) {
 ?>
 
 <style>
+    /* Responsive Header Adjustment */
     @media (max-width: 992px) {
         .header {
-            /* Magdagdag ng space sa kaliwa para sa menu button */
             padding-left: 70px !important; 
         }
     }
@@ -95,12 +115,12 @@ if (isset($_SESSION['user_id'])) {
                 <div class="collapse <?= $is_issuance_active ? 'show' : '' ?>" id="serviceSubmenu" data-bs-parent="#accordionSidebar">
                     <ul class="nav flex-column ms-3 submenu">
                         <li>
-                            <a class="nav-link small <?= $current_page == 'resident_rqs_service.php' ? 'active' : '' ?>" href="resident_rqs_service.php">
+                            <a class="nav-link small <?= $current_page == 'request_document.php' ? 'active' : '' ?>" href="request_document.php">
                                 Request Document
                             </a>
                         </li>
                         <li>
-                            <a class="nav-link small <?= $current_page == 'issuance_table.php' ? 'active' : '' ?>" href="issuance_table.php">
+                            <a class="nav-link small <?= $current_page == 'my_requests.php' ? 'active' : '' ?>" href="my_requests.php">
                                 My Requests
                             </a>
                         </li>

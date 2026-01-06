@@ -59,54 +59,88 @@ $transactions = $conn->query($sql)->fetchAll(PDO::FETCH_ASSOC);
             padding: 30px;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 8px 20px rgba(13, 110, 253, 0.3);
+            box-shadow: 0 10px 25px rgba(13, 110, 253, 0.3);
+            border: 1px solid rgba(255,255,255,0.1);
         }
-        .balance-card h1 { font-size: 3.5rem; font-weight: 800; margin: 0; font-family: 'Consolas', monospace; }
-        .balance-card .label { text-transform: uppercase; letter-spacing: 2px; font-size: 0.9rem; opacity: 0.9; }
+        .balance-card h1 { font-size: 3.5rem; font-weight: 800; margin: 0; font-family: 'Segoe UI', sans-serif; letter-spacing: -1px; }
+        .balance-card .label { text-transform: uppercase; letter-spacing: 2px; font-size: 0.85rem; opacity: 0.8; font-weight: 600; }
         .balance-card .icon-bg {
             position: absolute;
-            right: -20px; bottom: -20px;
-            font-size: 8rem; opacity: 0.15;
-            transform: rotate(-10deg);
+            right: -20px; bottom: -30px;
+            font-size: 9rem; opacity: 0.1;
+            transform: rotate(-15deg);
         }
 
         .mini-stat-card {
             background: white;
-            border: 1px solid #e9ecef;
-            border-radius: 12px;
+            border: 1px solid #f0f0f0;
+            border-radius: 15px;
             padding: 20px;
             display: flex;
             align-items: center;
-            transition: transform 0.2s;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
         }
-        .mini-stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.05); }
+        .mini-stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        
         .icon-box {
-            width: 50px; height: 50px;
-            border-radius: 10px;
+            width: 55px; height: 55px;
+            border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
             font-size: 1.5rem; margin-right: 15px;
+            flex-shrink: 0;
         }
-        .icon-income { background: #d1e7dd; color: #198754; }
-        .icon-expense { background: #f8d7da; color: #dc3545; }
+        .icon-income { background: linear-gradient(135deg, #d1e7dd, #a3cfbb); color: #0f5132; }
+        .icon-expense { background: linear-gradient(135deg, #f8d7da, #f1aeb5); color: #842029; }
         
-        .amount-small { font-weight: 700; font-size: 1.5rem; font-family: 'Consolas', monospace; }
+        .amount-small { font-weight: 700; font-size: 1.6rem; color: #2c3e50; line-height: 1.2; }
 
-        /* Action Buttons */
+        /* --- UPDATED BUTTON STYLES --- */
         .btn-action {
-            padding: 12px 25px;
+            padding: 10px 24px;
             border-radius: 50px;
             font-weight: 600;
-            display: flex; align-items: center; gap: 8px;
-            transition: all 0.3s;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        .btn-income { background-color: #198754; color: white; border: none; }
-        .btn-income:hover { background-color: #157347; box-shadow: 0 4px 12px rgba(25, 135, 84, 0.4); }
         
-        .btn-expense { background-color: #dc3545; color: white; border: none; }
-        .btn-expense:hover { background-color: #bb2d3b; box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4); }
+        /* Add Income Button */
+        .btn-income { 
+            background: linear-gradient(135deg, #198754, #20c997); 
+            color: white; 
+            box-shadow: 0 4px 15px rgba(25, 135, 84, 0.3);
+        }
+        .btn-income:hover { 
+            background: linear-gradient(135deg, #157347, #198754); 
+            transform: translateY(-2px); 
+            box-shadow: 0 6px 20px rgba(25, 135, 84, 0.4);
+            color: white;
+        }
+        
+        /* Add Expense Button */
+        .btn-expense { 
+            background: linear-gradient(135deg, #dc3545, #ef5350); 
+            color: white; 
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+        }
+        .btn-expense:hover { 
+            background: linear-gradient(135deg, #bb2d3b, #dc3545); 
+            transform: translateY(-2px); 
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+            color: white;
+        }
 
-        .table-amount { font-family: 'Consolas', monospace; font-weight: 600; }
+        .btn-action i { font-size: 1.1rem; }
+
+        .table-amount { font-family: 'Consolas', monospace; font-weight: 700; letter-spacing: -0.5px; }
         .text-inc { color: #198754; }
         .text-exp { color: #dc3545; }
     </style>
@@ -120,32 +154,32 @@ $transactions = $conn->query($sql)->fetchAll(PDO::FETCH_ASSOC);
             <h1 class="header-title">FINANCIAL <span class="green">OVERVIEW</span></h1>
         </div>
 
-        <div class="content">
+        <div class="content container-fluid pb-5">
             
             <div class="row g-4 mb-4">
                 <div class="col-lg-6">
                     <div class="balance-card h-100 d-flex flex-column justify-content-center">
                         <span class="label">Total Available Fund</span>
                         <h1>₱ <?= number_format($balance, 2) ?></h1>
-                        <div class="mt-2 small"><i class="bi bi-shield-check me-1"></i> Audited & Verified</div>
-                        <i class="bi bi-wallet2 icon-bg"></i>
+                        <div class="mt-2 small"><i class="bi bi-check-circle-fill me-1"></i> Updated Real-time</div>
+                        <i class="bi bi-wallet-fill icon-bg"></i>
                     </div>
                 </div>
 
                 <div class="col-lg-6">
                     <div class="d-flex flex-column gap-3 h-100">
                         <div class="mini-stat-card h-50">
-                            <div class="icon-box icon-income"><i class="bi bi-graph-up-arrow"></i></div>
+                            <div class="icon-box icon-income"><i class="bi bi-arrow-down-left"></i></div>
                             <div>
-                                <small class="text-muted text-uppercase fw-bold">Total Collections</small>
-                                <div class="amount-small text-dark">₱ <?= number_format($total_collection, 2) ?></div>
+                                <small class="text-muted text-uppercase fw-bold" style="font-size: 0.75rem;">Total Collections</small>
+                                <div class="amount-small">₱ <?= number_format($total_collection, 2) ?></div>
                             </div>
                         </div>
                         <div class="mini-stat-card h-50">
-                            <div class="icon-box icon-expense"><i class="bi bi-graph-down-arrow"></i></div>
+                            <div class="icon-box icon-expense"><i class="bi bi-arrow-up-right"></i></div>
                             <div>
-                                <small class="text-muted text-uppercase fw-bold">Total Expenses</small>
-                                <div class="amount-small text-dark">₱ <?= number_format($total_expense, 2) ?></div>
+                                <small class="text-muted text-uppercase fw-bold" style="font-size: 0.75rem;">Total Expenses</small>
+                                <div class="amount-small">₱ <?= number_format($total_expense, 2) ?></div>
                             </div>
                         </div>
                     </div>
@@ -154,23 +188,24 @@ $transactions = $conn->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-3 gap-3 bg-white p-3 rounded-4 shadow-sm">
                 <form method="GET" class="d-flex gap-2 w-100 w-md-auto">
-                    <select name="filter_type" class="form-select border-light bg-light fw-bold" onchange="this.form.submit()">
+                    <select name="filter_type" class="form-select border-0 bg-light fw-bold" style="min-width: 150px;" onchange="this.form.submit()">
                         <option value="All" <?= $filterType == 'All' ? 'selected' : '' ?>>All Transactions</option>
-                        <option value="Collection" <?= $filterType == 'Collection' ? 'selected' : '' ?>>Collections</option>
-                        <option value="Expense" <?= $filterType == 'Expense' ? 'selected' : '' ?>>Expenses</option>
+                        <option value="Collection" <?= $filterType == 'Collection' ? 'selected' : '' ?>>Collections Only</option>
+                        <option value="Expense" <?= $filterType == 'Expense' ? 'selected' : '' ?>>Expenses Only</option>
                     </select>
-                    <select name="sort_order" class="form-select border-light bg-light fw-bold" onchange="this.form.submit()">
-                        <option value="date_desc" <?= $sortOrder == 'date_desc' ? 'selected' : '' ?>>Latest</option>
+                    <select name="sort_order" class="form-select border-0 bg-light fw-bold" style="min-width: 150px;" onchange="this.form.submit()">
+                        <option value="date_desc" <?= $sortOrder == 'date_desc' ? 'selected' : '' ?>>Latest First</option>
+                        <option value="date_asc" <?= $sortOrder == 'date_asc' ? 'selected' : '' ?>>Oldest First</option>
                         <option value="amount_high" <?= $sortOrder == 'amount_high' ? 'selected' : '' ?>>Highest Amount</option>
                     </select>
                 </form>
 
-                <div class="d-flex gap-2">
-                    <button class="btn-action btn-income" onclick="openModal('Collection')">
-                        <i class="bi bi-plus-lg"></i> Add Income
+                <div class="d-flex gap-2 w-100 w-md-auto justify-content-end">
+                    <button class="btn-action btn-income w-100 w-md-auto" onclick="openModal('Collection')">
+                        <i class="bi bi-plus-circle-fill"></i> Add Income
                     </button>
-                    <button class="btn-action btn-expense" onclick="openModal('Expense')">
-                        <i class="bi bi-dash-lg"></i> Add Expense
+                    <button class="btn-action btn-expense w-100 w-md-auto" onclick="openModal('Expense')">
+                        <i class="bi bi-dash-circle-fill"></i> Add Expense
                     </button>
                 </div>
             </div>
@@ -181,11 +216,11 @@ $transactions = $conn->query($sql)->fetchAll(PDO::FETCH_ASSOC);
                         <table class="table table-hover align-middle mb-0">
                             <thead class="bg-light">
                                 <tr class="text-uppercase small text-muted">
-                                    <th>Date</th>
-                                    <th>Description</th>
-                                    <th>Type</th>
-                                    <th>Amount</th>
-                                    <th>Recorded By</th>
+                                    <th class="ps-4 py-3">Date</th>
+                                    <th class="py-3">Description</th>
+                                    <th class="py-3">Type</th>
+                                    <th class="py-3">Amount</th>
+                                    <th class="py-3">Recorded By</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -196,31 +231,31 @@ $transactions = $conn->query($sql)->fetchAll(PDO::FETCH_ASSOC);
                                         $isCol = ($row['transaction_type'] == 'Collection');
                                         $sign = $isCol ? '+' : '-';
                                         $color = $isCol ? 'text-inc' : 'text-exp';
+                                        $bgBadge = $isCol ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger';
+                                        $icon = $isCol ? 'bi-arrow-down-left' : 'bi-arrow-up-right';
                                     ?>
                                     <tr>
-                                        <td>
+                                        <td class="ps-4">
                                             <div class="fw-bold text-dark"><?= date('M d, Y', strtotime($row['transaction_date'])) ?></div>
                                             <small class="text-muted"><?= date('h:i A', strtotime($row['transaction_date'])) ?></small>
                                         </td>
                                         <td class="text-secondary fw-medium"><?= htmlspecialchars($row['description']) ?></td>
                                         <td>
-                                            <?php if($isCol): ?>
-                                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3">COLLECTION</span>
-                                            <?php else: ?>
-                                                <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3">EXPENSE</span>
-                                            <?php endif; ?>
+                                            <span class="badge <?= $bgBadge ?> rounded-pill px-3 py-2">
+                                                <i class="bi <?= $icon ?> me-1"></i><?= strtoupper($row['transaction_type']) ?>
+                                            </span>
                                         </td>
                                         <td class="table-amount <?= $color ?> fs-5">
                                             <?= $sign ?> ₱ <?= number_format($row['amount'], 2) ?>
                                         </td>
                                         <td>
                                             <div class="d-flex align-items-center">
-                                                <div class="bg-light rounded-circle text-center me-2" style="width:30px; height:30px; line-height:30px;">
-                                                    <i class="bi bi-person-fill text-muted"></i>
+                                                <div class="bg-light rounded-circle text-center me-2 d-flex align-items-center justify-content-center" style="width:32px; height:32px;">
+                                                    <i class="bi bi-person-fill text-secondary"></i>
                                                 </div>
-                                                <small class="text-muted">
+                                                <span class="small text-dark fw-bold">
                                                     <?= $row['first_name'] ? htmlspecialchars($row['first_name']) : 'Admin' ?>
-                                                </small>
+                                                </span>
                                             </div>
                                         </td>
                                     </tr>
@@ -237,9 +272,9 @@ $transactions = $conn->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 
     <div class="modal fade" id="financeModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
-            <form action="../../backend/finance_add.php" method="POST" class="modal-content border-0 shadow">
+            <form action="../../backend/finance_add.php" method="POST" class="modal-content border-0 shadow-lg rounded-4">
                 
-                <div class="modal-header text-white" id="modalHeader">
+                <div class="modal-header text-white border-0" id="modalHeader">
                     <h5 class="modal-title fw-bold" id="modalTitle"></h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
@@ -248,27 +283,27 @@ $transactions = $conn->query($sql)->fetchAll(PDO::FETCH_ASSOC);
                     <input type="hidden" name="transaction_type" id="transType">
 
                     <div class="mb-4">
-                        <label class="form-label fw-bold text-muted text-uppercase small">Amount (PHP)</label>
-                        <div class="input-group input-group-lg">
-                            <span class="input-group-text bg-light border-0 fw-bold">₱</span>
-                            <input type="number" step="0.01" name="amount" class="form-control bg-light border-0 fw-bold" placeholder="0.00" required>
+                        <label class="form-label fw-bold text-secondary small">AMOUNT (PHP)</label>
+                        <div class="input-group input-group-lg shadow-sm rounded-3">
+                            <span class="input-group-text bg-white border-end-0 text-muted">₱</span>
+                            <input type="number" step="0.01" name="amount" class="form-control border-start-0 fw-bold fs-4" placeholder="0.00" required>
                         </div>
                     </div>
 
                     <div class="mb-4">
-                        <label class="form-label fw-bold text-muted text-uppercase small">Description</label>
-                        <textarea name="description" class="form-control bg-light border-0" rows="3" placeholder="Enter details..." required></textarea>
+                        <label class="form-label fw-bold text-secondary small">DESCRIPTION</label>
+                        <textarea name="description" class="form-control shadow-sm" rows="3" placeholder="Enter transaction details..." required></textarea>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-bold text-muted text-uppercase small">Date</label>
-                        <input type="datetime-local" name="transaction_date" class="form-control bg-light border-0" value="<?= date('Y-m-d\TH:i') ?>" required>
+                        <label class="form-label fw-bold text-secondary small">DATE</label>
+                        <input type="datetime-local" name="transaction_date" class="form-control shadow-sm" value="<?= date('Y-m-d\TH:i') ?>" required>
                     </div>
                 </div>
 
-                <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn rounded-pill px-5 fw-bold text-white" id="modalSubmitBtn">Save</button>
+                <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn rounded-pill px-5 fw-bold text-white shadow-sm" id="modalSubmitBtn">Save Transaction</button>
                 </div>
             </form>
         </div>
@@ -297,13 +332,13 @@ $transactions = $conn->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 
             if (type === 'Collection') {
                 header.className = 'modal-header bg-success text-white';
-                title.innerHTML = '<i class="bi bi-wallet-fill me-2"></i> Add Collection (Income)';
-                submitBtn.className = 'btn btn-success rounded-pill px-5 fw-bold';
-                submitBtn.innerText = 'Save Income';
+                title.innerHTML = '<i class="bi bi-wallet2 me-2"></i> Add Income';
+                submitBtn.className = 'btn btn-success rounded-pill px-5 fw-bold shadow-sm';
+                submitBtn.innerText = 'Save Collection';
             } else {
                 header.className = 'modal-header bg-danger text-white';
-                title.innerHTML = '<i class="bi bi-cart-x-fill me-2"></i> Add Expense';
-                submitBtn.className = 'btn btn-danger rounded-pill px-5 fw-bold';
+                title.innerHTML = '<i class="bi bi-cart-x me-2"></i> Add Expense';
+                submitBtn.className = 'btn btn-danger rounded-pill px-5 fw-bold shadow-sm';
                 submitBtn.innerText = 'Save Expense';
             }
 

@@ -19,21 +19,28 @@ if (!$resident) { die("Error: Resident record not found."); }
 
 $resID = $resident['resident_id'];
 
-// 2. DASHBOARD ANALYTICS
-$stmtPending = $conn->prepare("SELECT COUNT(*) FROM issuance WHERE resident_id = :rid AND status = 'Pending'");
+// 2. DASHBOARD ANALYTICS (FIXED: Using 'document_issuances' table)
+
+// Pending Count
+$stmtPending = $conn->prepare("SELECT COUNT(*) FROM document_issuances WHERE resident_id = :rid AND status = 'Pending'");
 $stmtPending->execute([':rid' => $resID]);
 $pendingCount = $stmtPending->fetchColumn();
 
-$stmtPay = $conn->prepare("SELECT COUNT(*) FROM issuance WHERE resident_id = :rid AND status = 'Approved' AND payment_status = 'Unpaid'");
+// To Pay / Ready for Pickup Count
+// Note: Since wala kang 'payment_status' column sa table na ito, ginamit ko ang 'Ready for Pickup' 
+// bilang indicator na kailangan na itong asikasuhin o bayaran (kung Cash).
+$stmtPay = $conn->prepare("SELECT COUNT(*) FROM document_issuances WHERE resident_id = :rid AND status = 'Ready for Pickup'");
 $stmtPay->execute([':rid' => $resID]);
 $toPayCount = $stmtPay->fetchColumn();
 
-$stmtDone = $conn->prepare("SELECT COUNT(*) FROM issuance WHERE resident_id = :rid AND status = 'Released'");
+// Completed Count (Released)
+// Note: Sa schema mo, 'Released' ang status kapag tapos na.
+$stmtDone = $conn->prepare("SELECT COUNT(*) FROM document_issuances WHERE resident_id = :rid AND status = 'Released'");
 $stmtDone->execute([':rid' => $resID]);
 $doneCount = $stmtDone->fetchColumn();
 
-// 3. RECENT TRANSACTIONS
-$stmtRecent = $conn->prepare("SELECT * FROM issuance WHERE resident_id = :rid ORDER BY request_date DESC LIMIT 3");
+// 3. RECENT TRANSACTIONS (FIXED: Using 'requested_at' instead of 'created_at')
+$stmtRecent = $conn->prepare("SELECT * FROM document_issuances WHERE resident_id = :rid ORDER BY requested_at DESC LIMIT 3");
 $stmtRecent->execute([':rid' => $resID]);
 $recentTrans = $stmtRecent->fetchAll(PDO::FETCH_ASSOC);
 
@@ -54,7 +61,8 @@ $announcements = $stmtAnnounce->fetchAll(PDO::FETCH_ASSOC);
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../../css/sidebar.css">
     <link rel="stylesheet" href="../../css/resident.css"> 
-    <link rel="stylesheet" href="../../css/toast.css"> </head>
+    <link rel="stylesheet" href="../../css/toast.css"> 
+</head>
 <body>
 
     <?php include '../../includes/resident_sidebar.php'; ?>
@@ -96,7 +104,7 @@ $announcements = $stmtAnnounce->fetchAll(PDO::FETCH_ASSOC);
                     <div class="stat-card blue">
                         <div class="stat-info">
                             <h3><?= $toPayCount ?></h3>
-                            <p>To Pay</p>
+                            <p>To Pay / Pickup</p>
                         </div>
                         <div class="stat-icon-bg bg-blue-light"><i class="bi bi-wallet2"></i></div>
                     </div>
@@ -127,7 +135,7 @@ $announcements = $stmtAnnounce->fetchAll(PDO::FETCH_ASSOC);
                             </a>
                         </div>
                         <div class="col-md-6">
-                            <a href="issuance_table.php" class="action-card h-100 flex-row text-start p-3">
+                            <a href="my_requests.php" class="action-card h-100 flex-row text-start p-3">
                                 <div class="action-icon mb-0 me-3 fs-3"><i class="bi bi-clock-history"></i></div>
                                 <div>
                                     <div class="action-title">Transaction History</div>
@@ -158,14 +166,17 @@ $announcements = $stmtAnnounce->fetchAll(PDO::FETCH_ASSOC);
                     <h5 class="fw-bold text-secondary mb-3"><i class="bi bi-activity me-2"></i>Recent Transactions</h5>
                     <div class="activity-box">
                         <?php if(empty($recentTrans)): ?>
-                            <p class="text-center text-muted my-3">No recent transactions found.</p>
+                            <div class="text-center py-4 text-muted">
+                                <i class="bi bi-inbox fs-4 d-block mb-2"></i>
+                                No recent transactions found.
+                            </div>
                         <?php else: ?>
                             <?php foreach($recentTrans as $trans): 
                                 $statusColor = match($trans['status']) {
                                     'Pending' => 'dot-pending',
-                                    'Approved' => 'dot-approved',
+                                    'Ready for Pickup', 'Payment Verified' => 'dot-approved',
+                                    'Rejected', 'Expired' => 'dot-rejected',
                                     'Released' => 'dot-approved',
-                                    'Rejected' => 'dot-rejected',
                                     default => 'dot-pending'
                                 };
                             ?>
@@ -173,7 +184,7 @@ $announcements = $stmtAnnounce->fetchAll(PDO::FETCH_ASSOC);
                                 <div class="act-icon"><i class="bi bi-file-earmark-text"></i></div>
                                 <div class="act-details flex-grow-1">
                                     <h6><?= htmlspecialchars($trans['document_type']) ?></h6>
-                                    <small><?= date('M j, Y h:i A', strtotime($trans['request_date'])) ?></small>
+                                    <small><?= date('M j, Y h:i A', strtotime($trans['requested_at'])) ?></small>
                                 </div>
                                 <div class="text-end">
                                     <span class="badge bg-light text-dark border">
@@ -183,7 +194,7 @@ $announcements = $stmtAnnounce->fetchAll(PDO::FETCH_ASSOC);
                             </div>
                             <?php endforeach; ?>
                             <div class="text-center mt-3 pt-2 border-top">
-                                <a href="issuance_table.php" class="text-decoration-none small fw-bold">View All Transactions <i class="bi bi-arrow-right"></i></a>
+                                <a href="my_requests.php" class="text-decoration-none small fw-bold">View All Transactions <i class="bi bi-arrow-right"></i></a>
                             </div>
                         <?php endif; ?>
                     </div>
@@ -211,7 +222,7 @@ $announcements = $stmtAnnounce->fetchAll(PDO::FETCH_ASSOC);
                                 </div>
                                 <?php endforeach; ?>
                                 <div class="p-3 text-center bg-light">
-                                    <a href="../../see-more-announcement.php" class="btn btn-outline-primary btn-sm w-100 rounded-pill">View All Updates</a>
+                                    <a href="resident_announcements.php" class="btn btn-outline-primary btn-sm w-100 rounded-pill">View All Updates</a>
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -236,20 +247,13 @@ $announcements = $stmtAnnounce->fetchAll(PDO::FETCH_ASSOC);
     <script src="../../assets/js/bootstrap.bundle.min.js"></script>
     
     <script>
-        // Check for Login Welcome Session
         <?php if(isset($_SESSION['login_welcome'])): ?>
             const toastEl = document.getElementById('liveToast');
             const toastBody = document.getElementById('toastMessage');
-            
-            // Set message and color (Green for Success)
             toastBody.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i> Welcome back, <strong><?= htmlspecialchars($resident['first_name']) ?></strong>!';
             toastEl.classList.add('bg-success'); 
-            
-            // Show Toast
             const toast = new bootstrap.Toast(toastEl);
             toast.show();
-            
-            // Unset session variable so it won't show again on refresh
             <?php unset($_SESSION['login_welcome']); ?>
         <?php endif; ?>
     </script>
