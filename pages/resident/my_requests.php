@@ -11,7 +11,8 @@ $stmt->execute([$user_id]);
 $resident_id = $stmt->fetchColumn();
 
 // Fetch Requests
-$stmt = $conn->prepare("SELECT * FROM document_issuances WHERE resident_id = ? ORDER BY requested_at DESC");
+// FIXED: Changed table name to 'issuance' and column to 'request_date'
+$stmt = $conn->prepare("SELECT * FROM issuance WHERE resident_id = ? ORDER BY request_date DESC");
 $stmt->execute([$resident_id]);
 $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
@@ -89,7 +90,7 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <p class="text-muted small m-0 d-none d-md-block">Track your document requests</p>
             </div>
             
-            <a href="request_document.php" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm fw-bold">
+            <a href="resident_issuance.php" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm fw-bold">
                 <i class="bi bi-plus-lg me-1"></i> New Request
             </a>
         </div>
@@ -112,24 +113,30 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <?php foreach($requests as $req): 
                                     $statusClass = match($req['status']) {
                                         'Pending' => 'status-pending',
-                                        'Ready for Pickup' => 'status-ready',
-                                        'Released' => 'status-released',
-                                        'Rejected' => 'status-rejected',
+                                        'Ready for Pickup', 'Approved' => 'status-ready',
+                                        'Released', 'Completed' => 'status-released',
+                                        'Rejected', 'Cancelled' => 'status-rejected',
                                         default => 'status-pending'
                                     };
+                                    
+                                    // Handle missing keys gracefully
+                                    $controlNo = $req['request_control_no'] ?? '#'.$req['issuance_id'];
+                                    $price = $req['price'] ?? ($req['amount'] ?? 0); // Check 'price' or 'amount'
+                                    $requestDate = $req['request_date'] ?? ($req['requested_at'] ?? date('Y-m-d'));
+                                    $payMethod = $req['payment_method'] ?? 'Cash';
                                 ?>
                                 <tr>
                                     <td class="ps-4 fw-bold text-primary font-monospace small">
-                                        <?= htmlspecialchars($req['request_control_no'] ?? '#'.$req['issuance_id']) ?>
+                                        <?= htmlspecialchars($controlNo) ?>
                                     </td>
                                     <td>
                                         <div class="fw-bold text-dark small"><?= htmlspecialchars($req['document_type']) ?></div>
                                         <div class="text-muted d-block d-md-none" style="font-size: 0.7rem;">
-                                            <?= date('M d, Y', strtotime($req['requested_at'])) ?>
+                                            <?= date('M d, Y', strtotime($requestDate)) ?>
                                         </div>
                                     </td>
                                     <td class="d-none d-md-table-cell fw-bold text-secondary small">
-                                        ₱<?= number_format($req['amount'], 2) ?>
+                                        ₱<?= number_format($price, 2) ?>
                                     </td>
                                     <td>
                                         <span class="status-badge <?= $statusClass ?>"><?= $req['status'] ?></span>
@@ -140,7 +147,7 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                                 <i class="bi bi-eye-fill"></i> <span class="btn-text">View</span>
                                             </button>
                                             
-                                            <?php if($req['status'] == 'Ready for Pickup' && $req['payment_method'] == 'Online'): ?>
+                                            <?php if($req['status'] == 'Ready for Pickup' && $payMethod == 'Online'): ?>
                                                 <a href="print_document.php?id=<?= $req['issuance_id'] ?>" target="_blank" class="btn btn-success btn-action">
                                                     <i class="bi bi-printer-fill"></i> <span class="btn-text">Print</span>
                                                 </a>
@@ -204,8 +211,11 @@ function viewDetails(data) {
     document.getElementById('v_id').innerText = data.request_control_no || '#' + data.issuance_id;
     document.getElementById('v_type').innerText = data.document_type;
     document.getElementById('v_purpose').innerText = data.purpose;
-    document.getElementById('v_method').innerText = data.payment_method;
-    document.getElementById('v_amount').innerText = '₱' + parseFloat(data.amount).toFixed(2);
+    document.getElementById('v_method').innerText = data.payment_method || 'Cash';
+    
+    // Check for 'price' or 'amount' (handles different DB columns gracefully)
+    let amount = data.price || data.amount || 0;
+    document.getElementById('v_amount').innerText = '₱' + parseFloat(amount).toFixed(2);
     
     if(data.proof_of_payment) {
         document.getElementById('proof_row').style.display = 'block';

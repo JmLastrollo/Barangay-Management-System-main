@@ -5,14 +5,27 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'Staff') {
 }
 require_once '../../backend/db_connect.php';
 
-// Fetch Requests
-$sql = "SELECT i.*, r.first_name, r.last_name, r.contact_no 
-        FROM document_issuances i 
+// -------------------------------------------------------------
+// FIXED SQL QUERY
+// 1. Table name changed to 'issuance'
+// 2. Used 'request_date' for sorting (based on your table structure)
+// 3. Left Joined 'payments' table to get payment method
+// -------------------------------------------------------------
+$sql = "SELECT i.*, 
+        r.first_name, r.last_name, r.contact_no,
+        p.payment_method, p.amount as paid_amount, p.reference_no
+        FROM issuance i 
         JOIN resident_profiles r ON i.resident_id = r.resident_id 
+        LEFT JOIN payments p ON i.issuance_id = p.issuance_id
         WHERE i.status != 'Archived'
-        ORDER BY i.requested_at DESC";
-$stmt = $conn->query($sql);
-$requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        ORDER BY i.request_date DESC";
+
+try {
+    $stmt = $conn->query($sql);
+    $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    die("Database Error: " . $e->getMessage());
+}
 ?>
 
 <!DOCTYPE html>
@@ -27,7 +40,7 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <link rel="stylesheet" href="../../css/admin.css">
     <link rel="stylesheet" href="../../css/sidebar.css">
     <style>
-        /* --- Action Button --- */
+        /* --- Action Button Styles --- */
         .action-btn {
             width: 38px;
             height: 38px;
@@ -36,57 +49,23 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
             align-items: center;
             justify-content: center;
             border: none;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            transition: all 0.3s ease;
             margin: 0 3px;
-            position: relative;
             cursor: pointer;
             text-decoration: none;
         }
-
-        .action-btn i {
-            font-size: 1.1rem;
-            pointer-events: none;
-        }
-
-        .btn-view {
-            background-color: #eef2ff; 
-            color: #4361ee;
-        }
-
-        .btn-view:hover {
-            background-color: #4361ee;
-            color: #ffffff;
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.25);
-        }
-
-        .btn-print {
-            background-color: #ecfdf5; 
-            color: #10b981;
-        }
-
-        .btn-print:hover {
-            background-color: #10b981;
-            color: #ffffff;
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.25);
-        }
-        .action-btn:hover::after {
-            opacity: 1;
-            visibility: visible;
-        }
+        .btn-edit { background-color: #eef2ff; color: #4361ee; }
+        .btn-edit:hover { background-color: #4361ee; color: #ffffff; }
+        .btn-print { background-color: #ecfdf5; color: #10b981; }
+        .btn-print:hover { background-color: #10b981; color: #ffffff; }
+        
+        /* --- Badge Styles --- */
         .badge-status { padding: 6px 12px; border-radius: 30px; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; }
         .bg-pending { background-color: #fff3cd; color: #856404; }
         .bg-verified { background-color: #cff4fc; color: #055160; }
         .bg-ready { background-color: #d1e7dd; color: #0f5132; } 
         .bg-released { background-color: #cfe2ff; color: #084298; } 
         .bg-rejected { background-color: #f8d7da; color: #842029; }
-        
-        .btn-action { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; border: none; transition: all 0.2s; }
-        .btn-edit { background-color: #e2e6ea; color: #495057; } 
-        .btn-edit:hover { background-color: #ced4da; color: #212529; }
-        .btn-print { background-color: #198754; color: white; }
-        .btn-print:hover { background-color: #157347; color: white; }
     </style>
 </head>
 <body>
@@ -119,7 +98,7 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <th class="ps-4">Control No.</th>
                                     <th>Resident</th>
                                     <th>Document</th>
-                                    <th>Payment</th>
+                                    <th>Price / Method</th>
                                     <th>Status</th>
                                     <th class="text-center">Action</th>
                                 </tr>
@@ -131,13 +110,21 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <?php foreach($requests as $row): 
                                         $badgeClass = match($row['status']) {
                                             'Pending' => 'bg-pending',
-                                            'Payment Verified' => 'bg-verified',
+                                            'Payment Verified', 'Approved' => 'bg-verified',
                                             'Ready for Pickup' => 'bg-ready',
-                                            'Released' => 'bg-released',
+                                            'Released', 'Completed' => 'bg-released',
                                             'Rejected', 'Expired' => 'bg-rejected',
                                             default => 'bg-light text-dark'
                                         };
                                         $controlNo = $row['request_control_no'] ?? 'REQ-'.str_pad($row['issuance_id'], 4, '0', STR_PAD_LEFT);
+                                        
+                                        // HANDLE PRICE & METHOD (Using 'price' column from your table)
+                                        $price = $row['price'] ?? 0;
+                                        $method = $row['payment_method'] ?? 'Walk-in/Cash';
+                                        
+                                        // Prepare data for JS Modal
+                                        $row['final_price'] = $price;
+                                        $row['final_method'] = $method;
                                     ?>
                                     <tr>
                                         <td class="ps-4 fw-bold text-primary font-monospace small"><?= htmlspecialchars($controlNo) ?></td>
@@ -152,8 +139,8 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                             </small>
                                         </td>
                                         <td>
-                                            <div class="fw-bold text-secondary">₱<?= number_format($row['amount'], 2) ?></div>
-                                            <small class="badge bg-light text-dark border"><?= $row['payment_method'] ?></small>
+                                            <div class="fw-bold text-secondary">₱<?= number_format($price, 2) ?></div>
+                                            <small class="badge bg-light text-dark border"><?= htmlspecialchars($method) ?></small>
                                         </td>
                                         <td><span class="badge-status <?= $badgeClass ?>"><?= $row['status'] ?></span></td>
                                         <td class="text-center">
@@ -330,11 +317,17 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
         function openProcessModal(data) {
             document.getElementById('p_issuance_id').value = data.issuance_id;
             document.getElementById('p_resident').innerText = data.first_name + ' ' + data.last_name;
-            document.getElementById('p_payment').innerText = '₱' + parseFloat(data.amount).toFixed(2) + ' (' + data.payment_method + ')';
+            
+            // Use final_price and final_method from PHP preparation
+            let price = data.final_price || 0;
+            let method = data.final_method || 'Cash';
+            
+            document.getElementById('p_payment').innerText = '₱' + parseFloat(price).toFixed(2) + ' (' + method + ')';
             document.getElementById('p_status').value = data.status;
 
+            // Handle Proof Display (Check if proof_of_payment key exists in data)
             const proofDiv = document.getElementById('p_proof_container');
-            if (data.payment_method === 'Online' && data.proof_of_payment) {
+            if (data.final_method === 'Online' && data.proof_of_payment) {
                 proofDiv.style.display = 'block';
                 const imgSrc = '../../uploads/payments/' + data.proof_of_payment;
                 document.getElementById('p_proof_img').src = imgSrc;

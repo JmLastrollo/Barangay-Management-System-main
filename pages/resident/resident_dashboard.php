@@ -19,28 +19,25 @@ if (!$resident) { die("Error: Resident record not found."); }
 
 $resID = $resident['resident_id'];
 
-// 2. DASHBOARD ANALYTICS (FIXED: Using 'document_issuances' table)
+// 2. DASHBOARD ANALYTICS (FIXED: Table name 'issuance')
 
 // Pending Count
-$stmtPending = $conn->prepare("SELECT COUNT(*) FROM document_issuances WHERE resident_id = :rid AND status = 'Pending'");
+$stmtPending = $conn->prepare("SELECT COUNT(*) FROM issuance WHERE resident_id = :rid AND status = 'Pending'");
 $stmtPending->execute([':rid' => $resID]);
 $pendingCount = $stmtPending->fetchColumn();
 
 // To Pay / Ready for Pickup Count
-// Note: Since wala kang 'payment_status' column sa table na ito, ginamit ko ang 'Ready for Pickup' 
-// bilang indicator na kailangan na itong asikasuhin o bayaran (kung Cash).
-$stmtPay = $conn->prepare("SELECT COUNT(*) FROM document_issuances WHERE resident_id = :rid AND status = 'Ready for Pickup'");
+$stmtPay = $conn->prepare("SELECT COUNT(*) FROM issuance WHERE resident_id = :rid AND status = 'Ready for Pickup'");
 $stmtPay->execute([':rid' => $resID]);
 $toPayCount = $stmtPay->fetchColumn();
 
 // Completed Count (Released)
-// Note: Sa schema mo, 'Released' ang status kapag tapos na.
-$stmtDone = $conn->prepare("SELECT COUNT(*) FROM document_issuances WHERE resident_id = :rid AND status = 'Released'");
+$stmtDone = $conn->prepare("SELECT COUNT(*) FROM issuance WHERE resident_id = :rid AND status = 'Released'");
 $stmtDone->execute([':rid' => $resID]);
 $doneCount = $stmtDone->fetchColumn();
 
-// 3. RECENT TRANSACTIONS (FIXED: Using 'requested_at' instead of 'created_at')
-$stmtRecent = $conn->prepare("SELECT * FROM document_issuances WHERE resident_id = :rid ORDER BY requested_at DESC LIMIT 3");
+// 3. RECENT TRANSACTIONS (FIXED: Table 'issuance' & Column 'request_date')
+$stmtRecent = $conn->prepare("SELECT * FROM issuance WHERE resident_id = :rid ORDER BY request_date DESC LIMIT 3");
 $stmtRecent->execute([':rid' => $resID]);
 $recentTrans = $stmtRecent->fetchAll(PDO::FETCH_ASSOC);
 
@@ -126,7 +123,7 @@ $announcements = $stmtAnnounce->fetchAll(PDO::FETCH_ASSOC);
                     <h5 class="fw-bold text-secondary mb-3"><i class="bi bi-grid-fill me-2"></i>Quick Services</h5>
                     <div class="row g-3 mb-4">
                         <div class="col-md-6">
-                            <a href="resident_rqs_service.php" class="action-card h-100 flex-row text-start p-3">
+                            <a href="resident_issuance.php" class="action-card h-100 flex-row text-start p-3">
                                 <div class="action-icon mb-0 me-3 fs-3"><i class="bi bi-file-earmark-text"></i></div>
                                 <div>
                                     <div class="action-title">Request Document</div>
@@ -174,9 +171,9 @@ $announcements = $stmtAnnounce->fetchAll(PDO::FETCH_ASSOC);
                             <?php foreach($recentTrans as $trans): 
                                 $statusColor = match($trans['status']) {
                                     'Pending' => 'dot-pending',
-                                    'Ready for Pickup', 'Payment Verified' => 'dot-approved',
-                                    'Rejected', 'Expired' => 'dot-rejected',
-                                    'Released' => 'dot-approved',
+                                    'Ready for Pickup', 'Payment Verified', 'Approved' => 'dot-approved',
+                                    'Rejected', 'Expired', 'Cancelled' => 'dot-rejected',
+                                    'Released', 'Completed' => 'dot-approved',
                                     default => 'dot-pending'
                                 };
                             ?>
@@ -184,7 +181,7 @@ $announcements = $stmtAnnounce->fetchAll(PDO::FETCH_ASSOC);
                                 <div class="act-icon"><i class="bi bi-file-earmark-text"></i></div>
                                 <div class="act-details flex-grow-1">
                                     <h6><?= htmlspecialchars($trans['document_type']) ?></h6>
-                                    <small><?= date('M j, Y h:i A', strtotime($trans['requested_at'])) ?></small>
+                                    <small><?= date('M j, Y h:i A', strtotime($trans['request_date'])) ?></small>
                                 </div>
                                 <div class="text-end">
                                     <span class="badge bg-light text-dark border">
