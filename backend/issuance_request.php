@@ -2,9 +2,12 @@
 session_start();
 require_once 'db_connect.php';
 
+// Set Content Type to JSON
+header('Content-Type: application/json');
+
 // Security Check
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'Resident') {
-    header("Location: ../login.php");
+    echo json_encode(['status' => 'error', 'message' => 'Unauthorized access.']);
     exit();
 }
 
@@ -17,19 +20,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $resident = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if (!$resident) {
-        $_SESSION['toast'] = ['msg' => 'Resident profile not found.', 'type' => 'error'];
-        header("Location: ../pages/resident/request_document.php");
+        echo json_encode(['status' => 'error', 'message' => 'Resident profile not found.']);
         exit();
     }
     
     $resident_id = $resident['resident_id'];
     
     // 2. Sanitize Inputs
-    $doc_type = $_POST['document_type'];
-    $purpose = trim($_POST['purpose']);
-    $payment_method = $_POST['payment_method'];
+    $doc_type = $_POST['document_type'] ?? '';
+    $purpose = trim($_POST['purpose'] ?? '');
+    $payment_method = $_POST['payment_method'] ?? 'Cash';
     
-    // 3. Set Amount Based on Document Type
+    // 3. Set Amount Based on Document Type (Updated: Removed Business Clearance)
     $amount = 0;
     switch($doc_type) {
         case 'Barangay Clearance':
@@ -39,8 +41,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $amount = 0.00; // Free
             break;
         case 'Certificate of Residency':
-            $amount = 30.00;
+            $amount = 50.00;
             break;
+        default:
+            // Kapag wala sa tatlo ang pinili, error na ito.
+            echo json_encode(['status' => 'error', 'message' => 'Invalid document type selected.']);
+            exit();
     }
     
     // 4. Handle Online Payment Proof Upload
@@ -56,16 +62,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             
             if (in_array($ext, $allowed)) {
                 $proof_filename = 'proof_' . time() . '_' . uniqid() . '.' . $ext;
-                move_uploaded_file($_FILES['proof_of_payment']['tmp_name'], $uploadDir . $proof_filename);
+                if(!move_uploaded_file($_FILES['proof_of_payment']['tmp_name'], $uploadDir . $proof_filename)){
+                    echo json_encode(['status' => 'error', 'message' => 'Failed to upload proof of payment.']);
+                    exit();
+                }
             } else {
-                $_SESSION['toast'] = ['msg' => 'Invalid file type. Only JPG, PNG, PDF allowed.', 'type' => 'error'];
-                header("Location: ../pages/resident/request_document.php");
+                echo json_encode(['status' => 'error', 'message' => 'Invalid file type. Only JPG, PNG, PDF allowed.']);
                 exit();
             }
         } else {
-            $_SESSION['toast'] = ['msg' => 'Please upload proof of payment for online transactions.', 'type' => 'error'];
-            header("Location: ../pages/resident/request_document.php");
-            exit();
+            // Kung Indigency (Free), hindi required ang payment proof kahit naka-select na "Online" (edge case handle)
+            if ($amount > 0) {
+                echo json_encode(['status' => 'error', 'message' => 'Please upload proof of payment for online transactions.']);
+                exit();
+            }
         }
     }
     
@@ -77,14 +87,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt = $conn->prepare($sql);
         $stmt->execute([$resident_id, $doc_type, $purpose, $payment_method, $amount, $proof_filename]);
         
-        $_SESSION['toast'] = ['msg' => 'Document request submitted successfully!', 'type' => 'success'];
-        header("Location: ../pages/resident/my_requests.php");
+        echo json_encode([
+            'status' => 'success', 
+            'message' => 'Document request submitted successfully!'
+        ]);
         exit();
         
     } catch (PDOException $e) {
-        $_SESSION['toast'] = ['msg' => 'Error: ' . $e->getMessage(), 'type' => 'error'];
-        header("Location: ../pages/resident/request_document.php");
+        echo json_encode(['status' => 'error', 'message' => 'Database Error: ' . $e->getMessage()]);
         exit();
     }
+} else {
+    echo json_encode(['status' => 'error', 'message' => 'Invalid request method.']);
+    exit();
 }
 ?>

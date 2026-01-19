@@ -14,7 +14,6 @@ require_once 'backend/db_connect.php';
     <link rel="stylesheet" href="css/style.css" />
     
     <style>
-        /* Custom Timeline Styles */
         .timeline-event {
             border-left: 4px solid #3cbf4c;
             padding-left: 20px;
@@ -43,7 +42,6 @@ require_once 'backend/db_connect.php';
             background-color: #f8f9fa;
             border-bottom: 1px solid #e9ecef;
         }
-        /* Calendar Specifics */
         .calendar-nav .btn {
             width: 40px;
             height: 40px;
@@ -52,54 +50,49 @@ require_once 'backend/db_connect.php';
             align-items: center;
             justify-content: center;
         }
-        /* Grid Layout */
     .calendar-grid {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
-        gap: 8px; /* Agwat sa pagitan ng mga araw */
+        gap: 8px; 
         margin-top: 20px;
     }
 
-    /* Style ng Bawat Araw */
     .calendar-day {
-        height: 45px; /* Taas ng bilog/kahon */
-        width: 45px;  /* Lapad para maging pantay */
-        margin: 0 auto; /* Center sa loob ng grid cell */
+        height: 45px;
+        width: 45px; 
+        margin: 0 auto;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        border-radius: 50%; /* Gawing bilog */
-        position: relative; /* Importante para sa position ng dot */
+        border-radius: 50%;
+        position: relative;
         transition: background 0.2s, color 0.2s;
         font-size: 0.9rem;
     }
 
     .calendar-day:hover {
-        background-color: #e9ecef; /* Hover effect */
+        background-color: #e9ecef; 
     }
 
-    /* 1. HIGHLIGHT PARA SA PRESENT / TODAY */
     .calendar-day.active {
-        background-color: #3cbf4c; /* Kulay Green ng Barangay */
+        background-color: #3cbf4c;
         color: white;
         font-weight: bold;
         box-shadow: 0 3px 6px rgba(60, 191, 76, 0.4);
     }
 
-    /* 2. DOT PARA SA EVENT */
     .calendar-day.event::after {
         content: '';
         width: 6px;
         height: 6px;
-        background-color: #dc3545; /* Pulang tuldok para mapansin agad (o gawing orange) */
+        background-color: #dc3545;
         border-radius: 50%;
         position: absolute;
-        bottom: 4px; /* Ilagay sa ilalim ng numero */
+        bottom: 4px;
     }
 
-    /* Kung ang present day ay may event din, gawing puti ang tuldok para makita sa green background */
     .calendar-day.active.event::after {
         background-color: white;
     }
@@ -109,16 +102,16 @@ require_once 'backend/db_connect.php';
 
 <?php include 'includes/nav.php'; ?>
 
-<section class="header-banner text-center py-5">
-    <div class="container d-flex justify-content-center align-items-center gap-3 gap-md-5">
-        <img src="assets/img/dasma logo-modified.png" class="img-fluid" style="height: 80px;" alt="logo left">
+<section class="header-banner">
+        <img src="assets/img/dasma logo-modified.png" class="left-logo" alt="LGU Logo">
+        
         <div class="header-text">
-            <h1 class="fw-bold m-0 text-uppercase" style="letter-spacing: 2px;">Barangay Calendar</h1> 
-            <h5 class="text-muted m-0">Schedule of Events & Activities</h5>
+            <h1>Barangay Calendar</h1> 
+            <h3>Schedule of Events & Activities</h3>
         </div>
-        <img src="assets/img/Langkaan 2 Logo-modified.png" class="img-fluid" style="height: 80px;" alt="logo right">
-    </div>
-</section>
+        
+        <img src="assets/img/Langkaan 2 Logo-modified.png" class="right-logo" alt="Barangay Logo">
+    </section>
 
 <section class="calendar-container container py-5">
     <div class="row g-5">

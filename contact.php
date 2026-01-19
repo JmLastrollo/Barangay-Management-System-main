@@ -108,21 +108,43 @@ require_once 'backend/db_connect.php';
             </div>
         </div>
     </section>
+    
     <button onclick="topFunction()" id="backToTop" title="Go to top">
         <i class="bi bi-arrow-up"></i>
     </button>
+    
     <?php include('includes/footer.php'); ?>
 
 <script src="assets/js/bootstrap.bundle.min.js"></script>
+
+<?php if (isset($_SESSION['toast'])): ?>
+    <div class="toast-container position-fixed top-0 end-0 p-3 mt-5" style="z-index: 1100;">
+        <div id="liveToast" class="toast align-items-center text-white bg-<?= $_SESSION['toast']['type'] == 'success' ? 'success' : ($_SESSION['toast']['type'] == 'error' ? 'danger' : 'warning') ?> border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <?= $_SESSION['toast']['msg'] ?>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var toastEl = document.getElementById('liveToast');
+            var toast = new bootstrap.Toast(toastEl);
+            toast.show();
+        });
+    </script>
+    <?php unset($_SESSION['toast']); ?>
+<?php endif; ?>
+
 <script>
-    // Get the button
     let mybutton = document.getElementById("backToTop");
 
-    // Listen to scroll event
     window.onscroll = function() { scrollFunction() };
 
     function scrollFunction() {
-        // Show button if scrolled down 300px
         if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
             mybutton.style.display = "block";
         } else {
@@ -130,7 +152,6 @@ require_once 'backend/db_connect.php';
         }
     }
 
-    // Scroll to top when clicked
     function topFunction() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }

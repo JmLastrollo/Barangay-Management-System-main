@@ -2,17 +2,23 @@
 session_start();
 require_once 'backend/db_connect.php'; 
 
-$fullname = 'Resident';
-$email = $_SESSION['email'] ?? '';
+// 1. Initialize variables (Default is guest/not logged in)
+$is_logged_in = false;
+$fullname = ''; 
 
-if ($email) {
-    // MySQL Query
-    $stmt = $conn->prepare("SELECT * FROM resident_profiles WHERE email = :email");
-    $stmt->execute([':email' => $email]);
-    $resident = $stmt->fetch(PDO::FETCH_ASSOC);
+// 2. Check if user is logged in (Do NOT redirect, just check status)
+if (isset($_SESSION['user_id']) && $_SESSION['role'] === 'Resident') {
+    $is_logged_in = true;
+    $email = $_SESSION['email'] ?? '';
 
-    if ($resident) {
-        $fullname = trim($resident['first_name'] . ' ' . $resident['last_name']);
+    if ($email) {
+        $stmt = $conn->prepare("SELECT * FROM resident_profiles WHERE email = :email");
+        $stmt->execute([':email' => $email]);
+        $resident = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($resident) {
+            $fullname = trim($resident['first_name'] . ' ' . $resident['last_name']);
+        }
     }
 }
 ?>
@@ -27,10 +33,78 @@ if ($email) {
     <link rel="icon" type="image/png" href="assets/img/Langkaan 2 Logo-modified.png">
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/toast.css" />
+    <style>
+        .service-card {
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+        .service-card:hover {
+            transform: translateY(-5px);
+        }
+        .card-img-top {
+            height: 180px;
+            object-fit: cover;
+        }
+    </style>
 </head>
 <body>
 
 <?php include 'includes/nav.php'; ?>
+
+<section class="header-banner">
+    <img src="assets/img/dasma logo-modified.png" class="left-logo" alt="LGU Logo">
+    <div class="header-text">
+        <h1>Barangay Services</h1> 
+        <h3>Request Documents</h3>
+    </div>
+    <img src="assets/img/Langkaan 2 Logo-modified.png" class="right-logo" alt="Barangay Logo">
+</section>
+
+<section class="container py-5">
+    
+    <?php if($is_logged_in): ?>
+        <div class="alert alert-success mb-4">
+            Welcome back, <strong><?= htmlspecialchars($fullname) ?></strong>! Select a document below to request.
+        </div>
+    <?php endif; ?>
+
+    <div class="row justify-content-center g-4">
+        
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm service-card">
+                <img src="assets/img/clearance.png" class="card-img-top" alt="Clearance">
+                <div class="card-body text-center">
+                    <h5 class="fw-bold text-primary">Barangay Clearance</h5>
+                    <p class="text-muted small">For employment, postal ID, and other legal purposes.</p>
+                    <button class="btn btn-primary w-100 openRequestModal" data-doc="Barangay Clearance">Request Now</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm service-card">
+                <img src="assets/img/indigency.png" class="card-img-top" alt="Indigency">
+                <div class="card-body text-center">
+                    <h5 class="fw-bold text-primary">Certificate of Indigency</h5>
+                    <p class="text-muted small">For medical assistance, scholarship, and financial aid.</p>
+                    <button class="btn btn-primary w-100 openRequestModal" data-doc="Certificate of Indigency">Request Now</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm service-card">
+                <img src="assets/img/residency.png" class="card-img-top" alt="Residency">
+                <div class="card-body text-center">
+                    <h5 class="fw-bold text-primary">Certificate of Residency</h5>
+                    <p class="text-muted small">Proof of residency for bank opening, ID application, etc.</p>
+                    <button class="btn btn-primary w-100 openRequestModal" data-doc="Certificate of Residency">Request Now</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
 
 <div class="modal fade" id="requestModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered modal-md">
@@ -44,24 +118,27 @@ if ($email) {
         <div class="modal-body px-4">
           <p><strong>Full Name:</strong> <?= htmlspecialchars($fullname) ?></p>
 
-          <p><strong>Document Type:</strong> <span id="docTypeDisplay"></span></p>
+          <p><strong>Document Type:</strong> <span id="docTypeDisplay" class="fw-bold text-primary"></span></p>
           <input type="hidden" id="docType" name="document_type">
           <input type="hidden" id="docPrice" name="price">
 
           <div id="indigencyExtras" class="mt-3 d-none">
-            <label class="form-label fw-semibold">Purpose (Indigency Only)</label>
-            <input type="text" id="indigencyPurpose" name="purpose" class="form-control" placeholder="E.g. hospital, scholarship, etc.">
+            <label class="form-label fw-semibold">Specific Purpose (Required)</label>
+            <select id="indigencyPurpose" name="purpose" class="form-select">
+                <option value="" selected disabled>Select Purpose</option>
+                <option value="Medical Assistance">Medical Assistance</option>
+                <option value="Scholarship Application">Scholarship Application</option>
+                <option value="Financial Assistance">Financial Assistance</option>
+                <option value="Legal Assistance">Legal Assistance</option>
+                <option value="Others">Others</option>
+            </select>
           </div>
 
-          <div id="businessExtras" class="mt-3 d-none">
-            <label class="form-label fw-semibold">Business Name</label>
-            <input type="text" id="businessName" name="business_name" class="form-control" placeholder="Enter business name">
-            <label class="form-label mt-2 fw-semibold">Business Location</label>
-            <input type="text" id="businessLocation" name="business_location" class="form-control" placeholder="Enter business location">
+          <div id="generalReasonDiv">
+              <label class="form-label mt-3 fw-semibold">Purpose / Reason</label>
+              <textarea class="form-control" id="reasonField" name="reason" rows="3" placeholder="E.g. For Employment, Postal ID Requirement..."></textarea>
           </div>
-
-          <label class="form-label mt-3 fw-semibold">Purpose / Reason</label>
-          <textarea class="form-control" id="reasonField" name="reason" rows="3" placeholder="Enter reason..." required></textarea>
+          
         </div>
 
         <div class="modal-footer bg-light">
@@ -79,53 +156,66 @@ if ($email) {
 <script src="assets/js/bootstrap.bundle.min.js"></script>
 
 <script>
-// --- FIXED JAVASCRIPT ---
+// --- PASS PHP LOGIN STATUS TO JS ---
+const isLoggedIn = <?php echo json_encode($is_logged_in); ?>;
+
+// --- VARIABLES ---
 const docTypeSelect = document.getElementById('docType');
 const docPriceInput = document.getElementById('docPrice');
 const docTypeDisplay = document.getElementById('docTypeDisplay');
 const indigencyExtras = document.getElementById('indigencyExtras');
-const businessExtras = document.getElementById('businessExtras');
+const indigencyPurpose = document.getElementById('indigencyPurpose');
+const generalReasonDiv = document.getElementById('generalReasonDiv');
+const reasonField = document.getElementById('reasonField');
 const requestForm = document.getElementById('requestForm');
 
+// --- TOAST FUNCTION ---
 function showToast(message, type = "success") {
     const t = document.getElementById("toast");
     t.className = "toast"; 
     t.textContent = message;
-    t.classList.add(type === 'success' ? 'success' : 'error'); // Mapping to your CSS classes
+    t.classList.add(type === 'success' ? 'success' : 'error');
     t.classList.add("show");
     setTimeout(() => { t.classList.remove("show"); }, 3000);
 }
 
-// Open modal logic
+// --- OPEN MODAL LOGIC ---
 document.querySelectorAll('.openRequestModal').forEach(btn => {
-    btn.addEventListener('click', function () {
+    btn.addEventListener('click', function (e) {
+        
+        // CHECK IF LOGGED IN FIRST
+        if (!isLoggedIn) {
+            e.preventDefault();
+            // Redirect to Login if guest
+            window.location.href = 'login.php'; 
+            return;
+        }
+
+        // Standard Modal Logic (Only runs if logged in)
         const docType = this.dataset.doc;
         let price = 0;
 
-        // Set Price based on Type (Base sa Issuance Cards mo)
         if (docType === 'Barangay Clearance') price = 50;
-        else if (docType === 'Certificate of Indigency') price = 0; // Usually free
+        else if (docType === 'Certificate of Indigency') price = 0;
         else if (docType === 'Certificate of Residency') price = 50;
-        else if (docType === 'Barangay Business Clearance') price = 500; // Updated logic based on usual pricing
 
         docTypeSelect.value = docType;
         docPriceInput.value = price;
-        docTypeDisplay.innerText = docType + (price > 0 ? ` (₱${price})` : " (Free)");
+        docTypeDisplay.innerText = docType + (price > 0 ? ` (₱${price}.00)` : " (FREE)");
 
-        // Reset Fields
-        indigencyExtras.classList.add('d-none');
-        businessExtras.classList.add('d-none');
         requestForm.reset();
+        docTypeSelect.value = docType; 
         
-        // Re-set values after reset
-        docTypeSelect.value = docType;
-        docPriceInput.value = price;
+        indigencyExtras.classList.add('d-none');
+        generalReasonDiv.classList.remove('d-none');
+        indigencyPurpose.required = false;
+        reasonField.required = true;
 
         if(docType === 'Certificate of Indigency') {
             indigencyExtras.classList.remove('d-none');
-            document.getElementById('indigencyPurpose').required = true;
-        } else if(docType === 'Barangay Business Clearance') {
-            businessExtras.classList.remove('d-none');
+            generalReasonDiv.classList.add('d-none'); 
+            indigencyPurpose.required = true;
+            reasonField.required = false;
         }
 
         const modal = new bootstrap.Modal(document.getElementById('requestModal'));
@@ -133,35 +223,36 @@ document.querySelectorAll('.openRequestModal').forEach(btn => {
     });
 });
 
-// SUBMIT FORM using FormData (Matched to PHP $_POST)
+// --- SUBMIT LOGIC ---
 requestForm.addEventListener('submit', async e => {
     e.preventDefault();
 
     const formData = new FormData(requestForm);
-    
-    // Manual mapping for 'purpose' field logic
-    // If not Indigency, use the general 'reason' as purpose
     const docType = docTypeSelect.value;
-    const generalReason = document.getElementById('reasonField').value;
     
     if (docType !== 'Certificate of Indigency') {
-        formData.append('purpose', generalReason);
-    } 
-    // If Indigency, 'purpose' input is already in formData, we append reason as extra info if needed or just leave it.
+        formData.set('purpose', reasonField.value); 
+    }
 
     try {
         const res = await fetch("backend/issuance_request.php", {
             method: 'POST',
-            body: formData // Sends as multipart/form-data, PHP $_POST will work directly
+            body: formData
         });
         
+        const contentType = res.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+             throw new Error("Server returned non-JSON response");
+        }
+
         const data = await res.json();
 
         if(data.status === 'success'){
             showToast(data.message, 'success');
             bootstrap.Modal.getInstance(document.getElementById('requestModal')).hide();
+            
             setTimeout(() => {
-                window.location.href = "pages/resident/resident_rqs_service.php";
+                window.location.href = "pages/resident/my_requests.php";
             }, 1500);
         } else {
             showToast(data.message, 'error');
