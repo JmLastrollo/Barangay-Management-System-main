@@ -7,14 +7,24 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'Admin') {
 require_once '../../backend/db_connect.php';
 
 // Fetch Requests
-$sql = "SELECT i.*, r.first_name, r.last_name, r.contact_no, 
-        u.first_name as staff_fname, u.last_name as staff_lname
-        FROM document_issuances i 
+// NOTE: Nag-Join tayo sa 'payments' table para makuha ang payment method
+// NOTE: Pinalitan ang 'amount' -> 'price' at 'requested_at' -> 'request_date'
+$sql = "SELECT i.*, 
+        r.first_name, r.last_name, r.contact_no, 
+        u.first_name as staff_fname, u.last_name as staff_lname,
+        p.payment_method, p.amount as paid_amount, p.reference_no
+        FROM issuance i 
         JOIN resident_profiles r ON i.resident_id = r.resident_id 
         LEFT JOIN users u ON i.processed_by = u.user_id
-        ORDER BY i.requested_at DESC";
-$stmt = $conn->query($sql);
-$requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        LEFT JOIN payments p ON i.issuance_id = p.issuance_id
+        ORDER BY i.request_date DESC";
+
+try {
+    $stmt = $conn->query($sql);
+    $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    die("Database Error: " . $e->getMessage());
+}
 ?>
 
 <!DOCTYPE html>
@@ -73,7 +83,7 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <th class="ps-4">Control No.</th>
                                     <th>Resident</th>
                                     <th>Document</th>
-                                    <th>Payment</th>
+                                    <th>Price / Payment</th>
                                     <th>Status</th>
                                     <th>Processed By</th>
                                     <th class="text-center">Action</th>
@@ -86,14 +96,20 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <?php foreach($requests as $row): 
                                         $badgeClass = match($row['status']) {
                                             'Pending' => 'bg-pending',
-                                            'Payment Verified' => 'bg-verified',
+                                            'Payment Verified', 'Approved' => 'bg-verified',
                                             'Ready for Pickup' => 'bg-ready',
-                                            'Released' => 'bg-released',
-                                            'Rejected', 'Expired' => 'bg-rejected',
+                                            'Released', 'Completed' => 'bg-released',
+                                            'Rejected', 'Expired', 'Cancelled' => 'bg-rejected',
                                             default => 'bg-light text-dark'
                                         };
                                         $controlNo = $row['request_control_no'] ?? 'REQ-'.str_pad($row['issuance_id'], 4, '0', STR_PAD_LEFT);
-                                        $processor = $row['staff_fname'] ? $row['staff_fname'].' '.$row['staff_lname'] : '--';
+                                        
+                                        // Handle Processed By Display
+                                        $processor = $row['staff_fname'] ? $row['staff_fname'].' '.$row['staff_lname'] : ($row['processed_by'] ?? '--');
+                                        
+                                        // Handle Payment Display
+                                        $price = $row['price'] ?? 0;
+                                        $payMethod = $row['payment_method'] ?? 'Walk-in/Cash';
                                     ?>
                                     <tr>
                                         <td class="ps-4 fw-bold text-primary font-monospace small"><?= htmlspecialchars($controlNo) ?></td>
@@ -108,8 +124,8 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                             </small>
                                         </td>
                                         <td>
-                                            <div class="fw-bold text-secondary">₱<?= number_format($row['amount'], 2) ?></div>
-                                            <small class="badge bg-light text-dark border"><?= $row['payment_method'] ?></small>
+                                            <div class="fw-bold text-secondary">₱<?= number_format($price, 2) ?></div>
+                                            <small class="badge bg-light text-dark border"><?= htmlspecialchars($payMethod) ?></small>
                                         </td>
                                         <td><span class="badge-status <?= $badgeClass ?>"><?= $row['status'] ?></span></td>
                                         <td><small class="text-muted"><?= htmlspecialchars($processor) ?></small></td>
@@ -141,61 +157,6 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 
-    <div class="modal fade" id="addWalkinModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title fw-bold">Walk-in Request</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <form id="walkinForm">
-                        <input type="hidden" name="action" value="add_walkin">
-                        
-                        <div class="row g-2 mb-3">
-                            <div class="col-6">
-                                <label class="form-label fw-bold small">FIRST NAME</label>
-                                <input type="text" name="first_name" class="form-control" placeholder="Juan" required autocomplete="off">
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label fw-bold small">LAST NAME</label>
-                                <input type="text" name="last_name" class="form-control" placeholder="Dela Cruz" required autocomplete="off">
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold small">DOCUMENT TYPE</label>
-                            <select name="document_type" id="w_doc_type" class="form-select" required onchange="updateWalkinPrice()">
-                                <option value="" disabled selected>Select Document</option>
-                                <option value="Barangay Clearance" data-price="50.00">Barangay Clearance</option>
-                                <option value="Certificate of Residency" data-price="50.00">Certificate of Residency</option>
-                                <option value="Certificate of Indigency" data-price="0.00">Certificate of Indigency</option>
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold small">AMOUNT TO PAY</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light fw-bold">₱</span>
-                                <input type="text" id="w_amount_display" class="form-control fw-bold text-success" value="0.00" readonly>
-                                <input type="hidden" name="amount" id="w_amount" value="0">
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold small">PURPOSE</label>
-                            <textarea name="purpose" class="form-control" rows="2" placeholder="Reason for request..." required></textarea>
-                        </div>
-
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary fw-bold">Submit Request</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="modal fade" id="processModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow">
@@ -214,21 +175,21 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <span class="fw-bold text-dark small" id="p_resident"></span>
                             </div>
                             <div class="d-flex justify-content-between">
-                                <small class="text-muted fw-bold">PAYMENT:</small>
+                                <small class="text-muted fw-bold">PRICE / METHOD:</small>
                                 <span class="fw-bold text-success small" id="p_payment"></span>
                             </div>
                         </div>
 
                         <div class="mb-3 text-center" id="p_proof_container" style="display:none;">
-                            <label class="form-label small fw-bold text-muted">PROOF OF PAYMENT</label>
-                            <img id="p_proof_img" src="" class="img-fluid rounded border shadow-sm" style="max-height: 200px;">
+                            <label class="form-label small fw-bold text-muted">REFERENCE NO. / PROOF</label>
+                            <p id="p_reference" class="fw-bold text-primary"></p>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label fw-bold small">STATUS ACTION</label>
                             <select class="form-select" id="p_status" name="status" required>
                                 <option value="Pending">Pending</option>
-                                <option value="Payment Verified">Payment Verified</option>
+                                <option value="Approved">Approved / Payment Verified</option>
                                 <option value="Ready for Pickup">Ready for Pickup</option>
                                 <option value="Released">Released</option>
                                 <option value="Rejected">Rejected</option>
@@ -242,6 +203,58 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                         <div class="d-grid">
                             <button type="submit" class="btn btn-dark fw-bold">Update Status</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addWalkinModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold">Walk-in Request</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="walkinForm">
+                        <input type="hidden" name="action" value="add_walkin">
+                        
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-bold small">FIRST NAME</label>
+                                <input type="text" name="first_name" class="form-control" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-bold small">LAST NAME</label>
+                                <input type="text" name="last_name" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">DOCUMENT</label>
+                            <select name="document_type" id="w_doc_type" class="form-select" required onchange="updateWalkinPrice()">
+                                <option value="" disabled selected>Select</option>
+                                <option value="Barangay Clearance" data-price="50.00">Barangay Clearance</option>
+                                <option value="Certificate of Residency" data-price="50.00">Certificate of Residency</option>
+                                <option value="Certificate of Indigency" data-price="0.00">Certificate of Indigency</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">PRICE</label>
+                            <input type="text" id="w_amount_display" class="form-control fw-bold text-success" value="0.00" readonly>
+                            <input type="hidden" name="amount" id="w_amount" value="0">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">PURPOSE</label>
+                            <textarea name="purpose" class="form-control" rows="2" required></textarea>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary fw-bold">Submit</button>
                         </div>
                     </form>
                 </div>
@@ -268,26 +281,28 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
             document.getElementById('w_amount').value = price;
         }
 
-        // Add Walkin
-        document.getElementById('walkinForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            submitAction(new FormData(this));
-        });
-
         // Open Modal
         function openProcessModal(data) {
             document.getElementById('p_issuance_id').value = data.issuance_id;
             document.getElementById('p_resident').innerText = data.first_name + ' ' + data.last_name;
-            document.getElementById('p_payment').innerText = '₱' + parseFloat(data.amount).toFixed(2) + ' (' + data.payment_method + ')';
+            
+            let price = data.price || 0;
+            let method = data.payment_method || 'Walk-in/Cash';
+            document.getElementById('p_payment').innerText = '₱' + parseFloat(price).toFixed(2) + ' (' + method + ')';
+            
             document.getElementById('p_status').value = data.status;
 
+            // Handle Proof display via Reference No or just hide it
             const proofDiv = document.getElementById('p_proof_container');
-            if (data.payment_method === 'Online' && data.proof_of_payment) {
+            const refText = document.getElementById('p_reference');
+            
+            if (data.reference_no) {
                 proofDiv.style.display = 'block';
-                document.getElementById('p_proof_img').src = '../../uploads/payments/' + data.proof_of_payment;
+                refText.innerText = data.reference_no;
             } else {
                 proofDiv.style.display = 'none';
             }
+            
             toggleRemarks();
             new bootstrap.Modal(document.getElementById('processModal')).show();
         }
@@ -306,11 +321,32 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
         document.getElementById('p_status').addEventListener('change', toggleRemarks);
 
-        // Update Submit
-        document.getElementById('updateForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            submitAction(new FormData(this));
-        });
+        // Submit Forms Logic (AJAX)
+        function submitForm(formId) {
+            const form = document.getElementById(formId);
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                let formData = new FormData(this);
+                
+                fetch('../../backend/admin_issuance_action.php', { method: 'POST', body: formData })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.status === 'success') {
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('System Error');
+                });
+            });
+        }
+
+        submitForm('updateForm');
+        submitForm('walkinForm');
 
         // Delete Action
         function deleteIssuance(id) {
@@ -318,22 +354,18 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 let fd = new FormData();
                 fd.append('action', 'delete');
                 fd.append('issuance_id', id);
-                submitAction(fd);
+                
+                fetch('../../backend/admin_issuance_action.php', { method: 'POST', body: fd })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.status === 'success') {
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                });
             }
-        }
-
-        // Generic Submit
-        function submitAction(formData) {
-            fetch('../../backend/admin_issuance_action.php', { method: 'POST', body: formData })
-            .then(res => res.json())
-            .then(data => {
-                if(data.status === 'success') {
-                    alert(data.message);
-                    location.reload();
-                } else {
-                    alert('Error: ' + data.message);
-                }
-            });
         }
     </script>
 </body>

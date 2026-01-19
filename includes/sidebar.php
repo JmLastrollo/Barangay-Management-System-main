@@ -6,7 +6,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
 $staff_pages    = ['staff_list.php', 'staff_history.php', 'staff_add.php']; 
 $account_pages  = ['resident_list.php', 'resident_history.php', 'resident_archive.php'];
 
-// ADDED: Issuance Pages Group (Para gumana ang active status)
+// Issuance Pages Group
 $issuance_pages = ['manage_issuances.php', 'admin_issuance.php', 'admin_print.php', 'admin_issuance_archive.php'];
 
 $blotter_pages  = ['admin_rec_blotter.php', 'admin_rec_complaints.php', 'admin_rec_blotter_archive.php', 'admin_rec_complaints_archive.php'];
@@ -150,7 +150,7 @@ if (isset($_SESSION['user_id'])) {
                     <i class="bi bi-file-earmark-text-fill me-2"></i> Issuance
                 </a>
             </li>
-
+            
             <li class="nav-item">
                 <a class="nav-link d-flex justify-content-between align-items-center <?= $is_blotter_active ? 'active' : 'collapsed' ?>" 
                    data-bs-toggle="collapse" 
@@ -175,6 +175,12 @@ if (isset($_SESSION['user_id'])) {
                         </li>
                     </ul>
                 </div>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link <?= $current_page == 'admin_messages.php' ? 'active' : '' ?>" href="admin_messages.php">
+                    <i class="bi bi-chat-dots-fill me-2"></i> Messages
+                </a>
             </li>
 
             <li class="nav-item">

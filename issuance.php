@@ -37,13 +37,16 @@ if (isset($_SESSION['user_id']) && $_SESSION['role'] === 'Resident') {
         .service-card {
             transition: transform 0.3s;
             cursor: pointer;
+            height: 100%;
         }
         .service-card:hover {
             transform: translateY(-5px);
         }
         .card-img-top {
-            height: 180px;
-            object-fit: cover;
+            height: 200px;    
+            object-fit: contain;
+            padding: 15px;    
+            background-color: #f8f9fa; 
         }
     </style>
 </head>
@@ -156,10 +159,7 @@ if (isset($_SESSION['user_id']) && $_SESSION['role'] === 'Resident') {
 <script src="assets/js/bootstrap.bundle.min.js"></script>
 
 <script>
-// --- PASS PHP LOGIN STATUS TO JS ---
 const isLoggedIn = <?php echo json_encode($is_logged_in); ?>;
-
-// --- VARIABLES ---
 const docTypeSelect = document.getElementById('docType');
 const docPriceInput = document.getElementById('docPrice');
 const docTypeDisplay = document.getElementById('docTypeDisplay');
@@ -168,8 +168,6 @@ const indigencyPurpose = document.getElementById('indigencyPurpose');
 const generalReasonDiv = document.getElementById('generalReasonDiv');
 const reasonField = document.getElementById('reasonField');
 const requestForm = document.getElementById('requestForm');
-
-// --- TOAST FUNCTION ---
 function showToast(message, type = "success") {
     const t = document.getElementById("toast");
     t.className = "toast"; 
@@ -178,20 +176,14 @@ function showToast(message, type = "success") {
     t.classList.add("show");
     setTimeout(() => { t.classList.remove("show"); }, 3000);
 }
-
-// --- OPEN MODAL LOGIC ---
 document.querySelectorAll('.openRequestModal').forEach(btn => {
     btn.addEventListener('click', function (e) {
-        
-        // CHECK IF LOGGED IN FIRST
         if (!isLoggedIn) {
             e.preventDefault();
-            // Redirect to Login if guest
             window.location.href = 'login.php'; 
             return;
         }
 
-        // Standard Modal Logic (Only runs if logged in)
         const docType = this.dataset.doc;
         let price = 0;
 
@@ -223,7 +215,6 @@ document.querySelectorAll('.openRequestModal').forEach(btn => {
     });
 });
 
-// --- SUBMIT LOGIC ---
 requestForm.addEventListener('submit', async e => {
     e.preventDefault();
 
